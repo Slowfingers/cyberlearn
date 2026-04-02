@@ -279,6 +279,81 @@ export const getClassStudents = (classId: string): StudentProgress[] => {
     });
 };
 
+// --- STREAK SYSTEM ---
+
+const STREAK_PREFIX = 'cyberlearn_streak_';
+
+export interface StreakData {
+    currentStreak: number;
+    longestStreak: number;
+    lastActiveDate: string; // YYYY-MM-DD
+    tasksToday: number;
+    todayDate: string;
+}
+
+const getTodayStr = (): string => {
+    const d = new Date();
+    return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
+};
+
+export const getStreak = (userId: string): StreakData => {
+    const key = `${STREAK_PREFIX}${userId}`;
+    const saved = localStorage.getItem(key);
+    const today = getTodayStr();
+    if (saved) {
+        const data: StreakData = JSON.parse(saved);
+        // Reset tasksToday if it's a new day
+        if (data.todayDate !== today) {
+            data.tasksToday = 0;
+            data.todayDate = today;
+        }
+        // Check if streak is broken (missed more than 1 day)
+        if (data.lastActiveDate) {
+            const lastDate = new Date(data.lastActiveDate);
+            const todayDate = new Date(today);
+            const diffDays = Math.floor((todayDate.getTime() - lastDate.getTime()) / (1000 * 60 * 60 * 24));
+            if (diffDays > 1) {
+                data.currentStreak = 0; // Streak broken
+            }
+        }
+        return data;
+    }
+    return { currentStreak: 0, longestStreak: 0, lastActiveDate: '', tasksToday: 0, todayDate: today };
+};
+
+export const recordActivity = (userId: string): StreakData => {
+    const key = `${STREAK_PREFIX}${userId}`;
+    const streak = getStreak(userId);
+    const today = getTodayStr();
+
+    streak.tasksToday += 1;
+
+    if (streak.lastActiveDate !== today) {
+        // First activity of the day
+        const lastDate = streak.lastActiveDate ? new Date(streak.lastActiveDate) : null;
+        const todayDate = new Date(today);
+        
+        if (lastDate) {
+            const diffDays = Math.floor((todayDate.getTime() - lastDate.getTime()) / (1000 * 60 * 60 * 24));
+            if (diffDays === 1) {
+                streak.currentStreak += 1; // Consecutive day
+            } else if (diffDays > 1) {
+                streak.currentStreak = 1; // Streak broken, start fresh
+            }
+            // diffDays === 0 shouldn't happen since we checked lastActiveDate !== today
+        } else {
+            streak.currentStreak = 1; // First ever activity
+        }
+        
+        streak.lastActiveDate = today;
+        streak.longestStreak = Math.max(streak.longestStreak, streak.currentStreak);
+    }
+
+    streak.todayDate = today;
+    localStorage.setItem(key, JSON.stringify(streak));
+    return streak;
+};
+
 // --- FANTASY ---
 export const getFantasyProgress = (userId: string) => {
     const key = `${FANTASY_PROGRESS_PREFIX}${userId}`;

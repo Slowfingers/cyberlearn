@@ -4,7 +4,7 @@ import { COSMETICS, ACHIEVEMENTS } from '../constants';
 import { Task, ExecutionResult, User, Course } from '../types';
 import { checkCodeWithAI, generateHint } from '../services/geminiService';
 import { evaluateCodeLocally } from '../services/localEvaluation'; 
-import { calculateLevel, getNextLevelThreshold, updateUserProfile, getAllTasks, getCoursesWithProgress, buyItem, equipItem, saveTaskProgress, getHiddenCoursesForStudent } from '../services/mockBackend';
+import { calculateLevel, getNextLevelThreshold, updateUserProfile, getAllTasks, getCoursesWithProgress, buyItem, equipItem, saveTaskProgress, getHiddenCoursesForStudent, getStreak, recordActivity, StreakData } from '../services/mockBackend';
 import GameGrid from './GameGrid';
 import HanoiGame from './HanoiGame';
 import BlockCoding from './BlockCoding';
@@ -67,6 +67,9 @@ const StudentDashboard: React.FC<StudentDashboardProps> = ({ currentUser: propUs
   const dismissToast = useCallback((id: string) => {
       setToasts(prev => prev.filter(t => t.id !== id));
   }, []);
+
+  // Streak / Daily progress
+  const [streak, setStreak] = useState<StreakData>(() => getStreak(propUser.id));
 
   // Live Feed visualization for terminal tasks
   const [liveOutput, setLiveOutput] = useState<{ text: string; type: 'cmd' | 'out' | 'ok' | 'err' | 'info' }[]>([]);
@@ -338,6 +341,9 @@ const StudentDashboard: React.FC<StudentDashboardProps> = ({ currentUser: propUs
       // Only award XP and Currency if the task wasn't already completed
       setLastXpAwarded(!isAlreadyCompleted);
       if (currentUser && !isAlreadyCompleted) {
+          // Record streak activity
+          const updatedStreak = recordActivity(currentUser.id);
+          setStreak(updatedStreak);
           // Calculate penalty based on failed attempts
           const attempts = attemptCount[task.id] || 0;
           const penaltyPercent = Math.min(attempts * 20, 80); // Max 80% penalty (min 20% reward)
@@ -490,6 +496,23 @@ const StudentDashboard: React.FC<StudentDashboardProps> = ({ currentUser: propUs
 
                     {currentUser && (
                         <div className="flex items-center gap-2 md:gap-4 w-full md:w-auto">
+                            {/* STREAK DISPLAY */}
+                            {streak.currentStreak > 0 && (
+                                <div className="flex items-center gap-1.5 bg-black border border-orange-500/50 px-2.5 py-1.5 rounded" title={`Рекорд: ${streak.longestStreak} дней`}>
+                                    <Flame size={14} className="text-orange-400 shrink-0" />
+                                    <span className="font-mono font-bold text-orange-400 text-sm">{streak.currentStreak}</span>
+                                </div>
+                            )}
+
+                            {/* DAILY PROGRESS */}
+                            {streak.tasksToday > 0 && (
+                                <div className="flex items-center gap-1.5 bg-black border border-cyber-neonGreen/50 px-2.5 py-1.5 rounded">
+                                    <CheckCircle size={14} className="text-cyber-neonGreen shrink-0" />
+                                    <span className="font-mono font-bold text-cyber-neonGreen text-sm">{streak.tasksToday}</span>
+                                    <span className="hidden sm:inline text-[10px] text-gray-500">сегодня</span>
+                                </div>
+                            )}
+
                             {/* CURRENCY DISPLAY */}
                             <div className="flex items-center gap-1.5 bg-black border border-cyber-neonYellow/50 px-2.5 py-1.5 rounded">
                                 <Coins size={14} className="text-cyber-neonYellow shrink-0" />
@@ -641,6 +664,18 @@ const StudentDashboard: React.FC<StudentDashboardProps> = ({ currentUser: propUs
                                 <div className="bg-gray-900 border border-gray-800 rounded-lg p-3 text-center">
                                     <div className="text-cyber-neonGreen font-mono font-bold text-lg">{totalCompleted}</div>
                                     <div className="text-gray-500 text-[10px] uppercase tracking-wider">Задач</div>
+                                </div>
+                                <div className="bg-gray-900 border border-orange-500/30 rounded-lg p-3 text-center">
+                                    <div className="text-orange-400 font-mono font-bold text-lg">{streak.currentStreak}</div>
+                                    <div className="text-gray-500 text-[10px] uppercase tracking-wider">Streak</div>
+                                </div>
+                                <div className="bg-gray-900 border border-gray-800 rounded-lg p-3 text-center">
+                                    <div className="text-orange-300 font-mono font-bold text-lg">{streak.longestStreak}</div>
+                                    <div className="text-gray-500 text-[10px] uppercase tracking-wider">Рекорд</div>
+                                </div>
+                                <div className="bg-gray-900 border border-gray-800 rounded-lg p-3 text-center">
+                                    <div className="text-cyber-neonGreen font-mono font-bold text-lg">{streak.tasksToday}</div>
+                                    <div className="text-gray-500 text-[10px] uppercase tracking-wider">Сегодня</div>
                                 </div>
                             </div>
 
@@ -834,11 +869,24 @@ const StudentDashboard: React.FC<StudentDashboardProps> = ({ currentUser: propUs
         </div>
 
         <div ref={sidebarRef} className="flex-1 overflow-y-auto p-2 space-y-4 custom-scrollbar pb-6">
-            {modules.map((modName) => (
+            {modules.map((modName) => {
+                const modTasks = filteredTasks.filter(t => t.module === modName);
+                const modCompleted = modTasks.filter(t => t.status === 'completed').length;
+                const modTotal = modTasks.length;
+                const modProgress = modTotal > 0 ? Math.round((modCompleted / modTotal) * 100) : 0;
+                return (
                 <div key={modName}>
-                    <h3 className="text-[10px] font-bold text-gray-500 uppercase mb-2 pl-2 tracking-widest border-l-2 border-gray-700 ml-1">
-                        {modName}
-                    </h3>
+                    <div className="flex items-center justify-between mb-2 pl-2 ml-1 border-l-2 border-gray-700">
+                        <h3 className="text-[10px] font-bold text-gray-500 uppercase tracking-widest">
+                            {modName}
+                        </h3>
+                        <div className="flex items-center gap-1.5 pr-1">
+                            <div className="w-12 h-1 bg-gray-800 rounded-full overflow-hidden">
+                                <div className="h-full bg-cyber-neonGreen transition-all duration-300" style={{ width: `${modProgress}%` }}></div>
+                            </div>
+                            <span className="text-[9px] font-mono text-gray-600">{modCompleted}/{modTotal}</span>
+                        </div>
+                    </div>
                     <div className="space-y-1">
                         {filteredTasks.filter(t => t.module === modName).map(task => (
                              <button 
@@ -880,7 +928,8 @@ const StudentDashboard: React.FC<StudentDashboardProps> = ({ currentUser: propUs
                         ))}
                     </div>
                 </div>
-            ))}
+                );
+            })}
         </div>
       </div>
 
