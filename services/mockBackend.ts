@@ -265,15 +265,55 @@ export const getClassStudents = (classId: string): StudentProgress[] => {
     const users = getUsers();
     const realStudents = users.filter(u => targetClass.studentIds.includes(u.id));
 
+    // Get all tasks for course progress calculation
+    const allCourseTasks: Record<string, { courseId: string; title: string; color: string; taskIds: string[] }> = {};
+    COURSES.forEach(course => {
+        const courseTasks = MOCK_TASKS.filter(t => t.courseId === course.id);
+        allCourseTasks[course.id] = {
+            courseId: course.id,
+            title: course.title.split(':')[0],
+            color: course.color,
+            taskIds: courseTasks.map(t => t.id),
+        };
+    });
+
     return realStudents.map(s => {
         const progress = getTaskProgress(s.id);
         const tasksCompleted = Object.values(progress).filter(v => v === 'completed').length;
+        const totalTasks = MOCK_TASKS.length;
+
+        // Streak data
+        const streakData = getStreak(s.id);
+        
+        // Last active
+        let lastActive = 'Неизвестно';
+        if (streakData.lastActiveDate) {
+            const today = new Date();
+            const last = new Date(streakData.lastActiveDate);
+            const diffMs = today.getTime() - last.getTime();
+            const diffDays = Math.floor(diffMs / (1000 * 60 * 60 * 24));
+            if (diffDays === 0) lastActive = 'Сегодня';
+            else if (diffDays === 1) lastActive = 'Вчера';
+            else if (diffDays < 7) lastActive = `${diffDays} дн. назад`;
+            else lastActive = `${Math.floor(diffDays / 7)} нед. назад`;
+        }
+
+        // Per-course progress
+        const courseProgress = Object.values(allCourseTasks).map(c => {
+            const completed = c.taskIds.filter(tid => progress[tid] === 'completed').length;
+            return { courseId: c.courseId, title: c.title, completed, total: c.taskIds.length, color: c.color };
+        });
+
         return {
             studentId: s.id,
             name: s.name,
             tasksCompleted,
+            totalTasks,
             totalXP: s.xp || 0,
-            lastActive: 'Сейчас',
+            level: s.level || 1,
+            lastActive,
+            streak: streakData.currentStreak,
+            courseProgress,
             skills: { loops: 50, variables: 50, logic: 50 }
         };
     });

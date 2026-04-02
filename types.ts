@@ -141,8 +141,12 @@ export interface StudentProgress {
   studentId: string;
   name: string;
   tasksCompleted: number;
+  totalTasks: number;
   totalXP: number;
+  level: number;
   lastActive: string;
+  streak: number;
+  courseProgress: { courseId: string; title: string; completed: number; total: number; color: string }[];
   skills: {
     loops: number;
     variables: number;

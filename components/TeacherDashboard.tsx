@@ -1,12 +1,12 @@
 
-
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { Classroom, User, StudentProgress, Task } from '../types';
 import { createClassroom, getClassStudents, createTaskForClass, updateClassroom } from '../services/mockBackend';
 import { COURSES } from '../constants';
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts';
-import { Users, Activity, BrainCircuit, Key, Copy, PlusCircle, RefreshCw, Layers, ChevronRight, Hash, Edit3, Save, Flag, PlayCircle, Ban, Menu, X, ArrowLeft, LogOut, BookOpen, EyeOff, Eye } from 'lucide-react';
+import { Users, Activity, BrainCircuit, Key, Copy, PlusCircle, RefreshCw, Layers, ChevronRight, Hash, Edit3, Save, Flag, PlayCircle, Ban, Menu, X, ArrowLeft, LogOut, BookOpen, EyeOff, Eye, Flame, Trophy, ChevronDown, ChevronUp, CheckCircle, ArrowUpDown, Target } from 'lucide-react';
 import { playSound } from '../utils/sound';
+import CyberToast, { ToastMessage } from './CyberToast';
 
 interface TeacherDashboardProps {
   currentUser: User;
@@ -15,6 +15,9 @@ interface TeacherDashboardProps {
   onSelectClass: (id: string | null) => void;
   onClassCreated: (newClass: Classroom) => void;
 }
+
+type SortKey = 'name' | 'totalXP' | 'tasksCompleted' | 'level' | 'streak';
+type SortDir = 'asc' | 'desc';
 
 const TeacherDashboard: React.FC<TeacherDashboardProps> = ({ 
     currentUser, 
@@ -31,24 +34,56 @@ const TeacherDashboard: React.FC<TeacherDashboardProps> = ({
   const [students, setStudents] = useState<StudentProgress[]>([]);
   const [isCreatingClass, setIsCreatingClass] = useState(false);
 
+  // Student detail view
+  const [selectedStudent, setSelectedStudent] = useState<StudentProgress | null>(null);
+
+  // Sorting
+  const [sortKey, setSortKey] = useState<SortKey>('totalXP');
+  const [sortDir, setSortDir] = useState<SortDir>('desc');
+
+  // Class renaming
+  const [isRenaming, setIsRenaming] = useState(false);
+  const [renameValue, setRenameValue] = useState('');
+
+  // Toast notifications
+  const [toasts, setToasts] = useState<ToastMessage[]>([]);
+  const addToast = useCallback((text: string, type: ToastMessage['type'] = 'info') => {
+      setToasts(prev => [...prev, { id: `t_${Date.now()}_${Math.random()}`, text, type }]);
+  }, []);
+  const dismissToast = useCallback((id: string) => {
+      setToasts(prev => prev.filter(t => t.id !== id));
+  }, []);
+
   // Task Creator State
   const [taskTitle, setTaskTitle] = useState('');
   const [taskDesc, setTaskDesc] = useState('');
   const [gridSize, setGridSize] = useState(5);
   const [editorMode, setEditorMode] = useState<'wall' | 'start' | 'end'>('wall');
-  const [obstacles, setObstacles] = useState<string[]>([]); // "x,y" strings
+  const [obstacles, setObstacles] = useState<string[]>([]);
   const [startPos, setStartPos] = useState<[number, number]>([0,0]);
   const [endPos, setEndPos] = useState<[number, number]>([gridSize-1, gridSize-1]);
 
   // Derived state
   const currentClass = classrooms.find(c => c.id === activeClassId);
 
+  // Sorted students
+  const sortedStudents = [...students].sort((a, b) => {
+      const aVal = a[sortKey];
+      const bVal = b[sortKey];
+      if (typeof aVal === 'string' && typeof bVal === 'string') {
+          return sortDir === 'asc' ? aVal.localeCompare(bVal) : bVal.localeCompare(aVal);
+      }
+      return sortDir === 'asc' ? (aVal as number) - (bVal as number) : (bVal as number) - (aVal as number);
+  });
+
+  // Stats
+  const avgCompletion = students.length > 0
+      ? Math.round(students.reduce((sum, s) => sum + (s.totalTasks > 0 ? (s.tasksCompleted / s.totalTasks) * 100 : 0), 0) / students.length)
+      : 0;
+  const totalTasksDone = students.reduce((sum, s) => sum + s.tasksCompleted, 0);
+
   useEffect(() => {
-    if (classrooms.length === 0 && !isCreatingClass) {
-        // If no classes, forcing creation might be annoying on mobile login, 
-        // but let's keep it for now or just show the list view empty state.
-        // Actually, let's allow "No selection" to show the list on mobile.
-    }
+    if (classrooms.length === 0 && !isCreatingClass) {}
   }, [classrooms.length]);
 
   useEffect(() => {
@@ -57,6 +92,7 @@ const TeacherDashboard: React.FC<TeacherDashboardProps> = ({
         setIsCreatingClass(false);
         setViewMode('dashboard');
         setIsMobileMenuOpen(false);
+        setSelectedStudent(null);
     } else if (activeClassId === 'NEW') {
         setIsCreatingClass(true);
         setIsMobileMenuOpen(false);
@@ -65,18 +101,48 @@ const TeacherDashboard: React.FC<TeacherDashboardProps> = ({
 
   const handleCreateClass = (e: React.FormEvent) => {
       e.preventDefault();
-      playSound('success');
       if (!newClassName.trim()) return;
+      playSound('success');
       const cls = createClassroom(currentUser.id, newClassName);
       onClassCreated(cls);
       setNewClassName('');
       setIsCreatingClass(false);
+      addToast(`Сектор "${newClassName}" создан`, 'success');
+  };
+
+  const handleRenameClass = () => {
+      if (!currentClass || !renameValue.trim()) return;
+      const updated = { ...currentClass, name: renameValue.trim() };
+      updateClassroom(updated);
+      onClassCreated(updated);
+      setIsRenaming(false);
+      playSound('success');
+      addToast('Сектор переименован', 'success');
   };
 
   const copyCode = () => {
       if(currentClass) {
           navigator.clipboard.writeText(currentClass.inviteCode);
           playSound('click');
+          addToast('Код скопирован', 'info');
+      }
+  };
+
+  const handleSort = (key: SortKey) => {
+      if (sortKey === key) {
+          setSortDir(prev => prev === 'asc' ? 'desc' : 'asc');
+      } else {
+          setSortKey(key);
+          setSortDir('desc');
+      }
+      playSound('click');
+  };
+
+  const refreshStudents = () => {
+      if (currentClass) {
+          setStudents(getClassStudents(currentClass.id));
+          playSound('click');
+          addToast('Данные обновлены', 'info');
       }
   };
 
@@ -88,7 +154,6 @@ const TeacherDashboard: React.FC<TeacherDashboardProps> = ({
       } else if (editorMode === 'end') {
           setEndPos([x,y]);
       } else if (editorMode === 'wall') {
-          // Toggle
           const key = `${x},${y}`;
           if (obstacles.includes(key)) {
               setObstacles(prev => prev.filter(o => o !== key));
@@ -101,12 +166,13 @@ const TeacherDashboard: React.FC<TeacherDashboardProps> = ({
   const saveTask = () => {
       if (!currentClass || !taskTitle) {
           playSound('error');
+          addToast('Заполните название миссии', 'error');
           return;
       }
       
       const newTask: Task = {
           id: `custom_${Date.now()}`,
-          courseId: 'course_cs101', // Default course for custom tasks
+          courseId: 'course_cs101',
           module: 'Кастомные миссии',
           title: taskTitle,
           type: 'grid',
@@ -115,7 +181,7 @@ const TeacherDashboard: React.FC<TeacherDashboardProps> = ({
           allowedCommands: ['moveRight();', 'moveDown();', 'moveLeft();', 'moveUp();', 'for loop'],
           difficulty: 'Хакер',
           xpReward: 500,
-          currencyReward: 100, // Added
+          currencyReward: 100,
           status: 'open',
           initialCode: '// Ваш код здесь\n',
           mapConfig: {
@@ -131,9 +197,8 @@ const TeacherDashboard: React.FC<TeacherDashboardProps> = ({
       
       createTaskForClass(currentClass.id, newTask);
       playSound('success');
-      alert('Миссия создана и доступна студентам!');
+      addToast('Миссия создана и доступна студентам!', 'success');
       setViewMode('dashboard');
-      // Reset form
       setTaskTitle('');
       setTaskDesc('');
       setObstacles([]);
@@ -205,6 +270,7 @@ const TeacherDashboard: React.FC<TeacherDashboardProps> = ({
 
   return (
     <div className="flex flex-col md:flex-row h-full overflow-hidden relative">
+        <CyberToast toasts={toasts} onDismiss={dismissToast} />
         
         {/* --- MOBILE: LIST VIEW (Master) --- */}
         {/* Only visible on mobile when NO class is selected OR when creating new */}
@@ -310,22 +376,46 @@ const TeacherDashboard: React.FC<TeacherDashboardProps> = ({
                 // VIEW MODES
                 viewMode === 'dashboard' ? (
                     <div className="p-4 md:p-6 pb-20 md:pb-6">
+                        {/* HEADER with rename */}
                         <div className="mb-8 flex flex-col xl:flex-row xl:items-end justify-between gap-4">
                             <div>
-                                <h2 className="text-2xl md:text-3xl font-bold text-white mb-2 tracking-widest font-sans uppercase break-words">{currentClass.name}</h2>
-                                <p className="text-cyber-neonBlue font-mono text-sm">{'>> СТАТУС: АКТИВЕН'}</p>
+                                {isRenaming ? (
+                                    <div className="flex items-center gap-2 mb-2">
+                                        <input
+                                            type="text"
+                                            value={renameValue}
+                                            onChange={(e) => setRenameValue(e.target.value)}
+                                            onKeyDown={(e) => e.key === 'Enter' && handleRenameClass()}
+                                            className="text-2xl md:text-3xl font-bold bg-transparent border-b-2 border-cyber-neonBlue text-white focus:outline-none uppercase tracking-widest"
+                                            autoFocus
+                                        />
+                                        <button onClick={handleRenameClass} className="text-cyber-neonGreen hover:text-white p-1"><Save size={20}/></button>
+                                        <button onClick={() => setIsRenaming(false)} className="text-gray-500 hover:text-white p-1"><X size={20}/></button>
+                                    </div>
+                                ) : (
+                                    <div className="flex items-center gap-3 mb-2">
+                                        <h2 className="text-2xl md:text-3xl font-bold text-white tracking-widest font-sans uppercase break-words">{currentClass.name}</h2>
+                                        <button
+                                            onClick={() => { setRenameValue(currentClass.name); setIsRenaming(true); }}
+                                            className="text-gray-600 hover:text-cyber-neonBlue transition-colors p-1"
+                                            title="Переименовать"
+                                        >
+                                            <Edit3 size={16} />
+                                        </button>
+                                    </div>
+                                )}
+                                <p className="text-cyber-neonBlue font-mono text-sm">{'>> СТАТУС: АКТИВЕН'} • {students.length} студентов</p>
                             </div>
 
-                            <div className="flex flex-col sm:flex-row gap-4">
+                            <div className="flex flex-col sm:flex-row gap-3">
                                 <button 
                                     onClick={() => setViewMode('create-task')}
-                                    className="px-6 py-3 bg-cyber-neonPink/10 border border-cyber-neonPink text-cyber-neonPink hover:bg-cyber-neonPink hover:text-black transition-all uppercase font-bold text-xs tracking-widest flex items-center justify-center gap-2"
+                                    className="px-5 py-3 bg-cyber-neonPink/10 border border-cyber-neonPink text-cyber-neonPink hover:bg-cyber-neonPink hover:text-black transition-all uppercase font-bold text-xs tracking-widest flex items-center justify-center gap-2 rounded"
                                 >
                                     <Edit3 size={16} /> Создать Миссию
                                 </button>
 
-                                {/* INVITE CODE WIDGET */}
-                                <div className="bg-cyber-dark border border-cyber-neonGreen p-2 px-4 flex items-center justify-between gap-4 shadow-[0_0_20px_rgba(0,255,65,0.1)]">
+                                <div className="bg-cyber-dark border border-cyber-neonGreen p-2 px-4 flex items-center justify-between gap-4 shadow-[0_0_20px_rgba(0,255,65,0.1)] rounded">
                                     <div className="flex flex-col">
                                         <div className="text-gray-500 text-[8px] font-bold uppercase tracking-widest mb-1">Код доступа</div>
                                         <div className="text-lg md:text-xl font-mono font-bold text-cyber-neonGreen tracking-wider">{currentClass.inviteCode}</div>
@@ -341,36 +431,30 @@ const TeacherDashboard: React.FC<TeacherDashboardProps> = ({
                             </div>
                         </div>
 
-                        {/* Stats Grid */}
-                        <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-8">
-                            <div className="bg-cyber-panel border border-cyber-neonBlue/30 p-4 md:p-6 relative overflow-hidden group hover:border-cyber-neonBlue transition-colors rounded">
-                                <div className="absolute top-0 right-0 p-2 opacity-10 group-hover:opacity-20 transition-opacity">
-                                    <Users size={64} />
-                                </div>
-                                <h3 className="text-gray-400 font-mono text-xs mb-1">АКТИВНЫЕ СТУДЕНТЫ</h3>
-                                <div className="text-3xl md:text-4xl font-bold text-white">{students.length}</div>
-                                <div className="w-full h-1 bg-gray-800 mt-4">
-                                    <div className="h-full bg-cyber-neonGreen w-[100%]"></div>
+                        {/* Stats Grid — REAL DATA */}
+                        <div className="grid grid-cols-2 md:grid-cols-4 gap-3 md:gap-4 mb-8">
+                            <div className="bg-cyber-panel border border-cyber-neonBlue/30 p-4 relative overflow-hidden group hover:border-cyber-neonBlue transition-colors rounded">
+                                <div className="absolute top-0 right-0 p-2 opacity-10 group-hover:opacity-20 transition-opacity"><Users size={48} /></div>
+                                <h3 className="text-gray-400 font-mono text-[10px] mb-1">СТУДЕНТЫ</h3>
+                                <div className="text-2xl md:text-3xl font-bold text-white">{students.length}</div>
+                            </div>
+                            <div className="bg-cyber-panel border border-cyber-neonPink/30 p-4 relative overflow-hidden group hover:border-cyber-neonPink transition-colors rounded">
+                                <div className="absolute top-0 right-0 p-2 opacity-10 group-hover:opacity-20 transition-opacity"><Activity size={48} /></div>
+                                <h3 className="text-gray-400 font-mono text-[10px] mb-1">СРЕДНИЙ %</h3>
+                                <div className="text-2xl md:text-3xl font-bold text-white">{avgCompletion}%</div>
+                                <div className="w-full h-1 bg-gray-800 mt-3 rounded-full overflow-hidden">
+                                    <div className="h-full bg-cyber-neonPink transition-all" style={{ width: `${avgCompletion}%` }}></div>
                                 </div>
                             </div>
-
-                            <div className="bg-cyber-panel border border-cyber-neonPink/30 p-4 md:p-6 relative overflow-hidden group hover:border-cyber-neonPink transition-colors rounded">
-                                <div className="absolute top-0 right-0 p-2 opacity-10 group-hover:opacity-20 transition-opacity">
-                                    <Activity size={64} />
-                                </div>
-                                <h3 className="text-gray-400 font-mono text-xs mb-1">СРЕДНИЙ % ВЫПОЛНЕНИЯ</h3>
-                                <div className="text-3xl md:text-4xl font-bold text-white">--%</div>
-                                <div className="w-full h-1 bg-gray-800 mt-4">
-                                    <div className="h-full bg-cyber-neonPink w-[50%]"></div>
-                                </div>
+                            <div className="bg-cyber-panel border border-cyber-neonYellow/30 p-4 relative overflow-hidden group hover:border-cyber-neonYellow transition-colors rounded">
+                                <div className="absolute top-0 right-0 p-2 opacity-10 group-hover:opacity-20 transition-opacity"><Target size={48} /></div>
+                                <h3 className="text-gray-400 font-mono text-[10px] mb-1">ЗАДАЧ РЕШЕНО</h3>
+                                <div className="text-2xl md:text-3xl font-bold text-white">{totalTasksDone}</div>
                             </div>
-
-                            <div className="bg-cyber-panel border border-cyber-neonYellow/30 p-4 md:p-6 relative overflow-hidden group hover:border-cyber-neonYellow transition-colors rounded">
-                                <div className="absolute top-0 right-0 p-2 opacity-10 group-hover:opacity-20 transition-opacity">
-                                    <BrainCircuit size={64} />
-                                </div>
-                                <h3 className="text-gray-400 font-mono text-xs mb-1">ЗАПРОСЫ К ИИ</h3>
-                                <div className="text-3xl md:text-4xl font-bold text-white">0</div>
+                            <div className="bg-cyber-panel border border-cyber-neonGreen/30 p-4 relative overflow-hidden group hover:border-cyber-neonGreen transition-colors rounded">
+                                <div className="absolute top-0 right-0 p-2 opacity-10 group-hover:opacity-20 transition-opacity"><Trophy size={48} /></div>
+                                <h3 className="text-gray-400 font-mono text-[10px] mb-1">ЛУЧШИЙ XP</h3>
+                                <div className="text-2xl md:text-3xl font-bold text-white">{students.length > 0 ? Math.max(...students.map(s => s.totalXP)) : 0}</div>
                             </div>
                         </div>
 
@@ -379,71 +463,114 @@ const TeacherDashboard: React.FC<TeacherDashboardProps> = ({
                                 <Key className="mx-auto text-gray-600 mb-4" size={48} />
                                 <h3 className="text-gray-300 font-bold text-lg mb-2">Сектор пуст</h3>
                                 <p className="text-gray-500 max-w-md mx-auto text-sm">
-                                    Передайте код <span className="text-cyber-neonGreen font-mono font-bold">{currentClass.inviteCode}</span> ученикам, чтобы они могли подключиться к этому сектору.
+                                    Передайте код <span className="text-cyber-neonGreen font-mono font-bold">{currentClass.inviteCode}</span> ученикам, чтобы они могли подключиться.
                                 </p>
                             </div>
                         ) : (
-                            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
-                                {/* Bar Chart: XP Leaderboard */}
-                                <div className="bg-cyber-panel border border-gray-800 p-4 rounded">
-                                    <h3 className="text-cyber-neonBlue font-mono text-sm mb-4">{'>> МЕТРИКИ_XP_СТУДЕНТОВ'}</h3>
-                                    <div className="h-64">
-                                        <ResponsiveContainer width="100%" height="100%">
-                                            <BarChart data={students}>
-                                                <CartesianGrid strokeDasharray="3 3" stroke="#333" />
-                                                <XAxis dataKey="name" stroke="#666" fontSize={10} tick={{fill: '#888'}} />
-                                                <YAxis stroke="#666" fontSize={10} tick={{fill: '#888'}} />
-                                                <Tooltip 
-                                                    contentStyle={{ backgroundColor: '#0a0a0f', borderColor: '#00f3ff', color: '#fff' }} 
-                                                    itemStyle={{ color: '#00f3ff' }}
-                                                    cursor={{fill: 'rgba(0, 243, 255, 0.1)'}}
-                                                />
-                                                <Bar dataKey="totalXP" fill="#00f3ff" radius={[4, 4, 0, 0]} />
-                                            </BarChart>
-                                        </ResponsiveContainer>
-                                    </div>
-                                </div>
-
-                                {/* Student List Table */}
-                                <div className="bg-cyber-panel border border-gray-800 flex flex-col rounded">
-                                    <div className="p-4 border-b border-gray-800 flex justify-between items-center">
-                                        <h3 className="text-white font-bold font-sans">СПИСОК ГРУППЫ</h3>
-                                        <button 
-                                            onClick={() => setStudents(getClassStudents(currentClass.id))}
-                                            className="text-gray-500 hover:text-white"
-                                        >
-                                            <RefreshCw size={14} />
-                                        </button>
-                                    </div>
-                                    <div className="overflow-x-auto flex-1">
-                                        <table className="w-full text-left text-sm font-mono text-gray-400">
-                                            <thead className="bg-black text-cyber-neonBlue uppercase text-xs">
-                                                <tr>
-                                                    <th className="p-4 whitespace-nowrap">Имя</th>
-                                                    <th className="p-4 whitespace-nowrap">Статус</th>
-                                                    <th className="p-4 whitespace-nowrap">XP</th>
-                                                </tr>
-                                            </thead>
-                                            <tbody className="divide-y divide-gray-800">
-                                                {students.map((student) => (
-                                                    <tr key={student.studentId} className="hover:bg-gray-800/50 transition-colors">
-                                                        <td className="p-4 text-white font-bold whitespace-nowrap">{student.name}</td>
-                                                        <td className="p-4 whitespace-nowrap">
-                                                            <span className="inline-block w-2 h-2 rounded-full mr-2 bg-cyber-neonGreen animate-pulse"></span>
-                                                            ОНЛАЙН
-                                                        </td>
-                                                        <td className="p-4 font-mono text-cyber-neonYellow whitespace-nowrap">{student.totalXP}</td>
-                                                    </tr>
-                                                ))}
-                                            </tbody>
-                                        </table>
-                                    </div>
+                            <>
+                            {/* XP Chart */}
+                            <div className="bg-cyber-panel border border-gray-800 p-4 rounded mb-6">
+                                <h3 className="text-cyber-neonBlue font-mono text-sm mb-4">{'>> РЕЙТИНГ XP'}</h3>
+                                <div className="h-48 md:h-64">
+                                    <ResponsiveContainer width="100%" height="100%">
+                                        <BarChart data={sortedStudents}>
+                                            <CartesianGrid strokeDasharray="3 3" stroke="#333" />
+                                            <XAxis dataKey="name" stroke="#666" fontSize={10} tick={{fill: '#888'}} />
+                                            <YAxis stroke="#666" fontSize={10} tick={{fill: '#888'}} />
+                                            <Tooltip 
+                                                contentStyle={{ backgroundColor: '#0a0a0f', borderColor: '#00f3ff', color: '#fff' }} 
+                                                itemStyle={{ color: '#00f3ff' }}
+                                                cursor={{fill: 'rgba(0, 243, 255, 0.1)'}}
+                                            />
+                                            <Bar dataKey="totalXP" fill="#00f3ff" radius={[4, 4, 0, 0]} name="XP" />
+                                        </BarChart>
+                                    </ResponsiveContainer>
                                 </div>
                             </div>
+
+                            {/* SORTABLE STUDENT TABLE */}
+                            <div className="bg-cyber-panel border border-gray-800 flex flex-col rounded mb-6">
+                                <div className="p-4 border-b border-gray-800 flex justify-between items-center">
+                                    <h3 className="text-white font-bold font-sans flex items-center gap-2"><Users size={16} className="text-cyber-neonBlue" /> СПИСОК ГРУППЫ</h3>
+                                    <button onClick={refreshStudents} className="text-gray-500 hover:text-white flex items-center gap-1 text-xs">
+                                        <RefreshCw size={14} /> <span className="hidden sm:inline">Обновить</span>
+                                    </button>
+                                </div>
+                                <div className="overflow-x-auto">
+                                    <table className="w-full text-left text-sm font-mono text-gray-400">
+                                        <thead className="bg-black text-cyber-neonBlue uppercase text-[10px]">
+                                            <tr>
+                                                {([
+                                                    ['name', 'Имя'],
+                                                    ['level', 'LVL'],
+                                                    ['totalXP', 'XP'],
+                                                    ['tasksCompleted', 'Задачи'],
+                                                    ['streak', 'Streak'],
+                                                ] as [SortKey, string][]).map(([key, label]) => (
+                                                    <th
+                                                        key={key}
+                                                        onClick={() => handleSort(key)}
+                                                        className="p-3 whitespace-nowrap cursor-pointer hover:text-white transition-colors select-none"
+                                                    >
+                                                        <span className="flex items-center gap-1">
+                                                            {label}
+                                                            {sortKey === key ? (
+                                                                sortDir === 'asc' ? <ChevronUp size={12} /> : <ChevronDown size={12} />
+                                                            ) : (
+                                                                <ArrowUpDown size={10} className="opacity-30" />
+                                                            )}
+                                                        </span>
+                                                    </th>
+                                                ))}
+                                                <th className="p-3 whitespace-nowrap">Активность</th>
+                                                <th className="p-3 whitespace-nowrap">Прогресс</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody className="divide-y divide-gray-800">
+                                            {sortedStudents.map((student) => {
+                                                const pct = student.totalTasks > 0 ? Math.round((student.tasksCompleted / student.totalTasks) * 100) : 0;
+                                                return (
+                                                <tr 
+                                                    key={student.studentId} 
+                                                    onClick={() => { playSound('click'); setSelectedStudent(student); }}
+                                                    className="hover:bg-cyber-neonBlue/5 transition-colors cursor-pointer"
+                                                >
+                                                    <td className="p-3 text-white font-bold whitespace-nowrap">{student.name}</td>
+                                                    <td className="p-3 whitespace-nowrap text-cyber-neonYellow">{student.level}</td>
+                                                    <td className="p-3 whitespace-nowrap text-cyber-neonBlue">{student.totalXP}</td>
+                                                    <td className="p-3 whitespace-nowrap">{student.tasksCompleted}/{student.totalTasks}</td>
+                                                    <td className="p-3 whitespace-nowrap">
+                                                        {student.streak > 0 ? (
+                                                            <span className="flex items-center gap-1 text-orange-400"><Flame size={12} /> {student.streak}</span>
+                                                        ) : (
+                                                            <span className="text-gray-600">—</span>
+                                                        )}
+                                                    </td>
+                                                    <td className="p-3 whitespace-nowrap text-xs">
+                                                        <span className={`${student.lastActive === 'Сегодня' ? 'text-cyber-neonGreen' : student.lastActive === 'Вчера' ? 'text-yellow-400' : 'text-gray-500'}`}>
+                                                            {student.lastActive}
+                                                        </span>
+                                                    </td>
+                                                    <td className="p-3 whitespace-nowrap">
+                                                        <div className="flex items-center gap-2">
+                                                            <div className="w-16 h-1.5 bg-gray-800 rounded-full overflow-hidden">
+                                                                <div className="h-full bg-cyber-neonGreen transition-all" style={{ width: `${pct}%` }}></div>
+                                                            </div>
+                                                            <span className="text-[10px] text-gray-500">{pct}%</span>
+                                                        </div>
+                                                    </td>
+                                                </tr>
+                                                );
+                                            })}
+                                        </tbody>
+                                    </table>
+                                </div>
+                            </div>
+                            </>
                         )}
 
                         {/* COURSE VISIBILITY MANAGEMENT */}
-                        <div className="mt-8 bg-cyber-panel border border-gray-800 rounded overflow-hidden">
+                        <div className="bg-cyber-panel border border-gray-800 rounded overflow-hidden">
                             <div className="p-4 border-b border-gray-800 flex items-center justify-between">
                                 <h3 className="text-white font-bold font-sans flex items-center gap-2">
                                     <BookOpen size={16} className="text-cyber-neonPink" />
@@ -479,8 +606,8 @@ const TeacherDashboard: React.FC<TeacherDashboardProps> = ({
                                                         : [...hidden, course.id];
                                                     const updatedClass = { ...currentClass, hiddenCourses: updated };
                                                     updateClassroom(updatedClass);
-                                                    // Force re-render by updating classrooms
                                                     onClassCreated(updatedClass);
+                                                    addToast(isHidden ? `${course.title.split(':')[0]} — виден` : `${course.title.split(':')[0]} — скрыт`, 'info');
                                                 }}
                                                 className={`shrink-0 flex items-center gap-1.5 px-3 py-1.5 rounded text-xs font-bold uppercase tracking-wider transition-all ${
                                                     isHidden 
@@ -496,6 +623,79 @@ const TeacherDashboard: React.FC<TeacherDashboardProps> = ({
                                 })}
                             </div>
                         </div>
+
+                        {/* STUDENT DETAIL MODAL */}
+                        {selectedStudent && (
+                            <div className="fixed inset-0 z-[100] bg-black/95 backdrop-blur-md flex items-center justify-center p-4">
+                                <div className="w-full max-w-lg max-h-[90vh] bg-[#0c0c10] border border-cyber-neonBlue rounded-lg flex flex-col relative shadow-2xl animate-in zoom-in-95 overflow-hidden">
+                                    <button onClick={() => setSelectedStudent(null)} className="absolute top-4 right-4 z-50 text-gray-500 hover:text-white p-2"><X size={24} /></button>
+                                    <div className="p-6 overflow-y-auto custom-scrollbar">
+                                        {/* Student Header */}
+                                        <div className="text-center mb-6">
+                                            <div className="w-16 h-16 mx-auto rounded-full bg-cyber-neonBlue/20 border-2 border-cyber-neonBlue flex items-center justify-center mb-3">
+                                                <span className="text-2xl font-bold text-cyber-neonBlue">{selectedStudent.name.charAt(0).toUpperCase()}</span>
+                                            </div>
+                                            <h3 className="text-xl font-bold text-white uppercase">{selectedStudent.name}</h3>
+                                            <span className="text-cyber-neonYellow font-mono text-sm">УРОВЕНЬ {selectedStudent.level}</span>
+                                        </div>
+
+                                        {/* Stats */}
+                                        <div className="grid grid-cols-4 gap-2 mb-6">
+                                            <div className="bg-gray-900 border border-gray-800 rounded p-2 text-center">
+                                                <div className="text-cyber-neonBlue font-mono font-bold">{selectedStudent.totalXP}</div>
+                                                <div className="text-gray-500 text-[9px] uppercase">XP</div>
+                                            </div>
+                                            <div className="bg-gray-900 border border-gray-800 rounded p-2 text-center">
+                                                <div className="text-cyber-neonGreen font-mono font-bold">{selectedStudent.tasksCompleted}</div>
+                                                <div className="text-gray-500 text-[9px] uppercase">Задач</div>
+                                            </div>
+                                            <div className="bg-gray-900 border border-orange-500/30 rounded p-2 text-center">
+                                                <div className="text-orange-400 font-mono font-bold">{selectedStudent.streak}</div>
+                                                <div className="text-gray-500 text-[9px] uppercase">Streak</div>
+                                            </div>
+                                            <div className="bg-gray-900 border border-gray-800 rounded p-2 text-center">
+                                                <div className="text-white font-mono font-bold">{selectedStudent.lastActive}</div>
+                                                <div className="text-gray-500 text-[9px] uppercase">Был</div>
+                                            </div>
+                                        </div>
+
+                                        {/* Overall progress */}
+                                        <div className="mb-6">
+                                            <div className="flex justify-between text-xs text-gray-500 mb-1">
+                                                <span>Общий прогресс</span>
+                                                <span className="font-mono">{selectedStudent.tasksCompleted}/{selectedStudent.totalTasks}</span>
+                                            </div>
+                                            <div className="w-full h-2 bg-gray-800 rounded-full overflow-hidden">
+                                                <div className="h-full bg-gradient-to-r from-cyber-neonBlue to-cyber-neonGreen transition-all" style={{ width: `${selectedStudent.totalTasks > 0 ? Math.round((selectedStudent.tasksCompleted / selectedStudent.totalTasks) * 100) : 0}%` }}></div>
+                                            </div>
+                                        </div>
+
+                                        {/* Per-course progress */}
+                                        <div className="mb-6">
+                                            <h4 className="text-xs font-bold text-gray-400 uppercase tracking-widest mb-3">Прогресс по курсам</h4>
+                                            <div className="space-y-3">
+                                                {selectedStudent.courseProgress.map(cp => {
+                                                    const pct = cp.total > 0 ? Math.round((cp.completed / cp.total) * 100) : 0;
+                                                    return (
+                                                        <div key={cp.courseId}>
+                                                            <div className="flex items-center justify-between mb-1">
+                                                                <span className="text-xs text-gray-300">{cp.title}</span>
+                                                                <span className="text-[10px] font-mono text-gray-500">{cp.completed}/{cp.total} ({pct}%)</span>
+                                                            </div>
+                                                            <div className="w-full h-1.5 bg-gray-800 rounded-full overflow-hidden">
+                                                                <div className="h-full rounded-full transition-all" style={{ width: `${pct}%`, backgroundColor: cp.color }}></div>
+                                                            </div>
+                                                        </div>
+                                                    );
+                                                })}
+                                            </div>
+                                        </div>
+
+                                        <button onClick={() => setSelectedStudent(null)} className="w-full bg-cyber-neonBlue text-black py-3 font-bold uppercase tracking-widest hover:bg-white transition-colors rounded">ЗАКРЫТЬ</button>
+                                    </div>
+                                </div>
+                            </div>
+                        )}
                     </div>
                 ) : (
                     // TASK CREATOR MODE (Responsive)

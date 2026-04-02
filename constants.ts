@@ -113,8 +113,12 @@ export const MOCK_STUDENTS: StudentProgress[] = [
     studentId: 's1',
     name: 'Нео Андерсон',
     tasksCompleted: 12,
+    totalTasks: 84,
     totalXP: 4500,
+    level: 5,
     lastActive: '2 мин назад',
+    streak: 3,
+    courseProgress: [],
     skills: { loops: 80, variables: 90, logic: 75 }
   }
 ];
