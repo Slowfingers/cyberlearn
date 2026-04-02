@@ -56,7 +56,7 @@ const ToastItem: React.FC<{ toast: ToastMessage; onDismiss: (id: string) => void
             style={{ animation: exiting ? 'none' : 'slideInFromRight 0.3s ease-out' }}
         >
             <span className={cfg.text}>{cfg.icon}</span>
-            <span className="text-sm text-gray-200 font-mono flex-1">{toast.text}</span>
+            <span className="text-sm text-gray-200 font-mono flex-1 leading-tight break-words">{toast.text}</span>
             <button onClick={() => { setExiting(true); setTimeout(() => onDismiss(toast.id), 300); }} className="text-gray-500 hover:text-white p-1 shrink-0">
                 <X size={14} />
             </button>

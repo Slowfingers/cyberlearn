@@ -306,9 +306,9 @@ const TeacherDashboard: React.FC<TeacherDashboardProps> = ({
                         <span className="text-xs font-bold uppercase tracking-wider">Все сектора</span>
                     </button>
                     
-                    <div className="flex items-center gap-2">
-                        <div className="w-2 h-2 bg-cyber-neonGreen rounded-full animate-pulse"></div>
-                        <span className="text-xs font-mono font-bold text-cyber-neonBlue truncate max-w-[120px]">
+                    <div className="flex items-center gap-2 min-w-0 flex-1 justify-end">
+                        <div className="w-2 h-2 bg-cyber-neonGreen rounded-full animate-pulse shrink-0"></div>
+                        <span className="text-xs font-mono font-bold text-cyber-neonBlue break-words leading-tight">
                             {currentClass.name}
                         </span>
                     </div>
@@ -535,7 +535,7 @@ const TeacherDashboard: React.FC<TeacherDashboardProps> = ({
                                                     onClick={() => { playSound('click'); setSelectedStudent(student); }}
                                                     className="hover:bg-cyber-neonBlue/5 transition-colors cursor-pointer"
                                                 >
-                                                    <td className="p-3 text-white font-bold whitespace-nowrap">{student.name}</td>
+                                                    <td className="p-3 text-white font-bold break-words leading-tight">{student.name}</td>
                                                     <td className="p-3 whitespace-nowrap text-cyber-neonYellow">{student.level}</td>
                                                     <td className="p-3 whitespace-nowrap text-cyber-neonBlue">{student.totalXP}</td>
                                                     <td className="p-3 whitespace-nowrap">{student.tasksCompleted}/{student.totalTasks}</td>
@@ -588,11 +588,11 @@ const TeacherDashboard: React.FC<TeacherDashboardProps> = ({
                                         >
                                             <div className="flex items-center gap-3 min-w-0">
                                                 <span className="text-xl shrink-0">{course.icon}</span>
-                                                <div className="min-w-0">
-                                                    <div className={`font-bold text-sm truncate ${isHidden ? 'text-gray-600 line-through' : 'text-white'}`}>
+                                                <div className="min-w-0 flex-1">
+                                                    <div className={`font-bold text-sm leading-tight break-words ${isHidden ? 'text-gray-600 line-through' : 'text-white'}`}>
                                                         {course.title}
                                                     </div>
-                                                    <div className="text-[10px] text-gray-600 font-mono truncate">
+                                                    <div className="text-[10px] text-gray-600 font-mono break-words">
                                                         {course.totalModules} модулей • {course.difficulty}
                                                     </div>
                                                 </div>
@@ -705,7 +705,7 @@ const TeacherDashboard: React.FC<TeacherDashboardProps> = ({
                                 <button onClick={() => setViewMode('dashboard')} className="text-gray-500 hover:text-white flex items-center gap-1">
                                     <ArrowLeft size={18}/> <span className="hidden sm:inline">Назад</span>
                                 </button>
-                                <h2 className="text-lg md:text-xl font-bold text-cyber-neonPink uppercase tracking-wider truncate">Конструктор</h2>
+                                <h2 className="text-lg md:text-xl font-bold text-cyber-neonPink uppercase tracking-wider leading-tight break-words flex-1">Конструктор</h2>
                              </div>
                              <button onClick={saveTask} className="w-full sm:w-auto px-6 py-3 bg-cyber-neonGreen text-black font-bold uppercase tracking-widest text-xs flex items-center justify-center gap-2 hover:bg-white transition-colors rounded">
                                  <Save size={16} /> Сохранить

@@ -146,8 +146,8 @@ const BlockCoding: React.FC<BlockCodingProps> = ({ task, onSuccess, onFail }) =>
         <div className="flex items-center gap-2">
           <span className="text-2xl">{theme.emoji}</span>
           <div className="flex-1 min-w-0">
-            <h2 className="text-sm font-bold text-white uppercase tracking-wider truncate">{task.title}</h2>
-            <p className="text-xs text-gray-400 mt-0.5 truncate">{task.description}</p>
+            <h2 className="text-sm font-bold text-white uppercase tracking-wider leading-tight break-words">{task.title}</h2>
+            <p className="text-xs text-gray-400 mt-0.5 leading-tight break-words">{task.description}</p>
           </div>
         </div>
       </div>

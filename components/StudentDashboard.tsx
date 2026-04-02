@@ -591,8 +591,8 @@ const StudentDashboard: React.FC<StudentDashboardProps> = ({ currentUser: propUs
                                 {getIcon(course.icon)}
                             </div>
                             
-                            <h2 className="text-lg md:text-xl font-bold text-white uppercase tracking-wider mb-2 font-sans line-clamp-2 break-words">{course.title}</h2>
-                            <p className="text-gray-400 text-xs md:text-sm leading-relaxed line-clamp-2 md:line-clamp-3 break-words overflow-hidden">{course.description}</p>
+                            <h2 className="text-lg md:text-xl font-bold text-white uppercase tracking-wider mb-2 font-sans break-words">{course.title}</h2>
+                            <p className="text-gray-400 text-xs md:text-sm leading-relaxed break-words overflow-hidden">{course.description}</p>
                         </div>
 
                         <div className="mt-auto">
@@ -609,17 +609,17 @@ const StudentDashboard: React.FC<StudentDashboardProps> = ({ currentUser: propUs
                             
                             <div className="mt-4 flex justify-between items-center h-8 relative z-10 gap-2">
                                 <span 
-                                    className="text-[9px] md:text-[10px] font-bold px-2 py-1 rounded bg-black border border-gray-700 uppercase whitespace-nowrap overflow-hidden text-ellipsis max-w-[50%]"
+                                    className="text-[9px] md:text-[10px] font-bold px-2 py-1 rounded bg-black border border-gray-700 uppercase leading-tight break-words"
                                     style={{ color: course.color }}
                                 >
                                     {course.difficulty}
                                 </span>
                                 {course.status === 'active' ? (
-                                    <span className="text-white text-[10px] md:text-xs font-bold flex items-center gap-1 group-hover:translate-x-1 transition-transform bg-black/50 px-2 py-1 rounded backdrop-blur-sm whitespace-nowrap shrink-0">
+                                    <span className="text-white text-[10px] md:text-xs font-bold flex items-center gap-1 group-hover:translate-x-1 transition-transform bg-black/50 px-2 py-1 rounded backdrop-blur-sm shrink-0">
                                         НАЧАТЬ <ArrowRight size={14} className="shrink-0" />
                                     </span>
                                 ) : (
-                                    <span className="text-gray-600 text-[10px] md:text-xs font-bold flex items-center gap-1 bg-black/50 px-2 py-1 rounded backdrop-blur-sm whitespace-nowrap shrink-0">
+                                    <span className="text-gray-600 text-[10px] md:text-xs font-bold flex items-center gap-1 bg-black/50 px-2 py-1 rounded backdrop-blur-sm shrink-0">
                                         <Lock size={12} className="shrink-0" /> НЕДОСТУПНО
                                     </span>
                                 )}
@@ -699,7 +699,7 @@ const StudentDashboard: React.FC<StudentDashboardProps> = ({ currentUser: propUs
                                     {courses.filter(c => c.status === 'active').map(course => (
                                         <div key={course.id} className="flex items-center gap-3">
                                             <div className="w-2 h-2 rounded-full shrink-0" style={{ backgroundColor: course.color }}></div>
-                                            <span className="text-xs text-gray-300 flex-1 truncate">{course.title.split(':')[0]}</span>
+                                            <span className="text-xs text-gray-300 flex-1 leading-tight break-words">{course.title.split(':')[0]}</span>
                                             <div className="w-20 h-1.5 bg-gray-800 rounded-full overflow-hidden shrink-0">
                                                 <div className="h-full transition-all" style={{ width: `${course.progress}%`, backgroundColor: course.color }}></div>
                                             </div>
@@ -722,8 +722,8 @@ const StudentDashboard: React.FC<StudentDashboardProps> = ({ currentUser: propUs
                                             <div key={ach.id} className="bg-gray-900 border border-cyber-neonYellow/20 rounded-lg p-3 flex items-center gap-2">
                                                 <span className="text-xl shrink-0">{ach.icon}</span>
                                                 <div className="min-w-0">
-                                                    <div className="text-[10px] font-bold text-white truncate">{ach.title}</div>
-                                                    <div className="text-[9px] text-gray-500 truncate">{ach.description}</div>
+                                                    <div className="text-[10px] font-bold text-white leading-tight break-words">{ach.title}</div>
+                                                    <div className="text-[9px] text-gray-500 leading-tight break-words">{ach.description}</div>
                                                 </div>
                                             </div>
                                         ))}
@@ -736,8 +736,8 @@ const StudentDashboard: React.FC<StudentDashboardProps> = ({ currentUser: propUs
                                             <div key={ach.id} className="bg-gray-900/50 border border-gray-800 rounded-lg p-3 flex items-center gap-2 opacity-40">
                                                 <span className="text-xl shrink-0 grayscale">🔒</span>
                                                 <div className="min-w-0">
-                                                    <div className="text-[10px] font-bold text-gray-500 truncate">???</div>
-                                                    <div className="text-[9px] text-gray-600 truncate">{ach.description}</div>
+                                                    <div className="text-[10px] font-bold text-gray-500 leading-tight break-words">???</div>
+                                                    <div className="text-[9px] text-gray-600 leading-tight break-words">{ach.description}</div>
                                                 </div>
                                             </div>
                                         ))}
@@ -921,7 +921,7 @@ const StudentDashboard: React.FC<StudentDashboardProps> = ({ currentUser: propUs
                                 </div>
                                 
                                 <div className="flex-1 min-w-0">
-                                    <div className="text-sm md:text-sm font-bold leading-none truncate font-sans">{task.title}</div>
+                                    <div className="text-sm md:text-sm font-bold leading-tight font-sans break-words">{task.title}</div>
                                     <div className="text-[10px] font-mono mt-1 md:mt-1 opacity-60 text-cyber-neonYellow">XP: {task.xpReward}</div>
                                 </div>
                             </button>
@@ -950,7 +950,7 @@ const StudentDashboard: React.FC<StudentDashboardProps> = ({ currentUser: propUs
                     >
                         <ChevronLeft size={20} />
                     </button>
-                    <span className="text-xs font-bold uppercase text-gray-500 tracking-widest truncate">{activeTask.title}</span>
+                    <span className="text-xs font-bold uppercase text-gray-500 tracking-widest leading-tight break-words flex-1">{activeTask.title}</span>
                 </div>
                 <div className="flex-1 overflow-y-auto p-5 md:p-12">
                 <div className="max-w-3xl mx-auto w-full">
@@ -993,7 +993,7 @@ const StudentDashboard: React.FC<StudentDashboardProps> = ({ currentUser: propUs
                   >
                       <ChevronLeft size={20} />
                   </button>
-                  <span className="text-xs font-bold uppercase text-gray-500 tracking-widest truncate">{activeTask.title}</span>
+                  <span className="text-xs font-bold uppercase text-gray-500 tracking-widest leading-tight break-words flex-1">{activeTask.title}</span>
               </div>
               <div className="flex-1 overflow-y-auto p-4 md:p-12 flex flex-col items-center justify-start md:justify-center">
               <div className="max-w-2xl w-full bg-[#0e0e12] border border-gray-800 p-6 md:p-12 relative shadow-2xl">
@@ -1092,7 +1092,7 @@ const StudentDashboard: React.FC<StudentDashboardProps> = ({ currentUser: propUs
                   >
                       <ChevronLeft size={20} />
                   </button>
-                  <span className="text-xs font-bold uppercase text-gray-500 tracking-widest truncate">{activeTask.title}</span>
+                  <span className="text-xs font-bold uppercase text-gray-500 tracking-widest leading-tight break-words flex-1">{activeTask.title}</span>
               </div>
               <BlockCoding 
                 task={activeTask} 
@@ -1117,7 +1117,7 @@ const StudentDashboard: React.FC<StudentDashboardProps> = ({ currentUser: propUs
                 >
                     <ChevronLeft size={20} />
                 </button>
-                <span className="text-xs font-bold uppercase text-gray-500 tracking-widest truncate">{activeTask?.title}</span>
+                <span className="text-xs font-bold uppercase text-gray-500 tracking-widest leading-tight break-words flex-1">{activeTask?.title}</span>
             </div>
             <div className="flex-1 overflow-hidden">
                 <HanoiGame task={activeTask!} onComplete={() => handleTaskCompletion(activeTask!)} />
@@ -1131,7 +1131,7 @@ const StudentDashboard: React.FC<StudentDashboardProps> = ({ currentUser: propUs
             {/* MOBILE TOP BAR (always visible for coding tasks) */}
             <div className="md:hidden flex items-center border-b border-gray-800 px-2 py-2 bg-gray-950 shrink-0 gap-2">
                 <button onClick={() => setShowMobileSidebar(true)} className="p-2 text-gray-400 active:text-white shrink-0"><ChevronLeft size={20}/></button>
-                <span className="text-xs font-bold text-gray-400 uppercase truncate flex-1">{activeTask.title}</span>
+                <span className="text-xs font-bold text-gray-400 uppercase leading-tight break-words flex-1">{activeTask.title}</span>
                 <button 
                     onClick={handleRunCode}
                     disabled={isRunning}
@@ -1161,12 +1161,12 @@ const StudentDashboard: React.FC<StudentDashboardProps> = ({ currentUser: propUs
             {/* EDITOR AREA / TERMINAL INPUT */}
             <div className={`${taskTab === 'code' ? 'flex' : 'hidden'} md:flex flex-1 flex-col relative min-w-0 bg-black overflow-hidden`}>
                  {/* Top Bar Desktop Only */}
-                 <div className="hidden md:flex h-14 bg-gray-900 border-b border-cyber-neonBlue/20 items-center justify-between px-4 shrink-0">
-                     <div className="flex items-center gap-3">
-                         <div className="bg-cyber-neonPink/20 p-1.5 rounded text-cyber-neonPink border border-cyber-neonPink/50"><Code size={16} /></div>
-                         <div>
-                             <h1 className="text-sm font-bold text-white uppercase">{activeTask.title}</h1>
-                             <span className="text-[10px] text-gray-500 font-mono">OBJ: {activeTask.description}</span>
+                 <div className="hidden md:flex min-h-[3.5rem] py-2 bg-gray-900 border-b border-cyber-neonBlue/20 items-center justify-between px-4 shrink-0">
+                     <div className="flex items-center gap-3 min-w-0">
+                         <div className="bg-cyber-neonPink/20 p-1.5 rounded text-cyber-neonPink border border-cyber-neonPink/50 shrink-0"><Code size={16} /></div>
+                         <div className="min-w-0">
+                             <h1 className="text-sm font-bold text-white uppercase leading-tight break-words flex-1">{activeTask.title}</h1>
+                             <div className="text-[10px] text-gray-500 font-mono leading-tight break-words">OBJ: {activeTask.description}</div>
                          </div>
                      </div>
                      <div className="flex gap-2">
@@ -1219,7 +1219,7 @@ const StudentDashboard: React.FC<StudentDashboardProps> = ({ currentUser: propUs
                         /* NORMAL CODE EDITOR */
                         <>
                              {activeTask.allowedCommands && (
-                                <div className="bg-[#0e0e12] border-b border-gray-800 p-2 flex gap-2 overflow-x-auto shrink-0 items-center no-scrollbar touch-pan-x z-20">
+                                <div className="bg-[#0e0e12] border-b border-gray-800 p-2 flex flex-wrap gap-2 shrink-0 items-center z-20">
                                     <span className="text-[10px] font-bold text-gray-600 uppercase shrink-0 px-2">Hacks:</span>
                                     {activeTask.allowedCommands.map(cmd => (
                                         <button 
@@ -1271,7 +1271,7 @@ const StudentDashboard: React.FC<StudentDashboardProps> = ({ currentUser: propUs
                              <div className="w-2.5 h-2.5 rounded-full bg-green-500"></div>
                              <div className="flex-1 ml-2 bg-black/50 rounded px-3 py-1 flex items-center gap-2">
                                  <Globe size={10} className="text-gray-600 shrink-0" />
-                                 <span className="text-[10px] text-gray-500 font-mono truncate">localhost:3000/preview</span>
+                                 <span className="text-[10px] text-gray-500 font-mono break-all leading-tight">localhost:3000/preview</span>
                              </div>
                          </div>
                          {/* Live iframe preview - updates in real time */}
@@ -1288,7 +1288,7 @@ const StudentDashboard: React.FC<StudentDashboardProps> = ({ currentUser: propUs
                          <div className="shrink-0 border-t border-gray-800 bg-cyber-panel/50">
                              <div className="p-2 flex items-center gap-2 overflow-x-auto no-scrollbar">
                                  <Bot size={14} className="text-cyber-neonBlue shrink-0" />
-                                 <div className="text-[10px] text-gray-500 font-mono truncate flex-1">
+                                 <div className="text-[10px] text-gray-500 font-mono leading-tight break-words flex-1">
                                      {logs.length > 0 ? logs[logs.length - 1] : '> Ready'}
                                  </div>
                                  <button onClick={handleGetHint} disabled={isHintLoading} className="px-2 py-1 border border-cyber-neonBlue/30 bg-cyber-neonBlue/5 text-cyber-neonBlue font-bold text-[10px] uppercase flex items-center gap-1 shrink-0 rounded">{isHintLoading ? <Loader2 className="animate-spin w-3 h-3"/> : <Zap size={10}/>} Хинт</button>

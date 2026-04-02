@@ -152,7 +152,7 @@ const App: React.FC = () => {
                 <h1 className="text-4xl sm:text-5xl md:text-7xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-cyber-neonBlue to-cyber-neonPink tracking-tighter mb-2 animate-pulse drop-shadow-[0_0_15px_rgba(0,243,255,0.5)]">
                     CYBER<span className="text-white">LEARN</span>
                 </h1>
-                <p className="text-cyber-neonGreen font-mono tracking-widest text-[10px] sm:text-xs md:text-lg whitespace-nowrap overflow-hidden text-ellipsis">
+                <p className="text-cyber-neonGreen font-mono tracking-widest text-[10px] sm:text-xs md:text-lg leading-tight break-words">
                     {'>> СИСТЕМА.ЗАПУСК_ПРОТОКОЛА(v2.5)'}
                 </p>
             </div>
@@ -212,8 +212,8 @@ const App: React.FC = () => {
                         <ArrowLeft size={20}/>
                     </button>
                     
-                    <h2 className="text-lg sm:text-xl font-bold text-cyber-neonPink mb-6 flex items-center gap-2 pr-8">
-                        <Shield size={20} className="shrink-0" /> <span className="truncate">ИДЕНТИФИКАЦИЯ КУРАТОРА</span>
+                    <h2 className="text-lg sm:text-xl font-bold text-cyber-neonPink mb-6 flex items-center gap-2 pr-8 leading-tight break-words">
+                        <Shield size={20} className="shrink-0" /> <span>ИДЕНТИФИКАЦИЯ КУРАТОРА</span>
                     </h2>
 
                     <form onSubmit={handleTeacherLogin} className="space-y-4">
@@ -267,8 +267,8 @@ const App: React.FC = () => {
                         <ArrowLeft size={20}/>
                     </button>
                     
-                    <h2 className="text-lg sm:text-xl font-bold text-cyber-neonBlue mb-6 flex items-center gap-2 pr-8">
-                        <Terminal size={20} className="shrink-0" /> <span className="truncate">ПОДКЛЮЧЕНИЕ К УЗЛУ</span>
+                    <h2 className="text-lg sm:text-xl font-bold text-cyber-neonBlue mb-6 flex items-center gap-2 pr-8 leading-tight break-words">
+                        <Terminal size={20} className="shrink-0" /> <span>ПОДКЛЮЧЕНИЕ К УЗЛУ</span>
                     </h2>
 
                     <form onSubmit={handleStudentLogin} className="space-y-4">

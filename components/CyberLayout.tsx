@@ -55,10 +55,10 @@ const CyberLayout: React.FC<LayoutProps> = ({ children, role, onLogout, title })
             <Terminal className="w-5 h-5 md:w-8 md:h-8 text-cyber-neonPink relative z-10" />
           </div>
           <div className="min-w-0">
-            <h1 className="text-lg md:text-2xl font-bold tracking-widest uppercase text-white leading-none group-hover:text-cyber-neonBlue transition-colors truncate">
+            <h1 className="text-lg md:text-2xl font-bold tracking-widest uppercase text-white leading-none group-hover:text-cyber-neonBlue transition-colors whitespace-nowrap">
               CYBER<span className="text-cyber-neonBlue">LEARN</span>
             </h1>
-            <div className="hidden sm:block text-[8px] md:text-[10px] text-cyber-neonGreen tracking-[0.2em] md:tracking-[0.3em] font-mono leading-none mt-1 truncate">
+            <div className="hidden sm:block text-[8px] md:text-[10px] text-cyber-neonGreen tracking-[0.2em] md:tracking-[0.3em] font-mono leading-none mt-1 whitespace-nowrap">
               SYSTEM_ONLINE_V2.5
             </div>
           </div>
@@ -68,7 +68,7 @@ const CyberLayout: React.FC<LayoutProps> = ({ children, role, onLogout, title })
         {title && (
           <div className="hidden md:flex items-center gap-2 max-w-[30%]">
             <div className="w-2 h-2 shrink-0 bg-cyber-neonYellow animate-ping"></div>
-            <span className="text-cyber-neonYellow font-mono text-xs md:text-sm tracking-wider uppercase drop-shadow-[0_0_5px_rgba(252,238,10,0.5)] truncate">
+            <span className="text-cyber-neonYellow font-mono text-xs md:text-sm tracking-wider uppercase drop-shadow-[0_0_5px_rgba(252,238,10,0.5)] leading-tight break-words">
               // {title}
             </span>
           </div>
