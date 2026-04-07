@@ -42,7 +42,20 @@ export const getUsers = (): User[] => {
 
 export const getClassrooms = (): Classroom[] => {
     const data = localStorage.getItem(CLASSES_KEY);
-    return data ? JSON.parse(data) : [];
+    if (!data) {
+        // Инициализация тестового класса для разработки
+        const testClass: Classroom = {
+            id: 'c_demo',
+            teacherId: 'demo_teacher',
+            name: 'Демо-класс',
+            inviteCode: 'DEMO-01',
+            studentIds: []
+        };
+        const classes = [testClass];
+        localStorage.setItem(CLASSES_KEY, JSON.stringify(classes));
+        return classes;
+    }
+    return JSON.parse(data);
 };
 
 export const getTeacherClasses = (teacherId: string): Classroom[] => {

@@ -1,5 +1,9 @@
 /* CyberLearn — Global Styles */
 
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
 /* cyber-glass utility (used in sidebar) */
 .bg-cyber-glass {
   background: rgba(12, 12, 20, 0.92);
