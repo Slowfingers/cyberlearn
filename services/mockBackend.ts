@@ -157,11 +157,33 @@ export const createClassroom = (teacherId: string, className: string): Classroom
     return newClass;
 };
 
+export const deleteClassroom = (classId: string): boolean => {
+    const classes = getClassrooms();
+    const filtered = classes.filter(c => c.id !== classId);
+    if (filtered.length === classes.length) return false; // Класс не найден
+    
+    // Удалить студентов из класса
+    const users = getUsers();
+    const updatedUsers = users.map(u => {
+        if (u.classId === classId) {
+            return { ...u, classId: undefined };
+        }
+        return u;
+    });
+    saveUsers(updatedUsers);
+    
+    saveClasses(filtered);
+    return true;
+};
+
 export const joinClassroom = (studentName: string, inviteCode: string): { success: boolean, user?: User, error?: string } => {
     const classes = getClassrooms();
-    const targetClass = classes.find(c => c.inviteCode === inviteCode.toUpperCase());
+    const normalizedCode = inviteCode.trim().toUpperCase();
+    const targetClass = classes.find(c => c.inviteCode.toUpperCase() === normalizedCode);
 
     if (!targetClass) {
+        console.log('Доступные классы:', classes.map(c => ({ name: c.name, code: c.inviteCode })));
+        console.log('Введённый код:', normalizedCode);
         return { success: false, error: "Код доступа недействителен." };
     }
 

@@ -1,10 +1,10 @@
 
 import React, { useState, useEffect, useCallback } from 'react';
 import { Classroom, User, StudentProgress, Task } from '../types';
-import { createClassroom, getClassStudents, createTaskForClass, updateClassroom } from '../services/mockBackend';
+import { createClassroom, getClassStudents, createTaskForClass, updateClassroom, deleteClassroom } from '../services/mockBackend';
 import { COURSES } from '../constants';
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts';
-import { Users, Activity, BrainCircuit, Key, Copy, PlusCircle, RefreshCw, Layers, ChevronRight, Hash, Edit3, Save, Flag, PlayCircle, Ban, Menu, X, ArrowLeft, LogOut, BookOpen, EyeOff, Eye, Flame, Trophy, ChevronDown, ChevronUp, CheckCircle, ArrowUpDown, Target } from 'lucide-react';
+import { Users, Activity, BrainCircuit, Key, Copy, PlusCircle, RefreshCw, Layers, ChevronRight, Hash, Edit3, Save, Flag, PlayCircle, Ban, Menu, X, ArrowLeft, LogOut, BookOpen, EyeOff, Eye, Flame, Trophy, ChevronDown, ChevronUp, CheckCircle, ArrowUpDown, Target, Trash2 } from 'lucide-react';
 import { playSound } from '../utils/sound';
 import CyberToast, { ToastMessage } from './CyberToast';
 
@@ -118,6 +118,22 @@ const TeacherDashboard: React.FC<TeacherDashboardProps> = ({
       setIsRenaming(false);
       playSound('success');
       addToast('Сектор переименован', 'success');
+  };
+
+  const handleDeleteClass = () => {
+      if (!currentClass) return;
+      if (!confirm(`Удалить сектор "${currentClass.name}"? Все студенты будут отключены от класса.`)) return;
+      const success = deleteClassroom(currentClass.id);
+      if (success) {
+          playSound('success');
+          addToast('Сектор удалён', 'success');
+          onSelectClass(null);
+          // Обновить список классов в родительском компоненте
+          window.location.reload();
+      } else {
+          playSound('error');
+          addToast('Ошибка удаления', 'error');
+      }
   };
 
   const copyCode = () => {
@@ -413,6 +429,13 @@ const TeacherDashboard: React.FC<TeacherDashboardProps> = ({
                                     className="px-5 py-3 bg-cyber-neonPink/10 border border-cyber-neonPink text-cyber-neonPink hover:bg-cyber-neonPink hover:text-black transition-all uppercase font-bold text-xs tracking-widest flex items-center justify-center gap-2 rounded"
                                 >
                                     <Edit3 size={16} /> Создать Миссию
+                                </button>
+
+                                <button 
+                                    onClick={handleDeleteClass}
+                                    className="px-5 py-3 bg-red-900/10 border border-red-500 text-red-500 hover:bg-red-500 hover:text-white transition-all uppercase font-bold text-xs tracking-widest flex items-center justify-center gap-2 rounded"
+                                >
+                                    <Trash2 size={16} /> Удалить
                                 </button>
 
                                 <div className="bg-cyber-dark border border-cyber-neonGreen p-2 px-4 flex items-center justify-between gap-4 shadow-[0_0_20px_rgba(0,255,65,0.1)] rounded">
