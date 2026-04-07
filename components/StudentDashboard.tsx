@@ -81,25 +81,51 @@ const StudentDashboard: React.FC<StudentDashboardProps> = ({ currentUser: propUs
 
   useEffect(() => {
       (async () => {
-          const allTasks = getAllTasks(propUser.id);
-          setTasks(allTasks);
-          const hidden = await getHiddenCoursesForStudent(propUser.id);
-          setCourses(getCoursesWithProgress(allTasks, hidden));
-
-          // Auto-sync: backfill Firebase completedTaskIds from localStorage if missing
+          // Bidirectional sync: merge localStorage and Firebase completed task IDs
           const localProgress = getTaskProgress(propUser.id);
           const localCompletedIds = Object.entries(localProgress)
               .filter(([, v]) => v === 'completed')
               .map(([k]) => k);
           const firebaseCompletedIds = propUser.completedTaskIds || [];
 
-          if (localCompletedIds.length > firebaseCompletedIds.length) {
-              const merged = [...new Set([...firebaseCompletedIds, ...localCompletedIds])];
+          // Merge both sources to get the true set of completed tasks
+          const mergedCompletedIds = [...new Set([...firebaseCompletedIds, ...localCompletedIds])];
+          const mergedSet = new Set(mergedCompletedIds);
+
+          // Sync Firebase → localStorage: mark Firebase-completed tasks in localStorage
+          if (firebaseCompletedIds.length > 0) {
+              const updatedProgress = { ...localProgress };
+              let localChanged = false;
+              for (const tid of firebaseCompletedIds) {
+                  if (updatedProgress[tid] !== 'completed') {
+                      updatedProgress[tid] = 'completed';
+                      localChanged = true;
+                  }
+              }
+              if (localChanged) {
+                  saveTaskProgress(propUser.id, updatedProgress);
+              }
+          }
+
+          // Load tasks with the merged progress applied
+          const allTasks = getAllTasks(propUser.id);
+          // Also apply Firebase completedTaskIds that may not be in localStorage yet
+          const patchedTasks = allTasks.map(t => ({
+              ...t,
+              status: mergedSet.has(t.id) ? 'completed' as const : t.status,
+          }));
+          setTasks(patchedTasks);
+          const hidden = await getHiddenCoursesForStudent(propUser.id);
+          setCourses(getCoursesWithProgress(patchedTasks, hidden));
+
+          // Sync localStorage → Firebase: push merged data if Firebase is behind
+          const needsFirebaseUpdate = mergedCompletedIds.length > firebaseCompletedIds.length;
+          if (needsFirebaseUpdate) {
               const streakData = getStreak(propUser.id);
               const updatedUser: User = {
                   ...propUser,
-                  completedTaskIds: merged,
-                  tasksCompleted: merged.length,
+                  completedTaskIds: mergedCompletedIds,
+                  tasksCompleted: mergedCompletedIds.length,
                   lastActiveDate: streakData.lastActiveDate || propUser.lastActiveDate,
                   streak: streakData.currentStreak ?? propUser.streak,
               };
@@ -411,11 +437,12 @@ const StudentDashboard: React.FC<StudentDashboardProps> = ({ currentUser: propUs
 
           const prevErrors = currentUser.totalErrors || 0;
 
-          // Build full list of completed task IDs from current tasks state
-          const allCompletedIds = tasks
-              .filter(t => t.status === 'completed' || t.id === task.id)
+          // MERGE: combine Firebase completedTaskIds + current tasks state + this task
+          const existingFirebaseIds = currentUser.completedTaskIds || [];
+          const currentTasksCompleted = tasks
+              .filter(t => t.status === 'completed')
               .map(t => t.id);
-          const uniqueCompletedIds = [...new Set(allCompletedIds)];
+          const uniqueCompletedIds = [...new Set([...existingFirebaseIds, ...currentTasksCompleted, task.id])];
 
           const updatedUser = {
               ...currentUser,
