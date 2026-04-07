@@ -2,7 +2,6 @@
 import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { COSMETICS, ACHIEVEMENTS } from '../constants';
 import { Task, ExecutionResult, User, Course } from '../types';
-import { checkCodeWithAI, generateHint } from '../services/geminiService';
 import { evaluateCodeLocally } from '../services/localEvaluation'; 
 import { calculateLevel, getNextLevelThreshold, updateUserProfile, getAllTasks, getCoursesWithProgress, buyItem, equipItem, saveTaskProgress, getHiddenCoursesForStudent, getStreak, recordActivity, StreakData } from '../services/mockBackend';
 import GameGrid from './GameGrid';
@@ -449,7 +448,17 @@ const StudentDashboard: React.FC<StudentDashboardProps> = ({ currentUser: propUs
       playSound('click');
       setIsHintLoading(true);
       setShowHintModal(true);
-      const newHint = await generateHint(code, activeTask);
+      // Локальная подсказка на основе типа задачи
+      let newHint = '';
+      if (activeTask.type === 'terminal') {
+          newHint = `💡 Подсказка: Проверь синтаксис команд. Используй print() для вывода результата.`;
+      } else if (activeTask.type === 'html') {
+          newHint = `💡 Подсказка: Убедись, что все CSS-свойства написаны правильно. Проверь селекторы.`;
+      } else if (activeTask.type === 'grid') {
+          newHint = `💡 Подсказка: Спланируй маршрут от старта до финиша, избегая препятствий.`;
+      } else {
+          newHint = `💡 Подсказка: Внимательно прочитай описание задачи и проверь свой код.`;
+      }
       setHint(newHint);
       setIsHintLoading(false);
   };

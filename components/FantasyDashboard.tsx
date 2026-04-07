@@ -1,7 +1,6 @@
 
 import React, { useState, useEffect, useRef } from 'react';
 import { ArrowLeft, ArrowRight, Star, Play, SkipForward, BookOpen, Feather, Sparkles, Send, X, Flame, Ghost, Cloud, Moon, Heart, Map, Check, Image as ImageIcon, Loader2, Trophy, Lock } from 'lucide-react';
-import { checkFantasyAnswer, generateFantasyHint, generateFantasyImage } from '../services/geminiService';
 import { getFantasyProgress, updateFantasyProgress } from '../services/mockBackend';
 import { playSound } from '../utils/sound';
 import { COMIC_CHAPTERS, ACHIEVEMENTS } from '../constants';
@@ -218,18 +217,9 @@ const FantasyDashboard: React.FC<FantasyDashboardProps> = ({ onBack, userId }) =
         // Deduct Ink? Let's make it free for now or cost 5 ink
         // updateProgress({ ink: -5 });
         
-        const description = `${scene.text}. Visual elements: ${scene.visual}. Mood: ${scene.bgStyle ? 'mysterious' : 'bright'}. Style: Storybook illustration.`;
-        const b64 = await generateFantasyImage(description);
-        
-        if (b64) {
-            setGeneratedImages(prev => ({
-                ...prev,
-                [scene.id]: b64
-            }));
-            playSound('success'); // Soft chime
-        } else {
-            setFeedback("Магия не сработала... Попробуй позже.");
-        }
+        // Генерация изображений отключена (Gemini удалён)
+        setFeedback("Генерация изображений временно недоступна.");
+        playSound('error');
         setIsGeneratingImage(false);
     };
 
@@ -320,12 +310,8 @@ const FantasyDashboard: React.FC<FantasyDashboardProps> = ({ onBack, userId }) =
                  localFeedback = isCorrect ? 'Верно!' : '';
             }
             if (!isCorrect && !localFeedback) {
-                 const aiRes = await checkFantasyAnswer(
-                    `Произведение: ${activeChapter.author} - ${activeChapter.title}. Сцена: ${currentScene.question}`,
-                    answer
-                 );
-                 isCorrect = aiRes.isCorrect;
-                 localFeedback = aiRes.feedback;
+                 // AI-проверка отключена, используем базовую валидацию
+                 localFeedback = "Попробуй другой ответ или используй подсказку.";
             }
         }
         
