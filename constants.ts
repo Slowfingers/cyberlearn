@@ -642,6 +642,56 @@ export const MOCK_TASKS: Task[] = [
     }
   },
   {
+    id: 'code100_m3_t2',
+    courseId: 'course_code100',
+    module: 'Модуль 3: Из чего состоит компьютер?',
+    title: '📝 RAM vs Диск — в чём разница?',
+    type: 'theory',
+    description: 'Узнай, чем оперативная память отличается от диска и зачем нужны оба!',
+    difficulty: 'Новичок',
+    xpReward: 25,
+    currencyReward: 10,
+    status: 'locked',
+    theory: `<div style="text-align:center;margin-bottom:20px">
+  <p style="font-size:3em;margin:0">📝💾</p>
+  <h2 style="color:#4ecdc4;margin:8px 0">RAM и Диск — два вида памяти!</h2>
+</div>
+<p style="font-size:1.1em;line-height:1.7">У компьютера есть <strong style="color:#00ff41">два вида памяти</strong>, и они очень разные. Давай разберёмся!</p>
+
+<h3 style="color:#ff6b6b;margin-top:24px;margin-bottom:12px">📝 RAM (оперативная память) — блокнот</h3>
+<div style="background:#0d1f2d;border:2px solid #00ff41;border-radius:12px;padding:16px;margin:12px 0">
+  <p style="font-size:1.05em;line-height:1.7;margin:0;color:#ccc">Представь <strong style="color:#00ff41">школьную доску</strong>: на ней пишут то, что нужно прямо сейчас. Но когда урок заканчивается — доску стирают!</p>
+  <ul style="color:#ccc;margin:12px 0 0;padding-left:20px;line-height:2">
+    <li>⚡ <strong style="color:#00ff41">Очень быстрая</strong> — работает почти мгновенно</li>
+    <li>🧹 <strong style="color:#ff6b6b">Забывает всё</strong> при выключении компьютера</li>
+    <li>📦 Обычно 4–16 ГБ</li>
+  </ul>
+</div>
+
+<h3 style="color:#ff6b6b;margin-top:24px;margin-bottom:12px">💾 Диск (SSD/HDD) — шкаф</h3>
+<div style="background:#0d1f2d;border:2px solid #ffe66d;border-radius:12px;padding:16px;margin:12px 0">
+  <p style="font-size:1.05em;line-height:1.7;margin:0;color:#ccc">Представь <strong style="color:#ffe66d">шкаф с тетрадками</strong>: даже когда ты уходишь из дома — тетрадки остаются!</p>
+  <ul style="color:#ccc;margin:12px 0 0;padding-left:20px;line-height:2">
+    <li>🐢 <strong style="color:#ffe66d">Медленнее</strong> RAM, но всё равно быстрый</li>
+    <li>♾️ <strong style="color:#00ff41">Помнит всё</strong> даже без электричества</li>
+    <li>📦 Обычно 256 ГБ – 2 ТБ</li>
+  </ul>
+</div>
+
+<h3 style="color:#ff6b6b;margin-top:24px;margin-bottom:12px">🤝 Как они работают вместе?</h3>
+<div style="background:#0d1f2d;border:2px solid #00f3ff;border-radius:12px;padding:16px;margin:12px 0">
+  <div style="display:flex;align-items:center;gap:10px;margin:8px 0"><span style="background:#ffe66d;color:black;font-weight:bold;width:28px;height:28px;border-radius:50%;display:inline-flex;align-items:center;justify-content:center;font-size:0.85em">1</span><span style="color:#ccc">Игра <strong>хранится на диске</strong> (файл 10 ГБ)</span></div>
+  <div style="display:flex;align-items:center;gap:10px;margin:8px 0"><span style="background:#00ff41;color:black;font-weight:bold;width:28px;height:28px;border-radius:50%;display:inline-flex;align-items:center;justify-content:center;font-size:0.85em">2</span><span style="color:#ccc">Ты запускаешь — данные <strong>копируются в RAM</strong></span></div>
+  <div style="display:flex;align-items:center;gap:10px;margin:8px 0"><span style="background:#00f3ff;color:black;font-weight:bold;width:28px;height:28px;border-radius:50%;display:inline-flex;align-items:center;justify-content:center;font-size:0.85em">3</span><span style="color:#ccc">Процессор <strong>читает из RAM</strong> (быстро!)</span></div>
+  <div style="display:flex;align-items:center;gap:10px;margin:8px 0"><span style="background:#ff6b6b;color:black;font-weight:bold;width:28px;height:28px;border-radius:50%;display:inline-flex;align-items:center;justify-content:center;font-size:0.85em">4</span><span style="color:#ccc">Выключил — RAM очищается, но на диске игра <strong>осталась</strong>!</span></div>
+</div>
+
+<div style="background:#0d1f0d;border:2px solid #4ecdc4;border-radius:12px;padding:14px;margin-top:20px">
+  <p style="color:#4ecdc4;font-weight:bold;margin-bottom:4px">🌟 Запомни!</p>
+  <p style="margin:0;color:#a0ffa0">RAM — быстрая, но забывчивая (стирается при выключении). Диск — медленнее, но надёжный (хранит навсегда)!</p>
+</div>`
+  },
+  {
     id: 'code100_m3_q3',
     courseId: 'course_code100',
     module: 'Модуль 3: Из чего состоит компьютер?',
@@ -657,6 +707,24 @@ export const MOCK_TASKS: Task[] = [
       options: ['Жёсткий диск (SSD)', 'Оперативная память (RAM)', 'Флешка', 'Монитор'],
       correctIndex: 1,
       explanation: 'RAM — быстрая, но забывает всё при выключении! Диск хранит файлы навсегда.'
+    }
+  },
+  {
+    id: 'code100_m3_q4',
+    courseId: 'course_code100',
+    module: 'Модуль 3: Из чего состоит компьютер?',
+    title: '❓ Квиз: Зачем нужна RAM?',
+    type: 'quiz',
+    description: 'Почему компьютер не читает всё с диска?',
+    difficulty: 'Новичок',
+    xpReward: 20,
+    currencyReward: 5,
+    status: 'locked',
+    quizData: {
+      question: '⚡ Зачем компьютеру оперативная память (RAM), если есть диск?',
+      options: ['RAM красивее выглядит', 'RAM намного быстрее диска — процессору нужна скорость', 'RAM дешевле диска', 'Без RAM не включается монитор'],
+      correctIndex: 1,
+      explanation: 'RAM в десятки раз быстрее диска! Процессор не может ждать — ему нужны данные мгновенно, поэтому всё сначала загружается в RAM.'
     }
   },
 
@@ -749,6 +817,104 @@ export const MOCK_TASKS: Task[] = [
     }
   },
   {
+    id: 'code100_m4_t2',
+    courseId: 'course_code100',
+    module: 'Модуль 4: Алгоритмы вокруг нас',
+    title: '🔀 Три вида алгоритмов!',
+    type: 'theory',
+    description: 'Линейные, с ветвлением и циклические — узнай, чем они отличаются!',
+    difficulty: 'Новичок',
+    xpReward: 30,
+    currencyReward: 10,
+    status: 'locked',
+    theory: `<div style="text-align:center;margin-bottom:20px">
+  <p style="font-size:3em;margin:0">🔀</p>
+  <h2 style="color:#4ecdc4;margin:8px 0">Три вида алгоритмов</h2>
+</div>
+<p style="font-size:1.05em;line-height:1.7">Алгоритмы бывают разные! Одни идут строго по шагам, другие выбирают путь, а третьи повторяют действия. Давай разберёмся!</p>
+
+<h3 style="color:#ff6b6b;margin-top:24px;margin-bottom:12px">📏 1. Линейный — шаг за шагом</h3>
+<div style="background:#0d1f2d;border:2px solid #00f3ff;border-radius:12px;padding:16px;margin:12px 0">
+  <p style="color:#ccc;margin:0 0 8px;line-height:1.6">Все действия идут <strong style="color:#00f3ff">по порядку</strong>, одно за другим. Как рецепт!</p>
+  <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap;justify-content:center;margin-top:10px">
+    <div style="background:#111;border:2px solid #00f3ff;border-radius:8px;padding:8px 12px;font-size:0.85em;color:#ccc">Шаг 1</div>
+    <div style="color:#00f3ff">→</div>
+    <div style="background:#111;border:2px solid #00f3ff;border-radius:8px;padding:8px 12px;font-size:0.85em;color:#ccc">Шаг 2</div>
+    <div style="color:#00f3ff">→</div>
+    <div style="background:#111;border:2px solid #00f3ff;border-radius:8px;padding:8px 12px;font-size:0.85em;color:#ccc">Шаг 3</div>
+  </div>
+  <p style="color:#88a;font-size:0.85em;margin:10px 0 0;text-align:center">Пример: Почистить зубы → Позавтракать → Одеться</p>
+</div>
+
+<h3 style="color:#ff6b6b;margin-top:24px;margin-bottom:12px">🔀 2. С ветвлением — «если... то...»</h3>
+<div style="background:#0d1f2d;border:2px solid #ffe66d;border-radius:12px;padding:16px;margin:12px 0">
+  <p style="color:#ccc;margin:0 0 8px;line-height:1.6">Нужно <strong style="color:#ffe66d">выбрать</strong> — что делать дальше зависит от условия!</p>
+  <div style="text-align:center;margin-top:10px">
+    <div style="background:#111;border:2px solid #ffe66d;border-radius:8px;padding:8px 14px;display:inline-block;font-size:0.85em;color:#ffe66d;font-weight:bold">На улице дождь? ☔</div>
+    <div style="display:flex;justify-content:center;gap:40px;margin-top:10px">
+      <div style="text-align:center">
+        <div style="color:#00ff41;font-size:0.8em;margin-bottom:4px">✅ Да</div>
+        <div style="background:#111;border:2px solid #00ff41;border-radius:8px;padding:6px 10px;font-size:0.8em;color:#ccc">Взять зонт 🌂</div>
+      </div>
+      <div style="text-align:center">
+        <div style="color:#ff6b6b;font-size:0.8em;margin-bottom:4px">❌ Нет</div>
+        <div style="background:#111;border:2px solid #ff6b6b;border-radius:8px;padding:6px 10px;font-size:0.8em;color:#ccc">Идти так ☀️</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<h3 style="color:#ff6b6b;margin-top:24px;margin-bottom:12px">🔄 3. Циклический — повторяй!</h3>
+<div style="background:#0d1f2d;border:2px solid #ff6b6b;border-radius:12px;padding:16px;margin:12px 0">
+  <p style="color:#ccc;margin:0 0 8px;line-height:1.6">Одно и то же действие <strong style="color:#ff6b6b">повторяется</strong> несколько раз!</p>
+  <div style="text-align:center;margin-top:10px">
+    <div style="background:#111;border:2px solid #ff6b6b;border-radius:50%;width:100px;height:100px;display:inline-flex;align-items:center;justify-content:center;font-size:0.8em;color:#ccc;text-align:center;line-height:1.3">Мешай суп<br>🥄<br><span style="color:#ff6b6b;font-size:0.9em">повтори 10 раз</span></div>
+  </div>
+  <p style="color:#88a;font-size:0.85em;margin:10px 0 0;text-align:center">Пример: Прыгни 10 раз. Набери воду 5 раз. Повтори упражнение!</p>
+</div>
+
+<div style="background:#0d1f0d;border:2px solid #4ecdc4;border-radius:12px;padding:14px;margin-top:20px">
+  <p style="color:#4ecdc4;font-weight:bold;margin-bottom:4px">🌟 Запомни!</p>
+  <p style="margin:0;color:#a0ffa0"><strong>Линейный</strong> — по порядку. <strong>С ветвлением</strong> — выбор (если/то). <strong>Циклический</strong> — повторение!</p>
+</div>`
+  },
+  {
+    id: 'code100_m4_q2',
+    courseId: 'course_code100',
+    module: 'Модуль 4: Алгоритмы вокруг нас',
+    title: '❓ Квиз: Виды алгоритмов',
+    type: 'quiz',
+    description: 'Какой это алгоритм?',
+    difficulty: 'Новичок',
+    xpReward: 20,
+    currencyReward: 5,
+    status: 'locked',
+    quizData: {
+      question: '🔀 «Если на улице холодно — надень куртку, иначе — надень футболку». Какой это алгоритм?',
+      options: ['Линейный', 'С ветвлением', 'Циклический', 'Случайный'],
+      correctIndex: 1,
+      explanation: 'Есть условие (холодно или нет) и два варианта действий — это алгоритм с ветвлением!'
+    }
+  },
+  {
+    id: 'code100_m4_q3',
+    courseId: 'course_code100',
+    module: 'Модуль 4: Алгоритмы вокруг нас',
+    title: '❓ Квиз: Какой алгоритм?',
+    type: 'quiz',
+    description: 'Определи тип алгоритма!',
+    difficulty: 'Новичок',
+    xpReward: 20,
+    currencyReward: 5,
+    status: 'locked',
+    quizData: {
+      question: '🔄 «Повтори 5 раз: подпрыгни и хлопни в ладоши». Какой это алгоритм?',
+      options: ['Линейный', 'С ветвлением', 'Циклический', 'Произвольный'],
+      correctIndex: 2,
+      explanation: 'Действие повторяется 5 раз — это цикл! Циклический алгоритм повторяет шаги.'
+    }
+  },
+  {
     id: 'code100_m4_b2',
     courseId: 'course_code100',
     module: 'Модуль 4: Алгоритмы вокруг нас',
@@ -824,6 +990,75 @@ export const MOCK_TASKS: Task[] = [
   <p style="color:#4ecdc4;font-weight:bold;margin-bottom:4px">🌟 Совет!</p>
   <p style="margin:0;color:#a0ffa0">Сначала посчитай клетки на сетке, потом пиши команды. Как настоящий программист!</p>
 </div>`
+  },
+  {
+    id: 'code100_m5_t2',
+    courseId: 'course_code100',
+    module: 'Модуль 5: Управляем Робиком!',
+    title: '🗺️ Координаты — адрес на сетке!',
+    type: 'theory',
+    description: 'Узнай, как работают координаты — это поможет управлять Робиком!',
+    difficulty: 'Новичок',
+    xpReward: 25,
+    currencyReward: 10,
+    status: 'locked',
+    theory: `<div style="text-align:center;margin-bottom:20px">
+  <p style="font-size:3em;margin:0">🗺️</p>
+  <h2 style="color:#4ecdc4;margin:8px 0">Координаты — адрес клетки!</h2>
+</div>
+<p style="font-size:1.05em;line-height:1.7">Чтобы сказать Робику, куда идти, нужно понимать <strong style="color:#4ecdc4">координаты</strong> — «адрес» каждой клетки на сетке.</p>
+
+<h3 style="color:#ff6b6b;margin-top:24px;margin-bottom:12px">📐 Как устроена сетка?</h3>
+<div style="background:#0d1f2d;border:2px solid #00f3ff;border-radius:12px;padding:16px;margin:12px 0">
+  <p style="color:#ccc;margin:0 0 12px;line-height:1.6">Сетка — как шахматная доска. У каждой клетки есть два числа:</p>
+  <ul style="color:#ccc;margin:0;padding-left:20px;line-height:2">
+    <li><strong style="color:#00f3ff">Столбец</strong> (←→) — какой по горизонтали (влево-вправо)</li>
+    <li><strong style="color:#00ff41">Строка</strong> (↑↓) — какой по вертикали (вверх-вниз)</li>
+  </ul>
+  <p style="color:#88a;font-size:0.85em;margin:12px 0 0">Координата записывается: <strong style="color:#ffe66d">(столбец, строка)</strong>. Начало — левый верхний угол <strong style="color:#ffe66d">(0, 0)</strong></p>
+</div>
+
+<h3 style="color:#ff6b6b;margin-top:24px;margin-bottom:12px">🤖 Как двигается Робик?</h3>
+<div style="background:#0d1f2d;border:2px solid #ffe66d;border-radius:12px;padding:16px;margin:12px 0">
+  <p style="color:#ccc;margin:0 0 8px">Если Робик стоит на <strong style="color:#ffe66d">(0, 0)</strong> — это верхний левый угол.</p>
+  <div style="display:flex;flex-direction:column;gap:6px;margin-top:10px">
+    <div style="display:flex;align-items:center;gap:8px"><span style="font-size:1.4em">➡️</span><span style="color:#ccc"><code style="color:#00f3ff;background:#111;padding:2px 6px;border-radius:4px">moveRight();</code> — столбец увеличивается (0,0) → (1,0)</span></div>
+    <div style="display:flex;align-items:center;gap:8px"><span style="font-size:1.4em">⬇️</span><span style="color:#ccc"><code style="color:#00ff41;background:#111;padding:2px 6px;border-radius:4px">moveDown();</code> — строка увеличивается (0,0) → (0,1)</span></div>
+    <div style="display:flex;align-items:center;gap:8px"><span style="font-size:1.4em">⬅️</span><span style="color:#ccc"><code style="color:#ffe66d;background:#111;padding:2px 6px;border-radius:4px">moveLeft();</code> — столбец уменьшается (1,0) → (0,0)</span></div>
+    <div style="display:flex;align-items:center;gap:8px"><span style="font-size:1.4em">⬆️</span><span style="color:#ccc"><code style="color:#ff6b6b;background:#111;padding:2px 6px;border-radius:4px">moveUp();</code> — строка уменьшается (0,1) → (0,0)</span></div>
+  </div>
+</div>
+
+<h3 style="color:#ff6b6b;margin-top:24px;margin-bottom:12px">💡 Как планировать маршрут?</h3>
+<div style="background:#0d1f2d;border:2px solid #00ff41;border-radius:12px;padding:16px;margin:12px 0">
+  <div style="display:flex;align-items:center;gap:10px;margin:8px 0"><span style="background:#00ff41;color:black;font-weight:bold;width:28px;height:28px;border-radius:50%;display:inline-flex;align-items:center;justify-content:center;font-size:0.85em">1</span><span style="color:#ccc">Посмотри, где Робик <strong>сейчас</strong> и где <strong>цель</strong></span></div>
+  <div style="display:flex;align-items:center;gap:10px;margin:8px 0"><span style="background:#00ff41;color:black;font-weight:bold;width:28px;height:28px;border-radius:50%;display:inline-flex;align-items:center;justify-content:center;font-size:0.85em">2</span><span style="color:#ccc"><strong>Посчитай клетки</strong> вправо и вниз</span></div>
+  <div style="display:flex;align-items:center;gap:10px;margin:8px 0"><span style="background:#00ff41;color:black;font-weight:bold;width:28px;height:28px;border-radius:50%;display:inline-flex;align-items:center;justify-content:center;font-size:0.85em">3</span><span style="color:#ccc">Запиши команды <strong>по порядку</strong></span></div>
+  <div style="display:flex;align-items:center;gap:10px;margin:8px 0"><span style="background:#00ff41;color:black;font-weight:bold;width:28px;height:28px;border-radius:50%;display:inline-flex;align-items:center;justify-content:center;font-size:0.85em">4</span><span style="color:#ccc">Если есть <strong>стены</strong> — обходи!</span></div>
+</div>
+
+<div style="background:#0d1f0d;border:2px solid #4ecdc4;border-radius:12px;padding:14px;margin-top:20px">
+  <p style="color:#4ecdc4;font-weight:bold;margin-bottom:4px">🌟 Совет!</p>
+  <p style="margin:0;color:#a0ffa0">Сначала нарисуй путь пальцем по экрану, потом запиши команды. Как настоящий программист — сначала план, потом код!</p>
+</div>`
+  },
+  {
+    id: 'code100_m5_q0',
+    courseId: 'course_code100',
+    module: 'Модуль 5: Управляем Робиком!',
+    title: '❓ Квиз: Координаты',
+    type: 'quiz',
+    description: 'Проверим, понял ли ты координаты!',
+    difficulty: 'Новичок',
+    xpReward: 20,
+    currencyReward: 5,
+    status: 'locked',
+    quizData: {
+      question: '🗺️ Робик стоит на (0, 0). Он сделал moveRight(); moveRight(); moveDown(); Где он теперь?',
+      options: ['(0, 2)', '(2, 1)', '(1, 2)', '(2, 0)'],
+      correctIndex: 1,
+      explanation: 'Два шага вправо: столбец 0→1→2. Один шаг вниз: строка 0→1. Робик на (2, 1)!'
+    }
   },
   {
     id: 'code100_m5_b1',
@@ -950,6 +1185,87 @@ export const MOCK_TASKS: Task[] = [
   <p style="color:#4ecdc4;font-weight:bold;margin-bottom:4px">🌟 Запомни!</p>
   <p style="margin:0;color:#a0ffa0">Данные — любая информация. Файл — контейнер. Папка — место для файлов!</p>
 </div>`
+  },
+  {
+    id: 'code100_m6_t2',
+    courseId: 'course_code100',
+    module: 'Модуль 6: Данные и файлы',
+    title: '📎 Расширения файлов — что за точка?',
+    type: 'theory',
+    description: 'Узнай, зачем файлам нужны расширения и что они означают!',
+    difficulty: 'Новичок',
+    xpReward: 25,
+    currencyReward: 10,
+    status: 'locked',
+    theory: `<div style="text-align:center;margin-bottom:20px">
+  <p style="font-size:3em;margin:0">📎</p>
+  <h2 style="color:#4ecdc4;margin:8px 0">Расширения файлов</h2>
+</div>
+<p style="font-size:1.05em;line-height:1.7">Ты замечал, что файлы называются вроде <strong style="color:#ffe66d">фото.jpg</strong> или <strong style="color:#ffe66d">песня.mp3</strong>? Буквы после точки — это <strong style="color:#4ecdc4">расширение</strong>. Оно говорит компьютеру, что внутри файла!</p>
+
+<h3 style="color:#ff6b6b;margin-top:24px;margin-bottom:12px">📋 Популярные расширения</h3>
+<div style="display:grid;grid-template-columns:repeat(2,1fr);gap:10px;margin:16px 0">
+  <div style="background:#0d1f2d;border:2px solid #00f3ff;border-radius:12px;padding:12px;text-align:center">
+    <p style="font-size:1.4em;margin:0">📝</p>
+    <p style="color:#00f3ff;font-weight:bold;margin:4px 0;font-family:monospace">.txt .doc</p>
+    <p style="color:#88a;font-size:0.8em;margin:0">Текстовые документы</p>
+  </div>
+  <div style="background:#0d1f2d;border:2px solid #00ff41;border-radius:12px;padding:12px;text-align:center">
+    <p style="font-size:1.4em;margin:0">📸</p>
+    <p style="color:#00ff41;font-weight:bold;margin:4px 0;font-family:monospace">.jpg .png</p>
+    <p style="color:#88a;font-size:0.8em;margin:0">Картинки и фото</p>
+  </div>
+  <div style="background:#0d1f2d;border:2px solid #ffe66d;border-radius:12px;padding:12px;text-align:center">
+    <p style="font-size:1.4em;margin:0">🎵</p>
+    <p style="color:#ffe66d;font-weight:bold;margin:4px 0;font-family:monospace">.mp3 .wav</p>
+    <p style="color:#88a;font-size:0.8em;margin:0">Музыка и звуки</p>
+  </div>
+  <div style="background:#0d1f2d;border:2px solid #ff6b6b;border-radius:12px;padding:12px;text-align:center">
+    <p style="font-size:1.4em;margin:0">🎬</p>
+    <p style="color:#ff6b6b;font-weight:bold;margin:4px 0;font-family:monospace">.mp4 .avi</p>
+    <p style="color:#88a;font-size:0.8em;margin:0">Видео и фильмы</p>
+  </div>
+</div>
+<div style="display:grid;grid-template-columns:repeat(2,1fr);gap:10px;margin:0 0 16px">
+  <div style="background:#0d1f2d;border:2px solid #ff00ff;border-radius:12px;padding:12px;text-align:center">
+    <p style="font-size:1.4em;margin:0">🎮</p>
+    <p style="color:#ff00ff;font-weight:bold;margin:4px 0;font-family:monospace">.exe</p>
+    <p style="color:#88a;font-size:0.8em;margin:0">Программы (Windows)</p>
+  </div>
+  <div style="background:#0d1f2d;border:2px solid #4ecdc4;border-radius:12px;padding:12px;text-align:center">
+    <p style="font-size:1.4em;margin:0">📦</p>
+    <p style="color:#4ecdc4;font-weight:bold;margin:4px 0;font-family:monospace">.zip .rar</p>
+    <p style="color:#88a;font-size:0.8em;margin:0">Архивы (сжатые файлы)</p>
+  </div>
+</div>
+
+<div style="background:#1a0a0a;border:2px solid #ff4444;border-radius:12px;padding:14px;margin:12px 0">
+  <p style="color:#ff6b6b;font-weight:bold;margin-bottom:4px">⚠️ Осторожно!</p>
+  <p style="margin:0;color:#ff8888">Не открывай файлы <strong>.exe</strong> от незнакомцев! Это могут быть вирусы!</p>
+</div>
+
+<div style="background:#0d1f0d;border:2px solid #4ecdc4;border-radius:12px;padding:14px;margin-top:12px">
+  <p style="color:#4ecdc4;font-weight:bold;margin-bottom:4px">🌟 Запомни!</p>
+  <p style="margin:0;color:#a0ffa0">Расширение файла — буквы после точки. Они говорят компьютеру, какой программой открыть файл!</p>
+</div>`
+  },
+  {
+    id: 'code100_m6_q0',
+    courseId: 'course_code100',
+    module: 'Модуль 6: Данные и файлы',
+    title: '❓ Квиз: Расширения файлов',
+    type: 'quiz',
+    description: 'Какое расширение у картинки?',
+    difficulty: 'Новичок',
+    xpReward: 20,
+    currencyReward: 5,
+    status: 'locked',
+    quizData: {
+      question: '📸 Файл называется «каникулы.jpg». Что это за файл?',
+      options: ['Музыка', 'Видео', 'Картинка или фотография', 'Программа'],
+      correctIndex: 2,
+      explanation: '.jpg — это расширение для картинок и фотографий! Компьютер откроет его в программе для просмотра изображений.'
+    }
   },
   {
     id: 'code100_m6_q1',
@@ -1475,6 +1791,53 @@ export const MOCK_TASKS: Task[] = [
     }
   },
 
+  {
+    id: 'cs101_m2_q3',
+    courseId: 'course_cs101',
+    module: 'Модуль 2: Язык машины — биты и байты',
+    title: 'Квиз: Двоичные числа',
+    type: 'quiz',
+    description: 'Проверь, умеешь ли ты переводить числа в двоичную систему.',
+    difficulty: 'Новичок',
+    xpReward: 60,
+    currencyReward: 15,
+    status: 'locked',
+    quizData: {
+      question: 'Переведи число 5 в двоичную систему. Позиции: 8-4-2-1. Какой ответ правильный?',
+      options: [
+        '0100 (только 4)',
+        '0101 (4 + 1 = 5)',
+        '0110 (4 + 2 = 6)',
+        '1001 (8 + 1 = 9)'
+      ],
+      correctIndex: 1,
+      explanation: '5 = 4 + 1. В позициях 8-4-2-1 это: 0-1-0-1, то есть 0101. Четвёрка включена (1) и единица включена (1)!'
+    }
+  },
+  {
+    id: 'cs101_m2_q4',
+    courseId: 'course_cs101',
+    module: 'Модуль 2: Язык машины — биты и байты',
+    title: 'Квиз: Размер файла',
+    type: 'quiz',
+    description: 'Сколько весит фотография?',
+    difficulty: 'Новичок',
+    xpReward: 50,
+    currencyReward: 15,
+    status: 'locked',
+    quizData: {
+      question: 'Фото 1920×1080 пикселей, каждый пиксель — 3 байта (RGB). Какой примерный размер без сжатия?',
+      options: [
+        'Около 100 КБ',
+        'Около 6 МБ',
+        'Около 1 ГБ',
+        'Около 50 байт'
+      ],
+      correctIndex: 1,
+      explanation: '1920 × 1080 = 2 073 600 пикселей. Каждый × 3 байта = 6 220 800 байт ≈ 6 МБ. Именно поэтому используют сжатие JPEG — файл уменьшается в 5-10 раз!'
+    }
+  },
+
   // ── МОДУЛЬ 3: ОПЕРАЦИОННАЯ СИСТЕМА ────────────────────────────────────────
   {
     id: 'cs101_m3_t1',
@@ -1629,6 +1992,53 @@ export const MOCK_TASKS: Task[] = [
       illustration: `<div style="text-align:center;color:#aaa;margin:16px 0">
 <p style="font-size:0.9em">Железо → Ядро ОС → Драйверы → Утилиты → Приложения → Пользователь</p>
 <p style="font-size:1.5em;margin-top:8px">🔧 → ⚙️ → 🔌 → 🛠️ → 💻 → 👤</p></div>`
+    }
+  },
+
+  {
+    id: 'cs101_m3_q3',
+    courseId: 'course_cs101',
+    module: 'Модуль 3: Операционная система',
+    title: 'Квиз: Какая ОС?',
+    type: 'quiz',
+    description: 'Определи, какая ОС подходит для задачи.',
+    difficulty: 'Новичок',
+    xpReward: 60,
+    currencyReward: 20,
+    status: 'locked',
+    quizData: {
+      question: 'На 90% серверов в интернете стоит именно эта ОС. YouTube, Google, Instagram — все работают на ней. Что это?',
+      options: [
+        'Windows — она же самая популярная',
+        'macOS — она от Apple',
+        'Linux — бесплатная и открытая, идеальна для серверов',
+        'Android — он на всех телефонах'
+      ],
+      correctIndex: 2,
+      explanation: 'Linux доминирует на серверах благодаря бесплатности, стабильности и гибкости. Windows популярен на ПК, но серверный мир — за Linux!'
+    }
+  },
+  {
+    id: 'cs101_m3_q4',
+    courseId: 'course_cs101',
+    module: 'Модуль 3: Операционная система',
+    title: 'Квиз: Файловые системы',
+    type: 'quiz',
+    description: 'Почему флешка не читает большой файл?',
+    difficulty: 'Новичок',
+    xpReward: 60,
+    currencyReward: 20,
+    status: 'locked',
+    quizData: {
+      question: 'Ты пытаешься записать фильм (5 ГБ) на флешку с FAT32, но получаешь ошибку. Почему?',
+      options: [
+        'Флешка сломана',
+        'FAT32 не поддерживает файлы больше 4 ГБ',
+        'Фильм заражён вирусом',
+        'Нужно сначала удалить все файлы с флешки'
+      ],
+      correctIndex: 1,
+      explanation: 'FAT32 имеет ограничение — максимальный размер одного файла 4 ГБ. Решение: переформатировать флешку в NTFS или exFAT!'
     }
   },
 
@@ -1969,6 +2379,53 @@ export const MOCK_TASKS: Task[] = [
     }
   },
 
+  {
+    id: 'cs101_m5_q3',
+    courseId: 'course_cs101',
+    module: 'Модуль 5: Структуры данных',
+    title: 'Квиз: Массив или хеш-таблица?',
+    type: 'quiz',
+    description: 'Выбери правильную структуру данных для задачи.',
+    difficulty: 'Хакер',
+    xpReward: 70,
+    currencyReward: 25,
+    status: 'locked',
+    quizData: {
+      question: 'Тебе нужно хранить телефонную книгу: по имени человека быстро находить его номер. Какая структура лучше?',
+      options: [
+        'Массив — перебирать имена одно за другим',
+        'Стек — последний добавленный контакт первым',
+        'Хеш-таблица — мгновенный поиск по ключу (имени)',
+        'Очередь — первый добавленный контакт первым'
+      ],
+      correctIndex: 2,
+      explanation: 'Хеш-таблица (ключ → значение) идеальна! По ключу «Алексей» мгновенно получаем значение «+7-999-123-45-67». Поиск за O(1) вместо O(n) у массива.'
+    }
+  },
+  {
+    id: 'cs101_m5_q4',
+    courseId: 'course_cs101',
+    module: 'Модуль 5: Структуры данных',
+    title: 'Квиз: LIFO или FIFO?',
+    type: 'quiz',
+    description: 'Определи принцип работы структуры.',
+    difficulty: 'Хакер',
+    xpReward: 70,
+    currencyReward: 25,
+    status: 'locked',
+    quizData: {
+      question: 'В принтере 3 документа ждут печати. Какой напечатается первым?',
+      options: [
+        'Последний отправленный (LIFO — стек)',
+        'Первый отправленный (FIFO — очередь)',
+        'Случайный документ',
+        'Самый маленький по размеру'
+      ],
+      correctIndex: 1,
+      explanation: 'Очередь печати работает по принципу FIFO — First In, First Out. Кто первый отправил документ, тот первый и напечатается. Справедливо!'
+    }
+  },
+
   // ── МОДУЛЬ 6: ИНТЕРНЕТ И СЕТИ ─────────────────────────────────────────────
   {
     id: 'cs101_m6_t1',
@@ -2135,6 +2592,53 @@ export const MOCK_TASKS: Task[] = [
     }
   },
 
+  {
+    id: 'cs101_m6_q3',
+    courseId: 'course_cs101',
+    module: 'Модуль 6: Интернет и сети',
+    title: 'Квиз: DNS — телефонная книга',
+    type: 'quiz',
+    description: 'Проверь, как работает DNS.',
+    difficulty: 'Хакер',
+    xpReward: 70,
+    currencyReward: 25,
+    status: 'locked',
+    quizData: {
+      question: 'Ты вводишь google.com в браузере. Что делает DNS-сервер?',
+      options: [
+        'Проверяет, есть ли у тебя интернет',
+        'Переводит имя google.com в IP-адрес (например, 216.58.215.46)',
+        'Шифрует твой пароль',
+        'Блокирует опасные сайты'
+      ],
+      correctIndex: 1,
+      explanation: 'DNS — это «телефонная книга» интернета. Он переводит понятное имя сайта (google.com) в числовой IP-адрес, по которому браузер находит сервер.'
+    }
+  },
+  {
+    id: 'cs101_m6_q4',
+    courseId: 'course_cs101',
+    module: 'Модуль 6: Интернет и сети',
+    title: 'Квиз: HTTPS и безопасность',
+    type: 'quiz',
+    description: 'Зачем нужен замочек в браузере?',
+    difficulty: 'Хакер',
+    xpReward: 70,
+    currencyReward: 25,
+    status: 'locked',
+    quizData: {
+      question: 'Ты видишь замочек 🔒 рядом с адресом сайта в браузере. Что это означает?',
+      options: [
+        'Сайт заблокирован и не работает',
+        'Соединение зашифровано через HTTPS (TLS) — данные защищены',
+        'У сайта есть пароль',
+        'Сайт работает только на компьютере, не на телефоне'
+      ],
+      correctIndex: 1,
+      explanation: 'Замочек = HTTPS = данные между тобой и сервером зашифрованы. Никто не может подслушать твои пароли или сообщения по дороге!'
+    }
+  },
+
   // ── МОДУЛЬ 7: КИБЕРБЕЗОПАСНОСТЬ ──────────────────────────────────────────
   {
     id: 'cs101_m7_t1',
@@ -2267,6 +2771,101 @@ export const MOCK_TASKS: Task[] = [
   <p style="margin:2px 0">✅ Умение распознавать фишинг и соцИнженерию</p>
   <p style="margin:2px 0">✅ VPN для публичных Wi-Fi</p>
 </div>`
+  },
+  {
+    id: 'cs101_m7_q1b',
+    courseId: 'course_cs101',
+    module: 'Модуль 7: Кибербезопасность',
+    title: 'Квиз: Виды вредоносного ПО',
+    type: 'quiz',
+    description: 'Определи тип вредоносной программы.',
+    difficulty: 'Хакер',
+    xpReward: 80,
+    currencyReward: 30,
+    status: 'locked',
+    quizData: {
+      question: 'Программа зашифровала все файлы на компьютере и требует перевести 500$ в биткоинах для разблокировки. Что это?',
+      options: [
+        'Вирус — он размножается',
+        'Троян — он маскируется под полезную программу',
+        'Ransomware (шифровальщик) — он блокирует файлы и требует выкуп',
+        'Spyware (шпион) — он записывает пароли'
+      ],
+      correctIndex: 2,
+      explanation: 'Ransomware (программа-вымогатель) шифрует файлы и требует выкуп. Известный пример — WannaCry (2017), поразивший 200 000 компьютеров. Защита: регулярные бэкапы!'
+    }
+  },
+  {
+    id: 'cs101_m7_t1b',
+    courseId: 'course_cs101',
+    module: 'Модуль 7: Кибербезопасность',
+    title: 'Теория: Основы шифрования',
+    type: 'theory',
+    description: 'Узнай, как шифрование защищает данные — от Цезаря до современных алгоритмов.',
+    difficulty: 'Хакер',
+    xpReward: 90,
+    currencyReward: 30,
+    status: 'locked',
+    theory: `<p style="color:#00f3ff;font-weight:bold;margin-bottom:12px">🔐 Тайный язык Нетраннеров...</p>
+<p>Шифрование — это способ превратить понятный текст в <strong>бессмыслицу</strong>, которую может прочитать только тот, у кого есть ключ. Люди шифруют данные уже тысячи лет!</p>
+<h3 style="color:#00f3ff;margin-top:20px;margin-bottom:8px">📜 Шифр Цезаря — самый простой</h3>
+<p>Каждая буква сдвигается на N позиций в алфавите. Если N=3:</p>
+<div style="background:#0a0a14;border-radius:8px;padding:16px;margin:12px 0;font-family:monospace;font-size:0.9em">
+  <p style="margin:3px 0"><span style="color:#aaa">Оригинал:</span>  <span style="color:#00ff41">А Б В Г Д Е</span></p>
+  <p style="margin:3px 0"><span style="color:#aaa">Сдвиг +3:</span>  <span style="color:#fcee0a">Г Д Е Ж З И</span></p>
+  <p style="margin:8px 0 3px"><span style="color:#aaa">Слово:</span> <span style="color:#00ff41">КОТ</span> → <span style="color:#fcee0a">НРХ</span></p>
+</div>
+<p style="color:#aaa;font-size:0.85em">Легко взломать — всего 32 варианта для русского алфавита!</p>
+
+<h3 style="color:#00f3ff;margin-top:20px;margin-bottom:8px">🔑 Два типа шифрования</h3>
+<div style="display:flex;flex-direction:column;gap:10px;margin:12px 0">
+  <div style="background:#0a0a14;border-left:3px solid #fcee0a;padding:12px 14px;border-radius:0 8px 8px 0">
+    <p style="color:#fcee0a;font-weight:bold;margin-bottom:4px">🔐 Симметричное — один ключ</p>
+    <p style="margin:0;color:#aaa;font-size:0.9em">Один и тот же ключ шифрует и расшифровывает. Как замок с одним ключом. Быстрое, но ключ нужно как-то передать.</p>
+    <p style="margin:4px 0 0;color:#555;font-size:0.8em">Примеры: AES-256 (стандарт), ChaCha20</p>
+  </div>
+  <div style="background:#0a0a14;border-left:3px solid #00f3ff;padding:12px 14px;border-radius:0 8px 8px 0">
+    <p style="color:#00f3ff;font-weight:bold;margin-bottom:4px">🔑🔓 Асимметричное — два ключа</p>
+    <p style="margin:0;color:#aaa;font-size:0.9em">Публичный ключ шифрует, приватный — расшифровывает. Как почтовый ящик: положить может каждый, достать — только хозяин.</p>
+    <p style="margin:4px 0 0;color:#555;font-size:0.8em">Примеры: RSA, ECC (используется в HTTPS)</p>
+  </div>
+</div>
+
+<h3 style="color:#00f3ff;margin-top:20px;margin-bottom:8px">🌐 Как это работает в HTTPS?</h3>
+<div style="background:#0a0a14;border:1px solid #1a1a2e;border-radius:8px;padding:14px;margin:12px 0;font-size:0.85em">
+  <p style="margin:4px 0"><span style="color:#fcee0a">1.</span> Браузер получает <strong>публичный ключ</strong> сервера</p>
+  <p style="margin:4px 0"><span style="color:#fcee0a">2.</span> Шифрует им секретный <strong>симметричный ключ</strong> и отправляет</p>
+  <p style="margin:4px 0"><span style="color:#fcee0a">3.</span> Сервер расшифровывает своим <strong>приватным ключом</strong></p>
+  <p style="margin:4px 0"><span style="color:#fcee0a">4.</span> Дальше оба общаются <strong>симметричным шифрованием</strong> (быстрее)</p>
+</div>
+
+<div style="background:#0d1f0d;border:1px solid #00ff41;border-radius:8px;padding:12px;margin-top:16px">
+  <p style="color:#00ff41;font-weight:bold;margin-bottom:4px">🤯 Факт:</p>
+  <p style="margin:0">AES-256 настолько надёжен, что для его взлома перебором нужно больше времени, чем существует Вселенная!</p>
+</div>`
+  },
+  {
+    id: 'cs101_m7_q1c',
+    courseId: 'course_cs101',
+    module: 'Модуль 7: Кибербезопасность',
+    title: 'Квиз: Шифрование',
+    type: 'quiz',
+    description: 'Проверь понимание основ шифрования.',
+    difficulty: 'Хакер',
+    xpReward: 80,
+    currencyReward: 30,
+    status: 'locked',
+    quizData: {
+      question: 'В асимметричном шифровании есть два ключа. Чем шифруют данные, которые отправляют серверу?',
+      options: [
+        'Приватным ключом сервера',
+        'Публичным ключом сервера — его знают все, но расшифровать может только сервер',
+        'Паролем пользователя',
+        'Шифруют оба ключа одновременно'
+      ],
+      correctIndex: 1,
+      explanation: 'Публичный ключ — для шифрования (его знают все). Приватный — для расшифровки (его знает только владелец). Как почтовый ящик: бросить письмо может любой, а достать — только хозяин!'
+    }
   },
   {
     id: 'cs101_m7_q2',
