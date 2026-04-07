@@ -115,6 +115,7 @@ export const MOCK_STUDENTS: StudentProgress[] = [
     tasksCompleted: 12,
     totalTasks: 84,
     totalXP: 4500,
+    totalErrors: 3,
     level: 5,
     lastActive: '2 мин назад',
     streak: 3,

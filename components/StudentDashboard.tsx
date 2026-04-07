@@ -388,12 +388,17 @@ const StudentDashboard: React.FC<StudentDashboardProps> = ({ currentUser: propUs
               }
           }
 
+          const prevCompleted = currentUser.tasksCompleted || 0;
+          const prevErrors = currentUser.totalErrors || 0;
+
           const updatedUser = {
               ...currentUser,
               xp: newXP,
               currency: newCurrency,
               level: newLevel,
-              achievements: newAchievements
+              achievements: newAchievements,
+              tasksCompleted: prevCompleted + 1,
+              totalErrors: prevErrors + attempts,
           };
           
           setCurrentUser(updatedUser);

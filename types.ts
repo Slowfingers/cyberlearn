@@ -37,6 +37,8 @@ export interface User {
   xp: number;
   currency: number; // New: Bits balance
   level: number;
+  tasksCompleted?: number;
+  totalErrors?: number;
   inventory: string[]; 
   achievements: string[]; 
   equipped: {
@@ -143,6 +145,7 @@ export interface StudentProgress {
   tasksCompleted: number;
   totalTasks: number;
   totalXP: number;
+  totalErrors: number;
   level: number;
   lastActive: string;
   streak: number;

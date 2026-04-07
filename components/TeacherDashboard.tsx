@@ -16,7 +16,7 @@ interface TeacherDashboardProps {
   onClassCreated: (newClass: Classroom) => void;
 }
 
-type SortKey = 'name' | 'totalXP' | 'tasksCompleted' | 'level' | 'streak';
+type SortKey = 'name' | 'totalXP' | 'tasksCompleted' | 'totalErrors' | 'level' | 'streak';
 type SortDir = 'asc' | 'desc';
 
 const TeacherDashboard: React.FC<TeacherDashboardProps> = ({ 
@@ -528,6 +528,7 @@ const TeacherDashboard: React.FC<TeacherDashboardProps> = ({
                                                     ['level', 'LVL'],
                                                     ['totalXP', 'XP'],
                                                     ['tasksCompleted', 'Задачи'],
+                                                    ['totalErrors', 'Ошибки'],
                                                     ['streak', 'Streak'],
                                                 ] as [SortKey, string][]).map(([key, label]) => (
                                                     <th
@@ -562,6 +563,7 @@ const TeacherDashboard: React.FC<TeacherDashboardProps> = ({
                                                     <td className="p-3 whitespace-nowrap text-cyber-neonYellow">{student.level}</td>
                                                     <td className="p-3 whitespace-nowrap text-cyber-neonBlue">{student.totalXP}</td>
                                                     <td className="p-3 whitespace-nowrap">{student.tasksCompleted}/{student.totalTasks}</td>
+                                                    <td className="p-3 whitespace-nowrap text-red-400">{student.totalErrors}</td>
                                                     <td className="p-3 whitespace-nowrap">
                                                         {student.streak > 0 ? (
                                                             <span className="flex items-center gap-1 text-orange-400"><Flame size={12} /> {student.streak}</span>
@@ -663,7 +665,7 @@ const TeacherDashboard: React.FC<TeacherDashboardProps> = ({
                                         </div>
 
                                         {/* Stats */}
-                                        <div className="grid grid-cols-4 gap-2 mb-6">
+                                        <div className="grid grid-cols-5 gap-2 mb-6">
                                             <div className="bg-gray-900 border border-gray-800 rounded p-2 text-center">
                                                 <div className="text-cyber-neonBlue font-mono font-bold">{selectedStudent.totalXP}</div>
                                                 <div className="text-gray-500 text-[9px] uppercase">XP</div>
@@ -671,6 +673,10 @@ const TeacherDashboard: React.FC<TeacherDashboardProps> = ({
                                             <div className="bg-gray-900 border border-gray-800 rounded p-2 text-center">
                                                 <div className="text-cyber-neonGreen font-mono font-bold">{selectedStudent.tasksCompleted}</div>
                                                 <div className="text-gray-500 text-[9px] uppercase">Задач</div>
+                                            </div>
+                                            <div className="bg-gray-900 border border-red-500/30 rounded p-2 text-center">
+                                                <div className="text-red-400 font-mono font-bold">{selectedStudent.totalErrors}</div>
+                                                <div className="text-gray-500 text-[9px] uppercase">Ошибки</div>
                                             </div>
                                             <div className="bg-gray-900 border border-orange-500/30 rounded p-2 text-center">
                                                 <div className="text-orange-400 font-mono font-bold">{selectedStudent.streak}</div>
