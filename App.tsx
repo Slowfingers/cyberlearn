@@ -11,6 +11,9 @@ type AuthMode = 'select' | 'teacher-login' | 'student-login';
 
 const App: React.FC = () => {
   const [user, setUser] = useState<User | null>(null);
+  const [sessionLoading, setSessionLoading] = useState<boolean>(() => {
+    return !!(localStorage.getItem('cyberlearn_session_id'));
+  });
   
   const [classrooms, setClassrooms] = useState<Classroom[]>([]);
   const [activeClassId, setActiveClassId] = useState<string | null>(null);
@@ -44,8 +47,12 @@ const App: React.FC = () => {
                   }
               } catch (e) {
                   console.error('Session restore error:', e);
+              } finally {
+                  setSessionLoading(false);
               }
           })();
+      } else {
+          setSessionLoading(false);
       }
   }, []);
 
@@ -128,6 +135,17 @@ const App: React.FC = () => {
   };
 
   // --- RENDER LOGIN SCREENS ---
+
+  if (sessionLoading) {
+    return (
+      <div className="min-h-[100dvh] bg-black flex items-center justify-center">
+        <div className="text-center">
+          <Loader2 className="animate-spin text-cyber-neonBlue mx-auto mb-4" size={40} />
+          <p className="text-cyber-neonBlue font-mono text-sm tracking-widest animate-pulse">{'>> ВОССТАНОВЛЕНИЕ_СЕССИИ...'}</p>
+        </div>
+      </div>
+    );
+  }
 
   if (!user) {
     return (
