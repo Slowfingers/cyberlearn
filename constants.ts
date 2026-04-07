@@ -2380,6 +2380,7 @@ export const MOCK_TASKS: Task[] = [
       explanation: 'x хранит 5, y хранит 3. print(x + y) вычислит 5 + 3 = 8 и выведет результат.'
     }
   },
+  {id:'lua_001q2',courseId:'course_lua101',module:'Модуль 1: Переменные и синтаксис',title:'Квиз: Типы данных',type:'quiz',description:'Квиз',difficulty:'Хакер',xpReward:50,currencyReward:15,status:'locked',quizData:{question:"Какой тип у значения \"hello\" в Lua?",options:["number","string","boolean","table"],correctIndex:1,explanation:"Текст в кавычках — это string (строка). number — числа, boolean — true/false."}},
   {
     id: 'lua_002',
     courseId: 'course_lua101',
@@ -2486,6 +2487,7 @@ export const MOCK_TASKS: Task[] = [
       explanation: 'Цикл for i = 1, 4 выполняется при i=1, i=2, i=3, i=4 — ровно 4 раза.'
     }
   },
+  {id:'lua_007q2',courseId:'course_lua101',module:'Модуль 2: Логика и циклы',title:'Квиз: Циклы',type:'quiz',description:'Квиз',difficulty:'Хакер',xpReward:50,currencyReward:15,status:'locked',quizData:{question:"Сколько раз выполнится for i=1,5 do ... end?",options:["4","5","6","Бесконечно"],correctIndex:1,explanation:"for i=1,5 — от 1 до 5 включительно = 5 итераций."}},
   {
     id: 'lua_008',
     courseId: 'course_lua101',
@@ -2594,6 +2596,7 @@ export const MOCK_TASKS: Task[] = [
       explanation: 'Функция calc принимает x=4 и возвращает 4 * 3 = 12. print() выводит это значение.'
     }
   },
+  {id:'lua_013q2',courseId:'course_lua101',module:'Модуль 3: Функции',title:'Квиз: Return',type:'quiz',description:'Квиз',difficulty:'Хакер',xpReward:50,currencyReward:15,status:'locked',quizData:{question:"Что делает return?",options:["Останавливает программу","Возвращает значение из функции","Печатает текст","Создаёт переменную"],correctIndex:1,explanation:"return завершает функцию и возвращает значение вызывающему коду."}},
   {
     id: 'lua_014',
     courseId: 'course_lua101',
@@ -2703,6 +2706,7 @@ export const MOCK_TASKS: Task[] = [
       explanation: 'В Lua индексы начинаются с 1. items[1] = "A", items[2] = "B", items[3] = "C". Поэтому items[2] выведет "B".'
     }
   },
+  {id:'lua_019q2',courseId:'course_lua101',module:'Модуль 4: Таблицы',title:'Квиз: Индексы',type:'quiz',description:'Квиз',difficulty:'Хакер',xpReward:50,currencyReward:15,status:'locked',quizData:{question:"С какого числа нумеруются элементы таблицы в Lua?",options:["0","1","Любого","-1"],correctIndex:1,explanation:"В Lua массивы нумеруются с 1, в отличие от большинства других языков."}},
   {
     id: 'lua_020',
     courseId: 'course_lua101',
@@ -2806,6 +2810,7 @@ export const MOCK_TASKS: Task[] = [
       explanation: 'string.find возвращает начальную и конечную позицию найденной подстроки. Если подстрока не найдена — возвращает nil. Это позволяет проверять, содержит ли строка нужный текст.'
     }
   },
+  {id:'lua_030q2',courseId:'course_lua101',module:'Модуль 5: Алгоритмы и финал',title:'Квиз: Сложность',type:'quiz',description:'Квиз',difficulty:'Хакер',xpReward:50,currencyReward:15,status:'locked',quizData:{question:"Какая сложность у линейного поиска?",options:["O(1)","O(n)","O(log n)","O(n²)"],correctIndex:1,explanation:"Линейный поиск перебирает все элементы — O(n)."}},
   {
     id: 'lua_032',
     courseId: 'course_lua101',
@@ -2917,6 +2922,7 @@ export const MOCK_TASKS: Task[] = [
       explanation: 'Оператор .. склеивает строки. "Net" .. "runner" = "Netrunner" — без пробела, потому что мы его не добавили.'
     }
   },
+  {id:'lua_040q2',courseId:'course_lua101',module:'Модуль 6: Строки и паттерны',title:'Квиз: string.len',type:'quiz',description:'Квиз',difficulty:'Хакер',xpReward:50,currencyReward:15,status:'locked',quizData:{question:"Что вернёт string.len(\"abc\")?",options:["2","3","4","abc"],correctIndex:1,explanation:"string.len считает количество символов. \"abc\" = 3 символа."}},
   {
     id: 'lua_041',
     courseId: 'course_lua101',
@@ -3041,6 +3047,7 @@ export const MOCK_TASKS: Task[] = [
       explanation: 'Внутри if создаётся новая ЛОКАЛЬНАЯ x = 20. Первый print выведет 20 (внутренняя x). После end внутренняя x исчезает, и второй print выведет 10 (внешняя x).'
     }
   },
+  {id:'lua_050q2',courseId:'course_lua101',module:'Модуль 7: Модули и мастерство',title:'Квиз: Замыкания',type:'quiz',description:'Квиз',difficulty:'Хакер',xpReward:50,currencyReward:15,status:'locked',quizData:{question:"Что такое замыкание (closure)?",options:["Тип ошибки","Функция с доступом к переменным внешней функции","Цикл","Модуль"],correctIndex:1,explanation:"Замыкание — функция, которая «помнит» переменные окружения, где была создана."}},
   {
     id: 'lua_051',
     courseId: 'course_lua101',
@@ -3149,6 +3156,7 @@ export const MOCK_TASKS: Task[] = [
       explanation: 'x и y — числа (int), поэтому + складывает их математически: 5 + 3 = 8. Если бы это были строки ("5" + "3"), результат был бы "53".'
     }
   },
+  {id:'py_001q2',courseId:'course_py200',module:'Модуль 1: Переменные и вывод',title:'Квиз: print()',type:'quiz',description:'Квиз',difficulty:'Хакер',xpReward:50,currencyReward:15,status:'locked',quizData:{question:"Что выведет print(2+3)?",options:["23","5","2+3","Ошибку"],correctIndex:1,explanation:"Python вычислит 2+3=5 и выведет число 5."}},
   {
     id: 'py_002',
     courseId: 'course_py200',
@@ -3251,6 +3259,7 @@ export const MOCK_TASKS: Task[] = [
       explanation: 'level = 10, а условие level >= 10 истинно (10 >= 10), поэтому выполнится первая ветка и выведет "Pro". В Python блоки заканчиваются сменой отступа, слово end не нужно.'
     }
   },
+  {id:'py_010q2',courseId:'course_py200',module:'Модуль 2: Условия и циклы',title:'Квиз: range',type:'quiz',description:'Квиз',difficulty:'Хакер',xpReward:50,currencyReward:15,status:'locked',quizData:{question:"Что делает range(3)?",options:["[1,2,3]","[0,1,2]","[0,1,2,3]","[3]"],correctIndex:1,explanation:"range(3) генерирует 0, 1, 2 — три числа начиная с 0."}},
   {
     id: 'py_011',
     courseId: 'course_py200',
@@ -3298,77 +3307,199 @@ export const MOCK_TASKS: Task[] = [
   // WEB300: HTML/CSS — ПОЛНЫЙ КУРС (5 МОДУЛЕЙ)
   // =========================================================================
 
-  // ── МОДУЛЬ 1: ОСНОВЫ HTML ─────────────────────────────────────────────────
+  // ── МОДУЛЬ 1: ОСНОВЫ HTML (расширенный) ──────────────────────────────
   {
-    id: 'web_m1_theory',
+    id: 'web_m1_t1',
     courseId: 'course_web300',
     module: 'Модуль 1: Основы HTML',
-    title: 'Теория: Анатомия HTML-страницы',
+    title: 'Теория: Что такое HTML и зачем он нужен',
     type: 'theory',
-    description: 'Теги, атрибуты, структура документа — фундамент веба.',
+    description: 'Узнай, как браузер превращает текст в страницы и почему HTML — фундамент веба.',
+    difficulty: 'Новичок',
+    xpReward: 40,
+    currencyReward: 10,
+    status: 'open',
+    theory: `<p style="color:#ff00ff;font-weight:bold;margin-bottom:12px">🌐 Добро пожаловать в Визуальный Взлом!</p>
+<p style="line-height:1.7">Каждый сайт — Google, YouTube, VK — начинается с <strong style="color:#00f3ff">HTML</strong>. Но что это?</p>
+<h3 style="color:#00f3ff;margin-top:20px;margin-bottom:8px">🤔 Зачем нужен HTML?</h3>
+<p style="line-height:1.7">Представь: ты пишешь текст в блокноте. Всё одинаковое — нет заголовков, картинок, кнопок. На сайте нужно различать: что — заголовок, что — абзац, где — картинка, а где — ссылка.</p>
+<p style="line-height:1.7"><strong style="color:#fcee0a">HTML (HyperText Markup Language)</strong> — язык <strong>разметки</strong>. Он говорит браузеру: «Вот заголовок, вот абзац, вот ссылка».</p>
+<h3 style="color:#00f3ff;margin-top:20px;margin-bottom:8px">🔄 Как браузер показывает страницу?</h3>
+<div style="display:flex;flex-direction:column;gap:8px;margin:12px 0">
+  <div style="background:#0a0a14;border-left:3px solid #00f3ff;padding:10px 14px;border-radius:0 6px 6px 0">
+    <p style="color:#00f3ff;font-weight:bold;margin-bottom:2px">1. Ты пишешь HTML-код</p>
+    <p style="margin:0;color:#aaa;font-size:0.9em">Текстовый файл с тегами — инструкциями для браузера.</p>
+  </div>
+  <div style="background:#0a0a14;border-left:3px solid #ff00ff;padding:10px 14px;border-radius:0 6px 6px 0">
+    <p style="color:#ff00ff;font-weight:bold;margin-bottom:2px">2. Браузер читает код</p>
+    <p style="margin:0;color:#aaa;font-size:0.9em">Chrome / Firefox разбирают HTML и понимают структуру.</p>
+  </div>
+  <div style="background:#0a0a14;border-left:3px solid #00ff41;padding:10px 14px;border-radius:0 6px 6px 0">
+    <p style="color:#00ff41;font-weight:bold;margin-bottom:2px">3. На экране — страница</p>
+    <p style="margin:0;color:#aaa;font-size:0.9em">Заголовки крупные, абзацы обычные, ссылки кликабельные.</p>
+  </div>
+</div>
+<h3 style="color:#00f3ff;margin-top:20px;margin-bottom:8px">🏷️ Что такое тег?</h3>
+<p style="line-height:1.7"><strong style="color:#fcee0a">Тег</strong> — команда для браузера в угловых скобках. Большинство тегов парные:</p>
+<div style="background:#0a0a14;border-radius:8px;padding:16px;margin:12px 0;font-family:monospace;font-size:14px;line-height:1.8">
+  <p style="margin:2px 0"><span style="color:#00ff41">&lt;p&gt;</span><span style="color:#ccc">Это абзац текста</span><span style="color:#00ff41">&lt;/p&gt;</span></p>
+  <p style="margin:6px 0 0;color:#555;font-size:0.8em">↑ открывающий &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; ↑ закрывающий (со /)</p>
+</div>
+<div style="background:#001a0a;border:1px solid #00ff41;border-radius:8px;padding:12px;margin-top:16px">
+  <p style="color:#00ff41;font-weight:bold;margin-bottom:4px">💡 Аналогия:</p>
+  <p style="margin:0">HTML — чертёж дома. Описывает структуру. А внешний вид (цвет, размер) — за CSS (Модуль 2).</p>
+</div>`,
+  },
+  {
+    id: 'web_m1_q1',
+    courseId: 'course_web300',
+    module: 'Модуль 1: Основы HTML',
+    title: 'Квиз: Зачем нужен HTML?',
+    type: 'quiz',
+    description: 'Проверь, понял ли ты основную идею HTML.',
+    difficulty: 'Новичок',
+    xpReward: 30,
+    currencyReward: 10,
+    status: 'locked',
+    quizData: {
+      question: "Что делает HTML?",
+      options: ["Раскрашивает страницу в цвета","Описывает структуру: заголовки, абзацы, ссылки","Запускает программы на сервере","Добавляет анимации"],
+      correctIndex: 1,
+      explanation: "HTML — язык разметки. Описывает СТРУКТУРУ. За вид — CSS, за поведение — JavaScript."
+    },
+  },
+  {
+    id: 'web_m1_t2',
+    courseId: 'course_web300',
+    module: 'Модуль 1: Основы HTML',
+    title: 'Теория: Структура документа и главные теги',
+    type: 'theory',
+    description: 'Как устроен HTML-документ изнутри. Заголовки, абзацы, списки.',
     difficulty: 'Новичок',
     xpReward: 50,
     currencyReward: 15,
-    status: 'open',
-    theory: `<p style="color:#ff00ff;font-weight:bold;margin-bottom:12px">🌐 Добро пожаловать в Визуальный Взлом!</p>
-<p>HTML (HyperText Markup Language) — язык разметки, из которого состоит каждая веб-страница. Браузер читает HTML и превращает его в то, что ты видишь на экране.</p>
-
-<h3 style="color:#00f3ff;margin-top:20px;margin-bottom:8px">🏗️ Структура HTML-документа</h3>
-<div style="background:#0a0a14;border-radius:8px;padding:16px;margin:12px 0;font-family:monospace;font-size:13px;line-height:1.7">
-  <p style="margin:2px 0"><span style="color:#555">&lt;!DOCTYPE html&gt;</span></p>
+    status: 'locked',
+    theory: `<p style="color:#ff00ff;font-weight:bold;margin-bottom:12px">🏗️ Скелет каждой веб-страницы</p>
+<p style="line-height:1.7">Каждый HTML-документ имеет базовую структуру — как скелет.</p>
+<h3 style="color:#00f3ff;margin-top:20px;margin-bottom:8px">📄 Структура документа</h3>
+<div style="background:#0a0a14;border-radius:8px;padding:16px;margin:12px 0;font-family:monospace;font-size:13px;line-height:1.8">
+  <p style="margin:2px 0"><span style="color:#555">&lt;!DOCTYPE html&gt;</span> <span style="color:#444">← «это HTML5»</span></p>
   <p style="margin:2px 0"><span style="color:#00f3ff">&lt;html&gt;</span></p>
-  <p style="margin:2px 0 2px 20px"><span style="color:#ff00ff">&lt;head&gt;</span></p>
+  <p style="margin:2px 0 2px 20px"><span style="color:#ff00ff">&lt;head&gt;</span> <span style="color:#444">← служебная часть (не видна)</span></p>
   <p style="margin:2px 0 2px 40px"><span style="color:#fcee0a">&lt;title&gt;</span>Моя страница<span style="color:#fcee0a">&lt;/title&gt;</span></p>
   <p style="margin:2px 0 2px 20px"><span style="color:#ff00ff">&lt;/head&gt;</span></p>
-  <p style="margin:2px 0 2px 20px"><span style="color:#ff00ff">&lt;body&gt;</span></p>
-  <p style="margin:2px 0 2px 40px"><span style="color:#00ff41">&lt;h1&gt;</span>Привет, Мир!<span style="color:#00ff41">&lt;/h1&gt;</span></p>
-  <p style="margin:2px 0 2px 40px"><span style="color:#00ff41">&lt;p&gt;</span>Первый абзац.<span style="color:#00ff41">&lt;/p&gt;</span></p>
+  <p style="margin:2px 0 2px 20px"><span style="color:#ff00ff">&lt;body&gt;</span> <span style="color:#444">← всё видимое</span></p>
+  <p style="margin:2px 0 2px 40px"><span style="color:#00ff41">&lt;h1&gt;</span>Привет!<span style="color:#00ff41">&lt;/h1&gt;</span></p>
+  <p style="margin:2px 0 2px 40px"><span style="color:#00ff41">&lt;p&gt;</span>Абзац.<span style="color:#00ff41">&lt;/p&gt;</span></p>
   <p style="margin:2px 0 2px 20px"><span style="color:#ff00ff">&lt;/body&gt;</span></p>
   <p style="margin:2px 0"><span style="color:#00f3ff">&lt;/html&gt;</span></p>
 </div>
-
-<h3 style="color:#00f3ff;margin-top:20px;margin-bottom:8px">🔖 Ключевые теги</h3>
-<div style="background:#0a0a14;border-radius:8px;padding:16px;margin:12px 0;font-family:monospace;font-size:13px;line-height:1.8">
-  <p style="margin:2px 0"><span style="color:#00ff41">&lt;h1&gt;…&lt;h6&gt;</span> <span style="color:#555"> — заголовки (h1 самый большой)</span></p>
-  <p style="margin:2px 0"><span style="color:#00ff41">&lt;p&gt;</span> <span style="color:#555"> — абзац текста</span></p>
-  <p style="margin:2px 0"><span style="color:#00ff41">&lt;a href="..."&gt;</span> <span style="color:#555"> — ссылка</span></p>
-  <p style="margin:2px 0"><span style="color:#00ff41">&lt;img src="..." alt="..."&gt;</span> <span style="color:#555"> — изображение</span></p>
-  <p style="margin:2px 0"><span style="color:#00ff41">&lt;ul&gt; / &lt;ol&gt; / &lt;li&gt;</span> <span style="color:#555"> — списки</span></p>
-  <p style="margin:2px 0"><span style="color:#00ff41">&lt;div&gt;</span> <span style="color:#555"> — блок-контейнер (строительный кирпич)</span></p>
-  <p style="margin:2px 0"><span style="color:#00ff41">&lt;span&gt;</span> <span style="color:#555"> — строчный контейнер</span></p>
-  <p style="margin:2px 0"><span style="color:#00ff41">&lt;button&gt;</span> <span style="color:#555"> — кнопка</span></p>
-  <p style="margin:2px 0"><span style="color:#00ff41">&lt;input type="text"&gt;</span> <span style="color:#555"> — поле ввода</span></p>
+<div style="background:#0a0a14;border:1px solid #fcee0a;border-radius:8px;padding:14px;margin:12px 0">
+  <p style="color:#fcee0a;font-weight:bold;margin-bottom:4px">📌 Запомни:</p>
+  <p style="margin:0;color:#ccc"><code style="color:#ff00ff">&lt;body&gt;</code> — видимое. <code style="color:#ff00ff">&lt;head&gt;</code> — служебное (название вкладки, стили).</p>
 </div>
-
-<h3 style="color:#00f3ff;margin-top:20px;margin-bottom:8px">🏷️ Атрибуты</h3>
-<p>Атрибуты добавляют тегу дополнительную информацию. Пишутся внутри открывающего тега:</p>
-<div style="background:#0a0a14;border-radius:8px;padding:16px;margin:12px 0;font-family:monospace;font-size:13px">
-  <p style="margin:2px 0"><span style="color:#00ff41">&lt;a</span> <span style="color:#fcee0a">href</span>=<span style="color:#00f3ff">"https://google.com"</span> <span style="color:#fcee0a">target</span>=<span style="color:#00f3ff">"_blank"</span><span style="color:#00ff41">&gt;</span>Открыть<span style="color:#00ff41">&lt;/a&gt;</span></p>
-  <p style="margin:8px 0 2px 0"><span style="color:#00ff41">&lt;img</span> <span style="color:#fcee0a">src</span>=<span style="color:#00f3ff">"photo.jpg"</span> <span style="color:#fcee0a">alt</span>=<span style="color:#00f3ff">"Фото"</span> <span style="color:#fcee0a">width</span>=<span style="color:#00f3ff">"200"</span><span style="color:#00ff41">&gt;</span></p>
+<h3 style="color:#00f3ff;margin-top:20px;margin-bottom:8px">🔖 Теги для текста</h3>
+<div style="background:#0a0a14;border-radius:8px;padding:16px;margin:12px 0;font-family:monospace;font-size:13px;line-height:2">
+  <p style="margin:2px 0"><span style="color:#00ff41">&lt;h1&gt;…&lt;h6&gt;</span> — <span style="color:#aaa">заголовки (h1 крупный, h6 мелкий)</span></p>
+  <p style="margin:2px 0"><span style="color:#00ff41">&lt;p&gt;</span> — <span style="color:#aaa">абзац</span></p>
+  <p style="margin:2px 0"><span style="color:#00ff41">&lt;strong&gt;</span> — <span style="color:#aaa">жирный</span></p>
+  <p style="margin:2px 0"><span style="color:#00ff41">&lt;em&gt;</span> — <span style="color:#aaa">курсив</span></p>
+  <p style="margin:2px 0"><span style="color:#00ff41">&lt;br&gt;</span> — <span style="color:#aaa">перенос строки</span></p>
 </div>
-
-<div style="background:#001a0a;border:1px solid #00ff41;border-radius:8px;padding:12px;margin-top:16px">
-  <p style="color:#00ff41;font-weight:bold;margin-bottom:4px">💡 Правило парных тегов</p>
-  <p style="margin:0">Большинство тегов парные: <code>&lt;p&gt;текст&lt;/p&gt;</code>. Одиночные (self-closing): <code>&lt;img&gt;</code>, <code>&lt;input&gt;</code>, <code>&lt;br&gt;</code>.</p>
-</div>`
+<h3 style="color:#00f3ff;margin-top:20px;margin-bottom:8px">📋 Списки</h3>
+<div style="display:flex;gap:12px;flex-wrap:wrap;margin:12px 0">
+  <div style="flex:1;min-width:160px;background:#0a0a14;border:1px solid #00f3ff;border-radius:8px;padding:14px">
+    <p style="color:#00f3ff;font-weight:bold;margin:0 0 6px">• Маркированный</p>
+    <p style="font-family:monospace;font-size:0.85em;color:#aaa;margin:0">&lt;ul&gt;&lt;li&gt;…&lt;/li&gt;&lt;/ul&gt;</p>
+  </div>
+  <div style="flex:1;min-width:160px;background:#0a0a14;border:1px solid #ff00ff;border-radius:8px;padding:14px">
+    <p style="color:#ff00ff;font-weight:bold;margin:0 0 6px">1. Нумерованный</p>
+    <p style="font-family:monospace;font-size:0.85em;color:#aaa;margin:0">&lt;ol&gt;&lt;li&gt;…&lt;/li&gt;&lt;/ol&gt;</p>
+  </div>
+</div>
+<div style="background:#1a0a00;border:1px solid #fcee0a;border-radius:8px;padding:12px;margin-top:16px">
+  <p style="color:#fcee0a;font-weight:bold;margin-bottom:4px">⚠️ Вложенность</p>
+  <p style="margin:0;color:#ccc">Теги закрываются в обратном порядке! ✅ &lt;p&gt;&lt;strong&gt;…&lt;/strong&gt;&lt;/p&gt;</p>
+</div>`,
   },
   {
-    id: 'web_m1_quiz',
+    id: 'web_m1_q2',
     courseId: 'course_web300',
     module: 'Модуль 1: Основы HTML',
     title: 'Квиз: Теги и структура',
     type: 'quiz',
-    description: 'Проверь знание базовых HTML-тегов.',
+    description: 'Проверь знание базовых тегов.',
     difficulty: 'Новичок',
     xpReward: 40,
     currencyReward: 10,
     status: 'locked',
     quizData: {
-      question: 'Какой тег создаёт самый важный заголовок страницы?',
-      options: ['<header>', '<h1>', '<title>', '<strong>'],
+      question: "Какой тег создаёт самый важный заголовок?",
+      options: ["<header>","<h1>","<title>","<strong>"],
       correctIndex: 1,
-      explanation: '<h1> — самый крупный заголовок в иерархии h1–h6. <title> задаёт название вкладки браузера, но не отображается на странице. <header> — семантический блок шапки.'
-    }
+      explanation: "<h1> — самый крупный заголовок (h1–h6). <title> — название вкладки. <strong> — жирный текст."
+    },
+  },
+  {
+    id: 'web_m1_t3',
+    courseId: 'course_web300',
+    module: 'Модуль 1: Основы HTML',
+    title: 'Теория: Ссылки, картинки и атрибуты',
+    type: 'theory',
+    description: 'Как добавлять ссылки, картинки. Что такое атрибуты тегов.',
+    difficulty: 'Новичок',
+    xpReward: 50,
+    currencyReward: 15,
+    status: 'locked',
+    theory: `<p style="color:#ff00ff;font-weight:bold;margin-bottom:12px">🔗 Связываем страницы!</p>
+<p style="line-height:1.7">Теги для текста ты знаешь. Теперь — <strong style="color:#00f3ff">ссылки</strong> и <strong style="color:#00f3ff">картинки</strong>.</p>
+<h3 style="color:#00f3ff;margin-top:20px;margin-bottom:8px">🏷️ Атрибуты</h3>
+<p style="line-height:1.7">Некоторым тегам нужна доп. информация — <strong style="color:#fcee0a">атрибуты</strong>:</p>
+<div style="background:#0a0a14;border-radius:8px;padding:14px;margin:12px 0;font-family:monospace;font-size:13px">
+  <p style="margin:2px 0"><span style="color:#00ff41">&lt;тег</span> <span style="color:#fcee0a">атрибут</span>=<span style="color:#00f3ff">"значение"</span><span style="color:#00ff41">&gt;</span></p>
+</div>
+<h3 style="color:#00f3ff;margin-top:20px;margin-bottom:8px">🔗 Ссылки — &lt;a&gt;</h3>
+<p style="line-height:1.7">Атрибут <code style="color:#fcee0a">href</code> задаёт адрес:</p>
+<div style="background:#0a0a14;border-radius:8px;padding:14px;margin:12px 0;font-family:monospace;font-size:13px">
+  <p style="margin:2px 0"><span style="color:#00ff41">&lt;a</span> <span style="color:#fcee0a">href</span>=<span style="color:#00f3ff">"https://google.com"</span><span style="color:#00ff41">&gt;</span>Google<span style="color:#00ff41">&lt;/a&gt;</span></p>
+</div>
+<h3 style="color:#00f3ff;margin-top:20px;margin-bottom:8px">🖼️ Картинки — &lt;img&gt;</h3>
+<p style="line-height:1.7">Одиночный тег (без закрывающего!):</p>
+<div style="background:#0a0a14;border-radius:8px;padding:14px;margin:12px 0;font-family:monospace;font-size:13px">
+  <p style="margin:2px 0"><span style="color:#00ff41">&lt;img</span> <span style="color:#fcee0a">src</span>=<span style="color:#00f3ff">"photo.jpg"</span> <span style="color:#fcee0a">alt</span>=<span style="color:#00f3ff">"Фото"</span> <span style="color:#fcee0a">width</span>=<span style="color:#00f3ff">"300"</span><span style="color:#00ff41">&gt;</span></p>
+</div>
+<div style="background:#0a0a14;border:1px solid #1a1a2e;border-radius:8px;padding:14px;margin:12px 0">
+  <p style="margin:4px 0"><span style="color:#fcee0a;font-weight:bold">src</span> — <span style="color:#aaa">путь к картинке (обязательный!)</span></p>
+  <p style="margin:4px 0"><span style="color:#fcee0a;font-weight:bold">alt</span> — <span style="color:#aaa">текст если не загрузилась</span></p>
+  <p style="margin:4px 0"><span style="color:#fcee0a;font-weight:bold">width</span> — <span style="color:#aaa">ширина в пикселях</span></p>
+</div>
+<h3 style="color:#00f3ff;margin-top:20px;margin-bottom:8px">📦 div и span</h3>
+<div style="background:#0a0a14;border-radius:8px;padding:14px;margin:12px 0;font-family:monospace;font-size:13px">
+  <p style="margin:4px 0"><span style="color:#00ff41">&lt;div&gt;</span> — <span style="color:#aaa">блочный контейнер (вся строка)</span></p>
+  <p style="margin:4px 0"><span style="color:#00ff41">&lt;span&gt;</span> — <span style="color:#aaa">строчный (внутри текста)</span></p>
+</div>
+<div style="background:#001a0a;border:1px solid #00ff41;border-radius:8px;padding:12px;margin-top:16px">
+  <p style="color:#00ff41;font-weight:bold;margin-bottom:4px">💡 Одиночные теги</p>
+  <p style="margin:0">&lt;img&gt;, &lt;input&gt;, &lt;br&gt; — не нужен закрывающий тег.</p>
+</div>`,
+  },
+  {
+    id: 'web_m1_q3',
+    courseId: 'course_web300',
+    module: 'Модуль 1: Основы HTML',
+    title: 'Квиз: Ссылки и атрибуты',
+    type: 'quiz',
+    description: 'Проверь понимание атрибутов.',
+    difficulty: 'Новичок',
+    xpReward: 40,
+    currencyReward: 10,
+    status: 'locked',
+    quizData: {
+      question: "Какой атрибут тега <a> задаёт адрес ссылки?",
+      options: ["src","href","link","url"],
+      correctIndex: 1,
+      explanation: "href — атрибут ссылки. src — для картинок и скриптов."
+    },
   },
   {
     id: 'web_m1_practice',
@@ -3376,655 +3507,269 @@ export const MOCK_TASKS: Task[] = [
     module: 'Модуль 1: Основы HTML',
     title: 'Практика: Профиль Агента',
     type: 'html',
-    description: 'Создай HTML-профиль: заголовок h1 с именем "AGENT_47", абзац p с описанием и список ul с 3 навыками.',
+    description: 'Создай HTML-профиль: h1 "AGENT_47", абзац p и список ul с 3 навыками.',
     difficulty: 'Новичок',
     xpReward: 60,
     currencyReward: 20,
     status: 'locked',
-    initialCode: `<!-- Создай профиль агента -->
-<!-- 1. Заголовок h1: "AGENT_47" -->
-<!-- 2. Абзац p с любым описанием -->
-<!-- 3. Список ul с 3 пунктами li -->
-`,
-    htmlConfig: { targetTag: 'h1', targetStyle: 'AGENT_47' },
-    theory: `<h3 style="color:#00f3ff;margin-bottom:8px">Шаблон профиля</h3>
+    initialCode: `<!-- Создай профиль агента -->\n<!-- 1. Заголовок h1: "AGENT_47" -->\n<!-- 2. Абзац p с описанием -->\n<!-- 3. Список ul с 3 пунктами li -->\n`,
+    htmlConfig: {"targetTag":"h1","targetStyle":"AGENT_47"},
+    theory: `<h3 style="color:#00f3ff;margin-bottom:8px">Подсказка</h3>
 <div style="background:#0a0a14;border-radius:6px;padding:12px;margin:10px 0;font-family:monospace;font-size:12px;line-height:1.7">
-  <p style="margin:2px 0"><span style="color:#00ff41">&lt;h1&gt;</span>AGENT_47<span style="color:#00ff41">&lt;/h1&gt;</span></p>
-  <p style="margin:2px 0"><span style="color:#00ff41">&lt;p&gt;</span>Элитный нетраннер<span style="color:#00ff41">&lt;/p&gt;</span></p>
-  <p style="margin:2px 0"><span style="color:#00ff41">&lt;ul&gt;</span></p>
-  <p style="margin:2px 0 2px 16px"><span style="color:#fcee0a">&lt;li&gt;</span>Взлом<span style="color:#fcee0a">&lt;/li&gt;</span></p>
-  <p style="margin:2px 0 2px 16px"><span style="color:#fcee0a">&lt;li&gt;</span>Маскировка<span style="color:#fcee0a">&lt;/li&gt;</span></p>
-  <p style="margin:2px 0 2px 16px"><span style="color:#fcee0a">&lt;li&gt;</span>Дроны<span style="color:#fcee0a">&lt;/li&gt;</span></p>
-  <p style="margin:2px 0"><span style="color:#00ff41">&lt;/ul&gt;</span></p>
-</div>`
+  <p style="margin:2px 0">&lt;h1&gt;AGENT_47&lt;/h1&gt;</p>
+  <p style="margin:2px 0">&lt;p&gt;Элитный нетраннер&lt;/p&gt;</p>
+  <p style="margin:2px 0">&lt;ul&gt;</p>
+  <p style="margin:2px 0 2px 16px">&lt;li&gt;Взлом&lt;/li&gt;</p>
+  <p style="margin:2px 0 2px 16px">&lt;li&gt;Маскировка&lt;/li&gt;</p>
+  <p style="margin:2px 0 2px 16px">&lt;li&gt;Дроны&lt;/li&gt;</p>
+  <p style="margin:2px 0">&lt;/ul&gt;</p>
+</div>`,
   },
 
-  // ── МОДУЛЬ 2: ОСНОВЫ CSS ──────────────────────────────────────────────────
+  // ── МОДУЛЬ 2: ОСНОВЫ CSS (расширенный) ──────────────────────────────
   {
-    id: 'web_m2_theory',
+    id: 'web_m2_t1',
+    courseId: 'course_web300',
+    module: 'Модуль 2: Основы CSS',
+    title: 'Теория: Что такое CSS и зачем он нужен',
+    type: 'theory',
+    description: 'Узнай, как CSS превращает скучный HTML в красивые страницы.',
+    difficulty: 'Новичок',
+    xpReward: 40,
+    currencyReward: 10,
+    status: 'locked',
+    theory: `<p style="color:#ff00ff;font-weight:bold;margin-bottom:12px">🎨 Время раскрасить страницу!</p>
+<p style="line-height:1.7">HTML — структура, но выглядит скучно. <strong style="color:#00f3ff">CSS</strong> отвечает за <strong>внешний вид</strong>: цвета, шрифты, отступы, размеры.</p>
+<h3 style="color:#00f3ff;margin-top:20px;margin-bottom:8px">🤔 Зачем CSS?</h3>
+<div style="display:grid;grid-template-columns:repeat(2,1fr);gap:10px;margin:16px 0">
+  <div style="background:#0a0a14;border:1px solid #00f3ff;border-radius:8px;padding:12px;text-align:center">
+    <p style="font-size:1.5em;margin:0">🎨</p><p style="color:#00f3ff;font-weight:bold;margin:4px 0">Цвета</p>
+  </div>
+  <div style="background:#0a0a14;border:1px solid #ff00ff;border-radius:8px;padding:12px;text-align:center">
+    <p style="font-size:1.5em;margin:0">📏</p><p style="color:#ff00ff;font-weight:bold;margin:4px 0">Размеры</p>
+  </div>
+  <div style="background:#0a0a14;border:1px solid #00ff41;border-radius:8px;padding:12px;text-align:center">
+    <p style="font-size:1.5em;margin:0">🔤</p><p style="color:#00ff41;font-weight:bold;margin:4px 0">Шрифты</p>
+  </div>
+  <div style="background:#0a0a14;border:1px solid #fcee0a;border-radius:8px;padding:12px;text-align:center">
+    <p style="font-size:1.5em;margin:0">📐</p><p style="color:#fcee0a;font-weight:bold;margin:4px 0">Расположение</p>
+  </div>
+</div>
+<h3 style="color:#00f3ff;margin-top:20px;margin-bottom:8px">📝 Как подключить CSS?</h3>
+<p style="line-height:1.7">Мы используем тег <code style="color:#ff00ff">&lt;style&gt;</code> внутри <code>&lt;head&gt;</code>:</p>
+<div style="background:#0a0a14;border-radius:8px;padding:16px;margin:12px 0;font-family:monospace;font-size:13px;line-height:1.7">
+  <p style="margin:2px 0"><span style="color:#ff00ff">&lt;style&gt;</span></p>
+  <p style="margin:2px 0 2px 16px"><span style="color:#00ff41">h1</span> {</p>
+  <p style="margin:2px 0 2px 32px"><span style="color:#fcee0a">color</span>: <span style="color:#00f3ff">red</span>;</p>
+  <p style="margin:2px 0 2px 16px">}</p>
+  <p style="margin:2px 0"><span style="color:#ff00ff">&lt;/style&gt;</span></p>
+</div>
+<p style="line-height:1.7">Это значит: «Все <code>&lt;h1&gt;</code> — <span style="color:red;font-weight:bold">красные</span>».</p>
+<div style="background:#001a0a;border:1px solid #00ff41;border-radius:8px;padding:12px;margin-top:16px">
+  <p style="color:#00ff41;font-weight:bold;margin-bottom:4px">💡 Аналогия:</p>
+  <p style="margin:0">HTML — чертёж дома, CSS — дизайн интерьера. Чертёж: «тут стена», CSS: «стена синяя, 3м».</p>
+</div>`,
+  },
+  {
+    id: 'web_m2_q1',
+    courseId: 'course_web300',
+    module: 'Модуль 2: Основы CSS',
+    title: 'Квиз: Зачем нужен CSS?',
+    type: 'quiz',
+    description: 'Проверь понимание роли CSS.',
+    difficulty: 'Новичок',
+    xpReward: 30,
+    currencyReward: 10,
+    status: 'locked',
+    quizData: {
+      question: "За что отвечает CSS?",
+      options: ["Структуру страницы","Внешний вид: цвета, шрифты, размеры","Поведение: клики, логику","Хранение данных"],
+      correctIndex: 1,
+      explanation: "CSS — внешний вид. HTML — структура, JavaScript — поведение."
+    },
+  },
+  {
+    id: 'web_m2_t2',
     courseId: 'course_web300',
     module: 'Модуль 2: Основы CSS',
     title: 'Теория: Селекторы и свойства',
     type: 'theory',
-    description: 'CSS — язык стилей. Цвета, шрифты, размеры, отступы.',
+    description: 'Как CSS находит элементы и какие свойства менять.',
     difficulty: 'Новичок',
     xpReward: 60,
-    currencyReward: 15,
+    currencyReward: 20,
     status: 'locked',
-    theory: `<p style="color:#fcee0a;font-weight:bold;margin-bottom:12px">🎨 CSS — кисть Нетраннера!</p>
-<p>CSS (Cascading Style Sheets) управляет внешним видом HTML-элементов. Без CSS страница — просто текст. С CSS — интерфейс.</p>
-
-<h3 style="color:#00f3ff;margin-top:20px;margin-bottom:8px">📌 Три способа подключить CSS</h3>
-<div style="background:#0a0a14;border-radius:8px;padding:16px;margin:12px 0;font-family:monospace;font-size:13px;line-height:1.7">
-  <p style="margin:2px 0;color:#555">/* 1. Инлайн — прямо в теге */</p>
-  <p style="margin:2px 0"><span style="color:#00ff41">&lt;p</span> <span style="color:#fcee0a">style</span>=<span style="color:#00f3ff">"color: red;"</span><span style="color:#00ff41">&gt;</span>Текст<span style="color:#00ff41">&lt;/p&gt;</span></p>
-  <p style="margin:10px 0 2px 0;color:#555">/* 2. Тег style в head */</p>
-  <p style="margin:2px 0"><span style="color:#ff00ff">&lt;style&gt;</span></p>
-  <p style="margin:2px 0 2px 16px"><span style="color:#fcee0a">p</span> { <span style="color:#00f3ff">color</span>: <span style="color:#00ff41">red</span>; }</p>
-  <p style="margin:2px 0"><span style="color:#ff00ff">&lt;/style&gt;</span></p>
-  <p style="margin:10px 0 2px 0;color:#555">/* 3. Внешний файл (лучший способ) */</p>
-  <p style="margin:2px 0"><span style="color:#00ff41">&lt;link</span> <span style="color:#fcee0a">rel</span>=<span style="color:#00f3ff">"stylesheet"</span> <span style="color:#fcee0a">href</span>=<span style="color:#00f3ff">"style.css"</span><span style="color:#00ff41">&gt;</span></p>
+    theory: `<p style="color:#ff00ff;font-weight:bold;margin-bottom:12px">🎯 Селекторы — кого стилизуем?</p>
+<p style="line-height:1.7">CSS-правило: <strong style="color:#fcee0a">селектор</strong> (кого?) + <strong style="color:#00f3ff">свойства</strong> (как?):</p>
+<div style="background:#0a0a14;border-radius:8px;padding:14px;margin:12px 0;font-family:monospace;font-size:14px">
+  <p style="margin:2px 0"><span style="color:#00ff41">селектор</span> { <span style="color:#fcee0a">свойство</span>: <span style="color:#00f3ff">значение</span>; }</p>
 </div>
-
-<h3 style="color:#00f3ff;margin-top:20px;margin-bottom:8px">🎯 Селекторы</h3>
-<div style="background:#0a0a14;border-radius:8px;padding:16px;margin:12px 0;font-family:monospace;font-size:13px;line-height:1.8">
-  <p style="margin:2px 0"><span style="color:#fcee0a">h1</span> { ... } <span style="color:#555"> — по тегу</span></p>
-  <p style="margin:2px 0"><span style="color:#fcee0a">.card</span> { ... } <span style="color:#555"> — по классу (class="card")</span></p>
-  <p style="margin:2px 0"><span style="color:#fcee0a">#hero</span> { ... } <span style="color:#555"> — по ID (id="hero")</span></p>
-  <p style="margin:2px 0"><span style="color:#fcee0a">p, h2</span> { ... } <span style="color:#555"> — несколько тегов сразу</span></p>
-  <p style="margin:2px 0"><span style="color:#fcee0a">.card p</span> { ... } <span style="color:#555"> — p внутри .card</span></p>
+<h3 style="color:#00f3ff;margin-top:20px;margin-bottom:8px">🏷️ Три вида селекторов</h3>
+<div style="display:flex;flex-direction:column;gap:10px;margin:12px 0">
+  <div style="background:#0a0a14;border-left:3px solid #00ff41;padding:12px 14px;border-radius:0 6px 6px 0">
+    <p style="color:#00ff41;font-weight:bold;margin-bottom:4px">По тегу — все такие теги</p>
+    <p style="margin:0;color:#aaa;font-family:monospace;font-size:0.9em">p { color: blue; }</p>
+  </div>
+  <div style="background:#0a0a14;border-left:3px solid #fcee0a;padding:12px 14px;border-radius:0 6px 6px 0">
+    <p style="color:#fcee0a;font-weight:bold;margin-bottom:4px">По классу (.имя) — с нужным class</p>
+    <p style="margin:0;color:#aaa;font-family:monospace;font-size:0.9em">.warning { color: red; }</p>
+  </div>
+  <div style="background:#0a0a14;border-left:3px solid #ff00ff;padding:12px 14px;border-radius:0 6px 6px 0">
+    <p style="color:#ff00ff;font-weight:bold;margin-bottom:4px">По id (#имя) — один элемент</p>
+    <p style="margin:0;color:#aaa;font-family:monospace;font-size:0.9em">#header { font-size: 24px; }</p>
+  </div>
 </div>
-
-<h3 style="color:#00f3ff;margin-top:20px;margin-bottom:8px">🖌️ Основные свойства</h3>
-<div style="background:#0a0a14;border-radius:8px;padding:16px;margin:12px 0;font-family:monospace;font-size:13px;line-height:1.8">
-  <p style="margin:2px 0"><span style="color:#00f3ff">color</span>: <span style="color:#00ff41">#ff00ff</span>; <span style="color:#555"> — цвет текста</span></p>
-  <p style="margin:2px 0"><span style="color:#00f3ff">background-color</span>: <span style="color:#00ff41">#0a0a14</span>; <span style="color:#555"> — фон</span></p>
-  <p style="margin:2px 0"><span style="color:#00f3ff">font-size</span>: <span style="color:#00ff41">24px</span>; <span style="color:#555"> — размер шрифта</span></p>
-  <p style="margin:2px 0"><span style="color:#00f3ff">font-weight</span>: <span style="color:#00ff41">bold</span>; <span style="color:#555"> — жирность</span></p>
-  <p style="margin:2px 0"><span style="color:#00f3ff">padding</span>: <span style="color:#00ff41">16px</span>; <span style="color:#555"> — внутренний отступ</span></p>
-  <p style="margin:2px 0"><span style="color:#00f3ff">margin</span>: <span style="color:#00ff41">8px 0</span>; <span style="color:#555"> — внешний отступ</span></p>
-  <p style="margin:2px 0"><span style="color:#00f3ff">border</span>: <span style="color:#00ff41">2px solid #00f3ff</span>; <span style="color:#555"> — рамка</span></p>
-  <p style="margin:2px 0"><span style="color:#00f3ff">border-radius</span>: <span style="color:#00ff41">8px</span>; <span style="color:#555"> — скругление углов</span></p>
-  <p style="margin:2px 0"><span style="color:#00f3ff">width</span>: <span style="color:#00ff41">200px</span>; <span style="color:#555"> — ширина</span></p>
-  <p style="margin:2px 0"><span style="color:#00f3ff">text-align</span>: <span style="color:#00ff41">center</span>; <span style="color:#555"> — выравнивание текста</span></p>
+<h3 style="color:#00f3ff;margin-top:20px;margin-bottom:8px">🎨 Главные свойства</h3>
+<div style="background:#0a0a14;border-radius:8px;padding:16px;margin:12px 0;font-family:monospace;font-size:0.9em;line-height:2">
+  <p style="margin:2px 0"><span style="color:#fcee0a">color</span>: red; <span style="color:#555">← цвет текста</span></p>
+  <p style="margin:2px 0"><span style="color:#fcee0a">background-color</span>: #1a1a2e; <span style="color:#555">← фон</span></p>
+  <p style="margin:2px 0"><span style="color:#fcee0a">font-size</span>: 20px; <span style="color:#555">← размер шрифта</span></p>
+  <p style="margin:2px 0"><span style="color:#fcee0a">font-weight</span>: bold; <span style="color:#555">← жирность</span></p>
+  <p style="margin:2px 0"><span style="color:#fcee0a">text-align</span>: center; <span style="color:#555">← выравнивание</span></p>
+  <p style="margin:2px 0"><span style="color:#fcee0a">border</span>: 2px solid #00f3ff; <span style="color:#555">← рамка</span></p>
+  <p style="margin:2px 0"><span style="color:#fcee0a">border-radius</span>: 8px; <span style="color:#555">← скругление</span></p>
 </div>
-
-<div style="background:#1a0a00;border:1px solid #fcee0a;border-radius:8px;padding:12px;margin-top:16px">
-  <p style="color:#fcee0a;font-weight:bold;margin-bottom:4px">⚡ Box Model</p>
-  <p style="margin:0">Каждый элемент — прямоугольник: <strong>content → padding → border → margin</strong>. Понимание этой модели решает 90% проблем с вёрсткой.</p>
-</div>`
+<h3 style="color:#00f3ff;margin-top:20px;margin-bottom:8px">🎨 Способы задать цвет</h3>
+<div style="background:#0a0a14;border-radius:8px;padding:14px;margin:12px 0;font-family:monospace;font-size:0.9em">
+  <p style="margin:4px 0"><span style="color:#fcee0a">color</span>: <span style="color:red">red</span>; <span style="color:#555">← по имени</span></p>
+  <p style="margin:4px 0"><span style="color:#fcee0a">color</span>: <span style="color:#00f3ff">#00f3ff</span>; <span style="color:#555">← HEX</span></p>
+  <p style="margin:4px 0"><span style="color:#fcee0a">color</span>: rgb(0,243,255); <span style="color:#555">← RGB</span></p>
+</div>
+<div style="background:#001a0a;border:1px solid #00ff41;border-radius:8px;padding:12px;margin-top:16px">
+  <p style="color:#00ff41;font-weight:bold;margin-bottom:4px">💡 Классы — самый частый селектор</p>
+  <p style="margin:0">90% стилей — через .класс. Один класс можно использовать много раз!</p>
+</div>`,
   },
   {
-    id: 'web_m2_quiz',
+    id: 'web_m2_q2',
     courseId: 'course_web300',
     module: 'Модуль 2: Основы CSS',
     title: 'Квиз: Селекторы CSS',
     type: 'quiz',
-    description: 'Проверь знание CSS-селекторов и свойств.',
+    description: 'Проверь знание CSS-селекторов.',
     difficulty: 'Новичок',
-    xpReward: 50,
-    currencyReward: 15,
+    xpReward: 40,
+    currencyReward: 10,
     status: 'locked',
     quizData: {
-      question: 'Какой селектор выбирает элемент с class="btn"?',
-      options: ['#btn { }', '.btn { }', 'btn { }', '*btn { }'],
-      correctIndex: 1,
-      explanation: 'Классы выбираются через точку: .btn. Решётка # — для ID. Без префикса — тег. Звёздочка * — универсальный селектор (все элементы).'
-    }
+      question: "Как в CSS выбрать элементы с class=\"danger\"?",
+      options: ["danger { }","#danger { }",".danger { }","*danger { }"],
+      correctIndex: 2,
+      explanation: "Точка (.) — по классу. Решётка (#) — по id. Просто имя — по тегу."
+    },
   },
   {
-    id: 'web_m2_practice',
+    id: 'web_m2_t3',
     courseId: 'course_web300',
     module: 'Модуль 2: Основы CSS',
-    title: 'Практика: Неоновая карточка',
-    type: 'html',
-    description: 'Создай div с классом "card", добавь стиль: фон #0a0a14, рамку 2px solid #00f3ff, padding 20px и текст внутри.',
-    difficulty: 'Новичок',
-    xpReward: 70,
-    currencyReward: 20,
-    status: 'locked',
-    initialCode: `<style>
-  /* Добавь стили для .card */
-  .card {
-    /* background-color, border, padding, color */
-  }
-</style>
-
-<div class="card">
-  CYBER CARD
-</div>`,
-    htmlConfig: { targetTag: '.card' },
-    theory: `<h3 style="color:#00f3ff;margin-bottom:8px">Стиль карточки</h3>
-<div style="background:#0a0a14;border-radius:6px;padding:12px;margin:10px 0;font-family:monospace;font-size:12px;line-height:1.7">
-  <p style="margin:2px 0"><span style="color:#fcee0a">.card</span> {</p>
-  <p style="margin:2px 0 2px 16px"><span style="color:#00f3ff">background-color</span>: <span style="color:#00ff41">#0a0a14</span>;</p>
-  <p style="margin:2px 0 2px 16px"><span style="color:#00f3ff">border</span>: <span style="color:#00ff41">2px solid #00f3ff</span>;</p>
-  <p style="margin:2px 0 2px 16px"><span style="color:#00f3ff">padding</span>: <span style="color:#00ff41">20px</span>;</p>
-  <p style="margin:2px 0 2px 16px"><span style="color:#00f3ff">color</span>: <span style="color:#00ff41">#ffffff</span>;</p>
-  <p style="margin:2px 0">}</p>
-</div>`
-  },
-
-
-  // ── МОДУЛЬ 3: ЦИКЛЫ ──────────────────────────────────────────────────────
-  {
-    id: 'py_020',
-    courseId: 'course_py200',
-    module: 'Модуль 3: Циклы',
-    title: 'Теория: for и while',
+    title: 'Теория: Блочная модель (Box Model)',
     type: 'theory',
-    description: 'Повторяй действия: обход диапазонов и счётчики.',
-    difficulty: 'Элита',
-    xpReward: 70,
+    description: 'Как CSS считает размеры: content, padding, border, margin.',
+    difficulty: 'Новичок',
+    xpReward: 60,
     currencyReward: 20,
     status: 'locked',
-    theory: `<p style="color:#00ff41;font-weight:bold;margin-bottom:12px">🔁 Циклы — сила повторения!</p>
-<p>Циклы позволяют выполнять код много раз. В Python два основных цикла: <strong>for</strong> и <strong>while</strong>.</p>
-<h3 style="color:#00f3ff;margin-top:20px;margin-bottom:8px">🔢 Цикл for + range()</h3>
-<p><code>range(n)</code> создаёт последовательность чисел от 0 до n-1:</p>
-<div style="background:#0a0a14;border-radius:8px;padding:16px;margin:12px 0;font-family:monospace">
-  <p style="margin:3px 0"><span style="color:#ff00ff">for</span> i <span style="color:#ff00ff">in</span> <span style="color:#fcee0a">range</span>(<span style="color:#fcee0a">5</span>):</p>
-  <p style="margin:3px 0 3px 20px"><span style="color:#00ff41">print</span>(i)</p>
-  <p style="margin:8px 0 3px 0;color:#555"># Выведет: 0, 1, 2, 3, 4</p>
+    theory: `<p style="color:#ff00ff;font-weight:bold;margin-bottom:12px">📦 Каждый элемент — коробка!</p>
+<p style="line-height:1.7">В CSS <strong>каждый элемент</strong> — прямоугольник из 4 слоёв.</p>
+<h3 style="color:#00f3ff;margin-top:20px;margin-bottom:8px">📐 4 слоя</h3>
+<div style="background:#0a0a14;border-radius:8px;padding:20px;margin:12px 0;text-align:center">
+  <div style="border:3px solid #ff6b6b;border-radius:8px;padding:14px;display:inline-block">
+    <p style="color:#ff6b6b;font-size:0.75em;margin:0 0 4px">margin</p>
+    <div style="border:3px solid #fcee0a;border-radius:6px;padding:12px">
+      <p style="color:#fcee0a;font-size:0.75em;margin:0 0 4px">border</p>
+      <div style="border:3px solid #00f3ff;border-radius:4px;padding:10px">
+        <p style="color:#00f3ff;font-size:0.75em;margin:0 0 4px">padding</p>
+        <div style="background:#00ff41;border-radius:4px;padding:8px">
+          <p style="color:black;font-weight:bold;margin:0;font-size:0.8em">content</p>
+        </div>
+      </div>
+    </div>
+  </div>
 </div>
-<p style="margin-top:12px"><code>range(start, stop, step)</code> — полная форма:</p>
-<div style="background:#0a0a14;border-radius:8px;padding:16px;margin:12px 0;font-family:monospace">
-  <p style="margin:3px 0"><span style="color:#ff00ff">for</span> i <span style="color:#ff00ff">in</span> <span style="color:#fcee0a">range</span>(<span style="color:#fcee0a">5</span>, <span style="color:#fcee0a">0</span>, <span style="color:#fcee0a">-1</span>):</p>
-  <p style="margin:3px 0 3px 20px"><span style="color:#00ff41">print</span>(i)</p>
-  <p style="margin:8px 0 3px 0;color:#555"># Выведет: 5, 4, 3, 2, 1</p>
-</div>
-<h3 style="color:#00f3ff;margin-top:20px;margin-bottom:8px">🔄 Цикл while</h3>
-<p>Выполняется пока условие истинно:</p>
-<div style="background:#0a0a14;border-radius:8px;padding:16px;margin:12px 0;font-family:monospace">
-  <p style="margin:3px 0"><span style="color:#fcee0a">count</span> = <span style="color:#fcee0a">3</span></p>
-  <p style="margin:3px 0"><span style="color:#ff00ff">while</span> count &gt; <span style="color:#fcee0a">0</span>:</p>
-  <p style="margin:3px 0 3px 20px"><span style="color:#00ff41">print</span>(<span style="color:#00ff41">"tick"</span>)</p>
-  <p style="margin:3px 0 3px 20px"><span style="color:#fcee0a">count</span> -= <span style="color:#fcee0a">1</span>  <span style="color:#555"># уменьшаем на 1</span></p>
+<div style="display:flex;flex-direction:column;gap:8px;margin:16px 0">
+  <div style="background:#0a0a14;border-left:3px solid #00ff41;padding:10px 14px;border-radius:0 6px 6px 0">
+    <p style="color:#00ff41;font-weight:bold;margin-bottom:2px">content — содержимое</p>
+    <p style="margin:0;color:#aaa;font-size:0.9em">Текст, картинка. Размер: width/height.</p>
+  </div>
+  <div style="background:#0a0a14;border-left:3px solid #00f3ff;padding:10px 14px;border-radius:0 6px 6px 0">
+    <p style="color:#00f3ff;font-weight:bold;margin-bottom:2px">padding — внутренний отступ</p>
+    <p style="margin:0;color:#aaa;font-size:0.9em">От содержимого до рамки. Как поролон в коробке.</p>
+  </div>
+  <div style="background:#0a0a14;border-left:3px solid #fcee0a;padding:10px 14px;border-radius:0 6px 6px 0">
+    <p style="color:#fcee0a;font-weight:bold;margin-bottom:2px">border — рамка</p>
+    <p style="margin:0;color:#aaa;font-size:0.9em">Видимая граница элемента.</p>
+  </div>
+  <div style="background:#0a0a14;border-left:3px solid #ff6b6b;padding:10px 14px;border-radius:0 6px 6px 0">
+    <p style="color:#ff6b6b;font-weight:bold;margin-bottom:2px">margin — внешний отступ</p>
+    <p style="margin:0;color:#aaa;font-size:0.9em">Расстояние до соседних элементов.</p>
+  </div>
 </div>
 <div style="background:#1a0a00;border:1px solid #fcee0a;border-radius:8px;padding:12px;margin-top:16px">
-  <p style="color:#fcee0a;font-weight:bold;margin-bottom:4px">⚠️ Бесконечный цикл!</p>
-  <p style="margin:0">Если забыть уменьшать count, while будет работать вечно. Всегда проверяй условие выхода!</p>
-</div>`
+  <p style="color:#fcee0a;font-weight:bold;margin-bottom:4px">⚡ Совет: box-sizing: border-box</p>
+  <p style="margin:0;color:#ccc">Добавь <code>* { box-sizing: border-box; }</code> — padding и border НЕ увеличат ширину. Стандарт в современном CSS.</p>
+</div>`,
   },
   {
-    id: 'py_020q',
-    courseId: 'course_py200',
-    module: 'Модуль 3: Циклы',
-    title: 'Квиз: Циклы Python',
+    id: 'web_m2_q3',
+    courseId: 'course_web300',
+    module: 'Модуль 2: Основы CSS',
+    title: 'Квиз: Блочная модель',
     type: 'quiz',
-    description: 'Проверь понимание for, while и range.',
-    difficulty: 'Элита',
-    xpReward: 60,
-    currencyReward: 20,
+    description: 'Проверь понимание блочной модели.',
+    difficulty: 'Новичок',
+    xpReward: 40,
+    currencyReward: 10,
     status: 'locked',
     quizData: {
-      question: 'Сколько раз выполнится цикл?\n\nfor i in range(3):\n    print("*")',
-      options: ['1 раз', '2 раза', '3 раза', '4 раза'],
-      correctIndex: 2,
-      explanation: 'range(3) создаёт последовательность [0, 1, 2] — три элемента. Цикл выполнится 3 раза и выведет три звёздочки.'
-    }
-  },
-  {
-    id: 'py_021',
-    courseId: 'course_py200',
-    module: 'Модуль 3: Циклы',
-    title: 'Практика: Отсчёт',
-    type: 'terminal',
-    description: 'Выведи числа от 5 до 1 (каждое с новой строки) с помощью цикла.',
-    difficulty: 'Элита',
-    xpReward: 70,
-    currencyReward: 25,
-    status: 'locked',
-    terminalConfig: { fileSystem: '{}', goalCommand: 'python_loop' },
-    initialCode: '# Выведи 5 4 3 2 1 каждое с новой строки\n# Подсказка: range(5, 0, -1)\n',
-    theory: `<h3 style="color:#00f3ff;margin-bottom:8px">Обратный отсчёт</h3>
-<div style="background:#0a0a14;border-radius:6px;padding:12px;margin:10px 0;font-family:monospace">
-  <p style="margin:3px 0"><span style="color:#ff00ff">for</span> i <span style="color:#ff00ff">in</span> <span style="color:#fcee0a">range</span>(<span style="color:#fcee0a">5</span>, <span style="color:#fcee0a">0</span>, <span style="color:#fcee0a">-1</span>):</p>
-  <p style="margin:3px 0 3px 20px"><span style="color:#00ff41">print</span>(i)</p>
-</div>`
-  },
-  {
-    id: 'py_022',
-    courseId: 'course_py200',
-    module: 'Модуль 3: Циклы',
-    title: 'Практика: Сумма чисел',
-    type: 'terminal',
-    description: 'Посчитай сумму чисел от 1 до 10 с помощью цикла и выведи результат.',
-    difficulty: 'Элита',
-    xpReward: 70,
-    currencyReward: 25,
-    status: 'locked',
-    terminalConfig: { fileSystem: '{}', goalCommand: 'python_sum_loop' },
-    initialCode: 'total = 0\n# Используй цикл for с range(1, 11)\n# Прибавляй i к total\n# Выведи total\n',
-    theory: `<h3 style="color:#00f3ff;margin-bottom:8px">Накопление суммы</h3>
-<div style="background:#0a0a14;border-radius:6px;padding:12px;margin:10px 0;font-family:monospace">
-  <p style="margin:3px 0"><span style="color:#fcee0a">total</span> = <span style="color:#fcee0a">0</span></p>
-  <p style="margin:3px 0"><span style="color:#ff00ff">for</span> i <span style="color:#ff00ff">in</span> <span style="color:#fcee0a">range</span>(<span style="color:#fcee0a">1</span>, <span style="color:#fcee0a">6</span>):</p>
-  <p style="margin:3px 0 3px 20px"><span style="color:#fcee0a">total</span> += i</p>
-  <p style="margin:3px 0"><span style="color:#00ff41">print</span>(<span style="color:#fcee0a">total</span>)  <span style="color:#555"># 15</span></p>
-</div>`
-  },
-
-  // ── МОДУЛЬ 4: ФУНКЦИИ ─────────────────────────────────────────────────────
-  {
-    id: 'py_030',
-    courseId: 'course_py200',
-    module: 'Модуль 4: Функции',
-    title: 'Теория: def — свои команды',
-    type: 'theory',
-    description: 'Создавай свои функции с параметрами и возвратом значений.',
-    difficulty: 'Легенда',
-    xpReward: 80,
-    currencyReward: 25,
-    status: 'locked',
-    theory: `<p style="color:#fcee0a;font-weight:bold;margin-bottom:12px">⚡ Создаём нейро-модули!</p>
-<p>Функция — это блок кода с именем, который можно вызывать сколько угодно раз. В Python функции создаются словом <strong>def</strong>.</p>
-<h3 style="color:#00f3ff;margin-top:20px;margin-bottom:8px">📦 Простая функция</h3>
-<div style="background:#0a0a14;border-radius:8px;padding:16px;margin:12px 0;font-family:monospace">
-  <p style="margin:3px 0"><span style="color:#ff00ff">def</span> <span style="color:#fcee0a">greet</span>():</p>
-  <p style="margin:3px 0 3px 20px"><span style="color:#00ff41">print</span>(<span style="color:#00ff41">"Hello, Agent!"</span>)</p>
-  <p style="margin:8px 0 3px 0"><span style="color:#fcee0a">greet</span>()  <span style="color:#555"># Вызов → Hello, Agent!</span></p>
-</div>
-<h3 style="color:#00f3ff;margin-top:20px;margin-bottom:8px">🔧 Параметры</h3>
-<div style="background:#0a0a14;border-radius:8px;padding:16px;margin:12px 0;font-family:monospace">
-  <p style="margin:3px 0"><span style="color:#ff00ff">def</span> <span style="color:#fcee0a">heal</span>(<span style="color:#00f3ff">hp</span>, <span style="color:#00f3ff">amount</span>):</p>
-  <p style="margin:3px 0 3px 20px"><span style="color:#ff00ff">return</span> <span style="color:#00f3ff">hp</span> + <span style="color:#00f3ff">amount</span></p>
-  <p style="margin:8px 0 3px 0"><span style="color:#fcee0a">result</span> = <span style="color:#fcee0a">heal</span>(<span style="color:#fcee0a">50</span>, <span style="color:#fcee0a">20</span>)</p>
-  <p style="margin:3px 0"><span style="color:#00ff41">print</span>(<span style="color:#fcee0a">result</span>)  <span style="color:#555"># 70</span></p>
-</div>
-<h3 style="color:#00f3ff;margin-top:20px;margin-bottom:8px">🔁 return — возврат значения</h3>
-<p><code>return</code> отправляет результат обратно. Без return функция возвращает <code>None</code>.</p>
-<div style="background:#0a0a14;border-radius:8px;padding:16px;margin:12px 0;font-family:monospace">
-  <p style="margin:3px 0"><span style="color:#ff00ff">def</span> <span style="color:#fcee0a">double</span>(<span style="color:#00f3ff">n</span>):</p>
-  <p style="margin:3px 0 3px 20px"><span style="color:#ff00ff">return</span> <span style="color:#00f3ff">n</span> * <span style="color:#fcee0a">2</span></p>
-  <p style="margin:8px 0 3px 0"><span style="color:#00ff41">print</span>(<span style="color:#fcee0a">double</span>(<span style="color:#fcee0a">7</span>))  <span style="color:#555"># 14</span></p>
-</div>`
-  },
-  {
-    id: 'py_030q',
-    courseId: 'course_py200',
-    module: 'Модуль 4: Функции',
-    title: 'Квиз: Функции Python',
-    type: 'quiz',
-    description: 'Проверь понимание def, параметров и return.',
-    difficulty: 'Легенда',
-    xpReward: 70,
-    currencyReward: 25,
-    status: 'locked',
-    quizData: {
-      question: 'Что выведет этот код?\n\ndef boost(power):\n    return power * 3\n\nprint(boost(4))',
-      options: ['4', '7', '12', 'Ошибку'],
-      correctIndex: 2,
-      explanation: 'Функция boost принимает power=4 и возвращает 4 * 3 = 12. print() выводит результат: 12.'
-    }
-  },
-  {
-    id: 'py_031',
-    courseId: 'course_py200',
-    module: 'Модуль 4: Функции',
-    title: 'Практика: Бустер',
-    type: 'terminal',
-    description: 'Напиши функцию boost(power), которая возвращает power * 3. Выведи boost(4).',
-    difficulty: 'Легенда',
-    xpReward: 90,
-    currencyReward: 35,
-    status: 'locked',
-    terminalConfig: { fileSystem: '{}', goalCommand: 'python_func' },
-    initialCode: '# Определи функцию boost(power)\n# Она должна возвращать power * 3\n# Выведи результат boost(4)\n',
-    theory: `<h3 style="color:#00f3ff;margin-bottom:8px">Функция с return</h3>
-<div style="background:#0a0a14;border-radius:6px;padding:12px;margin:10px 0;font-family:monospace">
-  <p style="margin:3px 0"><span style="color:#ff00ff">def</span> <span style="color:#fcee0a">имя</span>(<span style="color:#00f3ff">параметр</span>):</p>
-  <p style="margin:3px 0 3px 20px"><span style="color:#ff00ff">return</span> результат</p>
-</div>`
-  },
-  {
-    id: 'py_032',
-    courseId: 'course_py200',
-    module: 'Модуль 4: Функции',
-    title: 'Практика: Двойной удар',
-    type: 'terminal',
-    description: 'Напиши функцию double(x), которая возвращает x * 2. Выведи double(7).',
-    difficulty: 'Легенда',
-    xpReward: 80,
-    currencyReward: 30,
-    status: 'locked',
-    terminalConfig: { fileSystem: '{}', goalCommand: 'python_double' },
-    initialCode: '# Определи функцию double(x)\n# Она должна возвращать x * 2\n# Выведи double(7)\n',
-    theory: `<h3 style="color:#00f3ff;margin-bottom:8px">Функция с параметром</h3>
-<div style="background:#0a0a14;border-radius:6px;padding:12px;margin:10px 0;font-family:monospace">
-  <p style="margin:3px 0"><span style="color:#ff00ff">def</span> <span style="color:#fcee0a">double</span>(<span style="color:#00f3ff">x</span>):</p>
-  <p style="margin:3px 0 3px 20px"><span style="color:#ff00ff">return</span> x * <span style="color:#fcee0a">2</span></p>
-  <p style="margin:8px 0 3px 0"><span style="color:#00ff41">print</span>(<span style="color:#fcee0a">double</span>(<span style="color:#fcee0a">5</span>))  <span style="color:#555"># 10</span></p>
-</div>`
-  },
-
-  // ── МОДУЛЬ 5: СПИСКИ И ФИНАЛ ──────────────────────────────────────────────
-  {
-    id: 'py_040',
-    courseId: 'course_py200',
-    module: 'Модуль 5: Списки и финал',
-    title: 'Теория: Списки (lists)',
-    type: 'theory',
-    description: 'Храни коллекции данных в списках Python.',
-    difficulty: 'Легенда',
-    xpReward: 90,
-    currencyReward: 30,
-    status: 'locked',
-    theory: `<p style="color:#ff00ff;font-weight:bold;margin-bottom:12px">🏆 Финальный модуль — списки!</p>
-<p>Списки (lists) — основная структура для хранения коллекций в Python.</p>
-<h3 style="color:#00f3ff;margin-top:20px;margin-bottom:8px">📋 Создание списка</h3>
-<div style="background:#0a0a14;border-radius:8px;padding:16px;margin:12px 0;font-family:monospace">
-  <p style="margin:3px 0"><span style="color:#fcee0a">items</span> = [<span style="color:#00ff41">"Зелье"</span>, <span style="color:#00ff41">"Меч"</span>, <span style="color:#00ff41">"Щит"</span>]</p>
-  <p style="margin:8px 0 3px 0"><span style="color:#00ff41">print</span>(<span style="color:#fcee0a">items</span>[<span style="color:#fcee0a">0</span>])   <span style="color:#555"># Зелье (индекс с 0!)</span></p>
-  <p style="margin:3px 0"><span style="color:#00ff41">print</span>(<span style="color:#fcee0a">len</span>(<span style="color:#fcee0a">items</span>))  <span style="color:#555"># 3</span></p>
-</div>
-<h3 style="color:#00f3ff;margin-top:20px;margin-bottom:8px">🔁 Перебор списка</h3>
-<div style="background:#0a0a14;border-radius:8px;padding:16px;margin:12px 0;font-family:monospace">
-  <p style="margin:3px 0"><span style="color:#ff00ff">for</span> item <span style="color:#ff00ff">in</span> <span style="color:#fcee0a">items</span>:</p>
-  <p style="margin:3px 0 3px 20px"><span style="color:#00ff41">print</span>(item)</p>
-</div>
-<h3 style="color:#00f3ff;margin-top:20px;margin-bottom:8px">➕ Добавление и удаление</h3>
-<div style="background:#0a0a14;border-radius:8px;padding:16px;margin:12px 0;font-family:monospace">
-  <p style="margin:3px 0"><span style="color:#fcee0a">items</span>.<span style="color:#00ff41">append</span>(<span style="color:#00ff41">"Карта"</span>)  <span style="color:#555"># добавить в конец</span></p>
-  <p style="margin:3px 0"><span style="color:#fcee0a">items</span>.<span style="color:#00ff41">remove</span>(<span style="color:#00ff41">"Меч"</span>)   <span style="color:#555"># удалить элемент</span></p>
-  <p style="margin:3px 0"><span style="color:#00ff41">print</span>(<span style="color:#fcee0a">items</span>)  <span style="color:#555"># ['Зелье', 'Щит', 'Карта']</span></p>
-</div>
-<div style="background:#1a0a2e;border:1px solid #5e60ce;border-radius:8px;padding:12px;margin-top:16px">
-  <p style="color:#5e60ce;font-weight:bold;margin-bottom:4px">💡 Python vs Lua:</p>
-  <p style="margin:0">В Python индексы начинаются с <strong>0</strong> (а в Lua — с 1). Python использует <code>len()</code> вместо <code>#</code>, и <code>for item in list</code> вместо <code>for i, v in ipairs()</code>.</p>
-</div>`
-  },
-  {
-    id: 'py_040q',
-    courseId: 'course_py200',
-    module: 'Модуль 5: Списки и финал',
-    title: 'Квиз: Списки Python',
-    type: 'quiz',
-    description: 'Проверь понимание списков, индексов и методов.',
-    difficulty: 'Легенда',
-    xpReward: 80,
-    currencyReward: 30,
-    status: 'locked',
-    quizData: {
-      question: 'Что выведет этот код?\n\ndata = [10, 20, 30]\nprint(data[1])',
-      options: ['10', '20', '30', 'Ошибку — индекс вне диапазона'],
+      question: "Что такое padding?",
+      options: ["Внешний отступ","Внутренний отступ от содержимого до рамки","Толщина рамки","Цвет фона"],
       correctIndex: 1,
-      explanation: 'В Python индексы начинаются с 0. data[0] = 10, data[1] = 20, data[2] = 30. Поэтому data[1] выведет 20.'
-    }
+      explanation: "padding — внутренний отступ (от содержимого до border). margin — внешний (между элементами)."
+    },
   },
   {
-    id: 'py_041',
-    courseId: 'course_py200',
-    module: 'Модуль 5: Списки и финал',
-    title: 'Практика: Поиск максимума',
-    type: 'terminal',
-    description: 'Найди наибольшее число в списке и выведи его.',
-    difficulty: 'Легенда',
-    xpReward: 100,
-    currencyReward: 40,
-    status: 'locked',
-    terminalConfig: { fileSystem: '{}', goalCommand: 'python_max' },
-    initialCode: 'scores = [45, 89, 12, 67, 93]\n# Найди максимальное число и выведи его\n# Подсказка: можно использовать max() или цикл\n',
-    theory: `<h3 style="color:#00f3ff;margin-bottom:8px">Поиск максимума</h3>
-<div style="background:#0a0a14;border-radius:6px;padding:12px;margin:10px 0;font-family:monospace">
-  <p style="margin:3px 0"><span style="color:#00ff41">print</span>(<span style="color:#fcee0a">max</span>(scores))  <span style="color:#555"># встроенная функция</span></p>
-  <p style="margin:6px 0 3px 0;color:#555"># Или вручную:</p>
-  <p style="margin:3px 0"><span style="color:#fcee0a">m</span> = scores[<span style="color:#fcee0a">0</span>]</p>
-  <p style="margin:3px 0"><span style="color:#ff00ff">for</span> s <span style="color:#ff00ff">in</span> scores:</p>
-  <p style="margin:3px 0 3px 20px"><span style="color:#ff00ff">if</span> s &gt; m: m = s</p>
-</div>`
-  },
-  {
-    id: 'py_042',
-    courseId: 'course_py200',
-    module: 'Модуль 5: Списки и финал',
-    title: 'Финальный проект: Боевой дрон',
-    type: 'terminal',
-    description: 'Финал! Напиши функцию attack(enemies), которая находит врага с минимальным HP и выводит "Target: [имя]".',
-    difficulty: 'Легенда',
-    xpReward: 200,
-    currencyReward: 100,
-    status: 'locked',
-    terminalConfig: { fileSystem: '{}', goalCommand: 'python_final' },
-    initialCode: '# enemies — список словарей с name и hp\nenemies = [\n    {"name": "Bot_A", "hp": 50},\n    {"name": "Bot_B", "hp": 20},\n    {"name": "Bot_C", "hp": 35}\n]\n\n# Напиши функцию attack(enemies)\n# Найди врага с минимальным hp\n# Выведи "Target: [имя]"\n',
-    theory: `<h3 style="color:#00f3ff;margin-bottom:8px">Словари в списке</h3>
-<p>Каждый враг — это словарь <code>{"name": ..., "hp": ...}</code></p>
-<div style="background:#0a0a14;border-radius:6px;padding:12px;margin:10px 0;font-family:monospace">
-  <p style="margin:3px 0"><span style="color:#ff00ff">for</span> e <span style="color:#ff00ff">in</span> enemies:</p>
-  <p style="margin:3px 0 3px 20px"><span style="color:#00ff41">print</span>(e[<span style="color:#00ff41">"name"</span>], e[<span style="color:#00ff41">"hp"</span>])</p>
-</div>`
-  },
-
-  // ── МОДУЛЬ 6: СЛОВАРИ ─────────────────────────────────────────────────────
-  {
-    id: 'py_050',
-    courseId: 'course_py200',
-    module: 'Модуль 6: Словари',
-    title: 'Теория: dict — хранилище данных',
-    type: 'theory',
-    description: 'Узнай, как хранить пары ключ-значение в словарях Python.',
-    difficulty: 'Хакер',
+    id: 'web_m2_practice1',
+    courseId: 'course_web300',
+    module: 'Модуль 2: Основы CSS',
+    title: 'Практика: Стилизация карточки',
+    type: 'html',
+    description: 'Создай карточку с тёмным фоном, цветным текстом, рамкой и отступами.',
+    difficulty: 'Новичок',
     xpReward: 70,
-    currencyReward: 20,
-    status: 'locked',
-    theory: `<p style="color:#fcee0a;font-weight:bold;margin-bottom:12px">📦 Словари — базы данных в миниатюре</p>
-<p>Словарь (dict) — это коллекция пар <strong>ключ: значение</strong>. В отличие от списка, доступ идёт не по индексу, а по имени ключа.</p>
-<h3 style="color:#00f3ff;margin-top:20px;margin-bottom:8px">🔧 Создание словаря</h3>
-<div style="background:#0a0a14;border-radius:8px;padding:16px;margin:12px 0;font-family:monospace">
-  <p style="margin:3px 0"><span style="color:#fcee0a">agent</span> = {</p>
-  <p style="margin:3px 0 3px 20px"><span style="color:#00ff41">"name"</span>: <span style="color:#00ff41">"Ava"</span>,</p>
-  <p style="margin:3px 0 3px 20px"><span style="color:#00ff41">"level"</span>: <span style="color:#fcee0a">7</span>,</p>
-  <p style="margin:3px 0 3px 20px"><span style="color:#00ff41">"hp"</span>: <span style="color:#fcee0a">100</span>,</p>
-  <p style="margin:3px 0 3px 20px"><span style="color:#00ff41">"active"</span>: <span style="color:#ff00ff">True</span></p>
-  <p style="margin:3px 0">}</p>
-</div>
-<h3 style="color:#00f3ff;margin-top:20px;margin-bottom:8px">📖 Доступ к значениям</h3>
-<div style="background:#0a0a14;border-radius:8px;padding:16px;margin:12px 0;font-family:monospace">
-  <p style="margin:3px 0"><span style="color:#00ff41">print</span>(<span style="color:#fcee0a">agent</span>[<span style="color:#00ff41">"name"</span>])   <span style="color:#555"># Ava</span></p>
-  <p style="margin:3px 0"><span style="color:#00ff41">print</span>(<span style="color:#fcee0a">agent</span>[<span style="color:#00ff41">"level"</span>])  <span style="color:#555"># 7</span></p>
-  <p style="margin:6px 0 3px 0"><span style="color:#555"># Безопасный доступ — .get() (не крашится если ключа нет)</span></p>
-  <p style="margin:3px 0"><span style="color:#00ff41">print</span>(<span style="color:#fcee0a">agent</span>.<span style="color:#ff00ff">get</span>(<span style="color:#00ff41">"weapon"</span>, <span style="color:#00ff41">"нет оружия"</span>))  <span style="color:#555"># нет оружия</span></p>
-</div>
-<h3 style="color:#00f3ff;margin-top:20px;margin-bottom:8px">✏️ Изменение и добавление</h3>
-<div style="background:#0a0a14;border-radius:8px;padding:16px;margin:12px 0;font-family:monospace">
-  <p style="margin:3px 0"><span style="color:#fcee0a">agent</span>[<span style="color:#00ff41">"level"</span>] = <span style="color:#fcee0a">8</span>          <span style="color:#555"># изменить</span></p>
-  <p style="margin:3px 0"><span style="color:#fcee0a">agent</span>[<span style="color:#00ff41">"weapon"</span>] = <span style="color:#00ff41">"laser"</span>  <span style="color:#555"># добавить новый ключ</span></p>
-  <p style="margin:3px 0"><span style="color:#ff00ff">del</span> <span style="color:#fcee0a">agent</span>[<span style="color:#00ff41">"active"</span>]         <span style="color:#555"># удалить ключ</span></p>
-</div>
-<h3 style="color:#00f3ff;margin-top:20px;margin-bottom:8px">🔄 Перебор словаря</h3>
-<div style="background:#0a0a14;border-radius:8px;padding:16px;margin:12px 0;font-family:monospace">
-  <p style="margin:3px 0"><span style="color:#ff00ff">for</span> <span style="color:#fcee0a">key</span>, <span style="color:#fcee0a">value</span> <span style="color:#ff00ff">in</span> <span style="color:#fcee0a">agent</span>.<span style="color:#ff00ff">items</span>():</p>
-  <p style="margin:3px 0 3px 20px"><span style="color:#00ff41">print</span>(<span style="color:#ff00ff">f</span><span style="color:#00ff41">"{key}: {value}"</span>)</p>
-</div>
-<h3 style="color:#00f3ff;margin-top:20px;margin-bottom:8px">📊 Полезные методы</h3>
-<div style="background:#0a0a14;border:1px solid #1a1a2e;border-radius:8px;padding:14px;margin:12px 0;font-family:monospace;font-size:0.9em">
-  <p style="margin:4px 0"><span style="color:#fcee0a">agent</span>.<span style="color:#ff00ff">keys</span>()    <span style="color:#555">→ все ключи</span></p>
-  <p style="margin:4px 0"><span style="color:#fcee0a">agent</span>.<span style="color:#ff00ff">values</span>()  <span style="color:#555">→ все значения</span></p>
-  <p style="margin:4px 0"><span style="color:#fcee0a">agent</span>.<span style="color:#ff00ff">items</span>()   <span style="color:#555">→ пары (ключ, значение)</span></p>
-  <p style="margin:4px 0"><span style="color:#00ff41">"name"</span> <span style="color:#ff00ff">in</span> <span style="color:#fcee0a">agent</span> <span style="color:#555">→ True (проверка наличия)</span></p>
-  <p style="margin:4px 0"><span style="color:#00ff41">len</span>(<span style="color:#fcee0a">agent</span>)      <span style="color:#555">→ количество ключей</span></p>
-</div>
-<div style="background:#0d1f0d;border:1px solid #00ff41;border-radius:8px;padding:12px;margin-top:16px">
-  <p style="color:#00ff41;font-weight:bold;margin-bottom:4px">💡 Когда использовать dict:</p>
-  <p style="margin:0">Когда у данных есть <strong>имена</strong> (ключи), а не просто порядок. Профили игроков, настройки, инвентари — всё это словари.</p>
-</div>`
-  },
-  {
-    id: 'py_050q',
-    courseId: 'course_py200',
-    module: 'Модуль 6: Словари',
-    title: 'Квиз: Словари Python',
-    type: 'quiz',
-    description: 'Проверь понимание словарей.',
-    difficulty: 'Хакер',
-    xpReward: 50,
-    currencyReward: 15,
-    status: 'locked',
-    quizData: {
-      question: 'Что выведет этот код?\n\ndata = {"x": 10, "y": 20}\ndata["z"] = data["x"] + data["y"]\nprint(data["z"])',
-      options: ['Ошибку — ключа "z" не существует', '1020', '30', '{"z": 30}'],
-      correctIndex: 2,
-      explanation: 'data["x"] = 10, data["y"] = 20. Создаём data["z"] = 10 + 20 = 30. print(data["z"]) выведет 30.'
-    }
-  },
-  {
-    id: 'py_051',
-    courseId: 'course_py200',
-    module: 'Модуль 6: Словари',
-    title: 'Практика: Профиль агента',
-    type: 'terminal',
-    description: 'Создай словарь agent с ключами "name", "level", "hp". Увеличь level на 1 и выведи f-строку: "Агент {name}, уровень {level}".',
-    difficulty: 'Хакер',
-    xpReward: 70,
-    currencyReward: 20,
-    status: 'locked',
-    terminalConfig: { fileSystem: '{}', goalCommand: 'py_dict_profile' },
-    initialCode: '# Создай словарь agent\nagent = {\n    "name": "Ava",\n    "level": 5,\n    "hp": 100\n}\n\n# Увеличь level на 1\n# agent["level"] += 1\n\n# Выведи: "Агент Ava, уровень 6"\n',
-    theory: `<h3 style="color:#00f3ff;margin-bottom:8px">Доступ и изменение</h3>
-<p>Доступ по ключу и изменение:</p>
-<div style="background:#0a0a14;border-radius:6px;padding:12px;margin:10px 0;font-family:monospace">
-  <p style="margin:3px 0"><span style="color:#fcee0a">agent</span>[<span style="color:#00ff41">"level"</span>] += <span style="color:#fcee0a">1</span></p>
-  <p style="margin:3px 0"><span style="color:#00ff41">print</span>(<span style="color:#ff00ff">f</span><span style="color:#00ff41">"Агент {agent['name']}, уровень {agent['level']}"</span>)</p>
-</div>`
-  },
-  {
-    id: 'py_052',
-    courseId: 'course_py200',
-    module: 'Модуль 6: Словари',
-    title: 'Практика: Инвентарь',
-    type: 'terminal',
-    description: 'Создай словарь inventory с предметами и их количеством. Перебери его через .items() и выведи каждый предмет в формате "предмет: количество".',
-    difficulty: 'Хакер',
-    xpReward: 80,
     currencyReward: 25,
     status: 'locked',
-    terminalConfig: { fileSystem: '{}', goalCommand: 'py_dict_inventory' },
-    initialCode: 'inventory = {\n    "potion": 3,\n    "sword": 1,\n    "shield": 2\n}\n\n# Перебери inventory.items()\n# Выведи каждый предмет: "potion: 3"\n',
-    theory: `<h3 style="color:#00f3ff;margin-bottom:8px">Перебор словаря</h3>
-<p>Метод <code style="color:#fcee0a">.items()</code> возвращает пары ключ-значение:</p>
-<div style="background:#0a0a14;border-radius:6px;padding:12px;margin:10px 0;font-family:monospace">
-  <p style="margin:3px 0"><span style="color:#ff00ff">for</span> <span style="color:#fcee0a">item</span>, <span style="color:#fcee0a">count</span> <span style="color:#ff00ff">in</span> <span style="color:#fcee0a">inventory</span>.<span style="color:#ff00ff">items</span>():</p>
-  <p style="margin:3px 0 3px 20px"><span style="color:#00ff41">print</span>(<span style="color:#ff00ff">f</span><span style="color:#00ff41">"{item}: {count}"</span>)</p>
-</div>`
+    initialCode: `<style>\n  .card {\n    /* 1. background-color: #1a1a2e */\n    /* 2. color: white */\n    /* 3. padding: 20px */\n    /* 4. border: 2px solid #00f3ff */\n    /* 5. border-radius: 12px */\n  }\n  .card h2 { /* color: #00f3ff */ }\n</style>\n<div class="card">\n  <h2>AGENT PROFILE</h2>\n  <p>Элитный нетраннер. Уровень: MAX.</p>\n</div>`,
+    htmlConfig: {"targetTag":".card","targetStyle":"background-color"},
+    theory: `<h3 style="color:#00f3ff;margin-bottom:8px">Подсказка</h3>
+<p>Раскомментируй свойства — убери /* и */.</p>
+<div style="background:#0a0a14;border-radius:6px;padding:12px;margin:10px 0;font-family:monospace;font-size:12px;line-height:1.7">
+  <p style="margin:2px 0"><span style="color:#fcee0a">background-color</span> → фон</p>
+  <p style="margin:2px 0"><span style="color:#fcee0a">padding</span> → внутренний отступ</p>
+  <p style="margin:2px 0"><span style="color:#fcee0a">border</span> → рамка</p>
+  <p style="margin:2px 0"><span style="color:#fcee0a">border-radius</span> → скругление</p>
+</div>`,
   },
-
-  // ── МОДУЛЬ 7: СТРОКИ И ФИНАЛЬНЫЙ ПРОЕКТ ───────────────────────────────────
   {
-    id: 'py_060',
-    courseId: 'course_py200',
-    module: 'Модуль 7: Строки и мастерство',
-    title: 'Теория: Строки и f-строки',
-    type: 'theory',
-    description: 'Методы строк, срезы, f-строки и форматирование — всё, что нужно для обработки текста.',
-    difficulty: 'Элита',
+    id: 'web_m2_practice2',
+    courseId: 'course_web300',
+    module: 'Модуль 2: Основы CSS',
+    title: 'Практика: Кнопка хакера',
+    type: 'html',
+    description: 'Создай кнопку с :hover эффектом. Зелёный текст, тёмный фон, неоновая рамка.',
+    difficulty: 'Новичок',
     xpReward: 80,
-    currencyReward: 25,
+    currencyReward: 30,
     status: 'locked',
-    theory: `<p style="color:#ff00ff;font-weight:bold;margin-bottom:12px">🔤 Мастерство строк...</p>
-<p>Строки в Python — это мощный инструмент. Ты можешь разрезать, соединять, искать и форматировать текст.</p>
-<h3 style="color:#00f3ff;margin-top:20px;margin-bottom:8px">📏 Базовые операции</h3>
-<div style="background:#0a0a14;border-radius:8px;padding:16px;margin:12px 0;font-family:monospace">
-  <p style="margin:3px 0"><span style="color:#fcee0a">msg</span> = <span style="color:#00ff41">"Cyberpunk"</span></p>
-  <p style="margin:3px 0"><span style="color:#00ff41">print</span>(<span style="color:#00ff41">len</span>(<span style="color:#fcee0a">msg</span>))         <span style="color:#555"># 9</span></p>
-  <p style="margin:3px 0"><span style="color:#00ff41">print</span>(<span style="color:#fcee0a">msg</span>.<span style="color:#ff00ff">upper</span>())      <span style="color:#555"># CYBERPUNK</span></p>
-  <p style="margin:3px 0"><span style="color:#00ff41">print</span>(<span style="color:#fcee0a">msg</span>.<span style="color:#ff00ff">lower</span>())      <span style="color:#555"># cyberpunk</span></p>
-  <p style="margin:3px 0"><span style="color:#00ff41">print</span>(<span style="color:#fcee0a">msg</span>.<span style="color:#ff00ff">replace</span>(<span style="color:#00ff41">"punk"</span>, <span style="color:#00ff41">"net"</span>))  <span style="color:#555"># Cybernet</span></p>
-</div>
-<h3 style="color:#00f3ff;margin-top:20px;margin-bottom:8px">✂️ Срезы (slicing)</h3>
-<div style="background:#0a0a14;border-radius:8px;padding:16px;margin:12px 0;font-family:monospace">
-  <p style="margin:3px 0"><span style="color:#fcee0a">s</span> = <span style="color:#00ff41">"NETRUNNER"</span></p>
-  <p style="margin:3px 0"><span style="color:#00ff41">print</span>(<span style="color:#fcee0a">s</span>[<span style="color:#fcee0a">0:3</span>])    <span style="color:#555"># NET</span></p>
-  <p style="margin:3px 0"><span style="color:#00ff41">print</span>(<span style="color:#fcee0a">s</span>[<span style="color:#fcee0a">-6:</span>])    <span style="color:#555"># RUNNER</span></p>
-  <p style="margin:3px 0"><span style="color:#00ff41">print</span>(<span style="color:#fcee0a">s</span>[<span style="color:#fcee0a">::2</span>])     <span style="color:#555"># NTURE (каждый 2-й)</span></p>
-  <p style="margin:3px 0"><span style="color:#00ff41">print</span>(<span style="color:#fcee0a">s</span>[<span style="color:#fcee0a">::-1</span>])    <span style="color:#555"># RENNURTEN (реверс)</span></p>
-</div>
-<h3 style="color:#00f3ff;margin-top:20px;margin-bottom:8px">🎯 f-строки (форматирование)</h3>
-<div style="background:#0a0a14;border-radius:8px;padding:16px;margin:12px 0;font-family:monospace">
-  <p style="margin:3px 0"><span style="color:#fcee0a">name</span> = <span style="color:#00ff41">"Ava"</span></p>
-  <p style="margin:3px 0"><span style="color:#fcee0a">level</span> = <span style="color:#fcee0a">7</span></p>
-  <p style="margin:3px 0"><span style="color:#00ff41">print</span>(<span style="color:#ff00ff">f</span><span style="color:#00ff41">"Агент {name}, ур. {level}"</span>)  <span style="color:#555"># Агент Ava, ур. 7</span></p>
-  <p style="margin:3px 0"><span style="color:#00ff41">print</span>(<span style="color:#ff00ff">f</span><span style="color:#00ff41">"HP: {100 - 25}"</span>)             <span style="color:#555"># HP: 75</span></p>
-  <p style="margin:3px 0"><span style="color:#00ff41">print</span>(<span style="color:#ff00ff">f</span><span style="color:#00ff41">"{3.14159:.2f}"</span>)              <span style="color:#555"># 3.14</span></p>
-</div>
-<h3 style="color:#00f3ff;margin-top:20px;margin-bottom:8px">🔍 Поиск и проверка</h3>
-<div style="background:#0a0a14;border:1px solid #1a1a2e;border-radius:8px;padding:14px;margin:12px 0;font-family:monospace;font-size:0.9em">
-  <p style="margin:4px 0"><span style="color:#00ff41">"Net"</span> <span style="color:#ff00ff">in</span> <span style="color:#00ff41">"Netrunner"</span>  <span style="color:#555">→ True</span></p>
-  <p style="margin:4px 0"><span style="color:#00ff41">"abc"</span>.<span style="color:#ff00ff">startswith</span>(<span style="color:#00ff41">"a"</span>)  <span style="color:#555">→ True</span></p>
-  <p style="margin:4px 0"><span style="color:#00ff41">"abc"</span>.<span style="color:#ff00ff">endswith</span>(<span style="color:#00ff41">"c"</span>)    <span style="color:#555">→ True</span></p>
-  <p style="margin:4px 0"><span style="color:#00ff41">"hello"</span>.<span style="color:#ff00ff">count</span>(<span style="color:#00ff41">"l"</span>)     <span style="color:#555">→ 2</span></p>
-  <p style="margin:4px 0"><span style="color:#00ff41">"a,b,c"</span>.<span style="color:#ff00ff">split</span>(<span style="color:#00ff41">","</span>)      <span style="color:#555">→ ["a", "b", "c"]</span></p>
-  <p style="margin:4px 0"><span style="color:#00ff41">"-"</span>.<span style="color:#ff00ff">join</span>([<span style="color:#00ff41">"a"</span>,<span style="color:#00ff41">"b"</span>,<span style="color:#00ff41">"c"</span>]) <span style="color:#555">→ "a-b-c"</span></p>
-</div>
-<div style="background:#0d1f0d;border:1px solid #00ff41;border-radius:8px;padding:12px;margin-top:16px">
-  <p style="color:#00ff41;font-weight:bold;margin-bottom:4px">💡 Строки — неизменяемые!</p>
-  <p style="margin:0">Нельзя сделать <code>s[0] = "X"</code>. Вместо этого создай новую строку: <code>s = "X" + s[1:]</code></p>
-</div>`
-  },
-  {
-    id: 'py_060q',
-    courseId: 'course_py200',
-    module: 'Модуль 7: Строки и мастерство',
-    title: 'Квиз: Строки и срезы',
-    type: 'quiz',
-    description: 'Проверь понимание строковых операций.',
-    difficulty: 'Элита',
-    xpReward: 60,
-    currencyReward: 20,
-    status: 'locked',
-    quizData: {
-      question: 'Что выведет этот код?\n\ns = "Python"\nprint(s[1:4])',
-      options: ['Pyt', 'yth', 'ytho', 'tho'],
-      correctIndex: 1,
-      explanation: 's[1:4] берёт символы с индекса 1 до 3 (не включая 4): P(0) y(1) t(2) h(3) o(4) n(5). Результат: "yth".'
-    }
-  },
-  {
-    id: 'py_061',
-    courseId: 'course_py200',
-    module: 'Модуль 7: Строки и мастерство',
-    title: 'Практика: Шифр реверса',
-    type: 'terminal',
-    description: 'Переверни строку message с помощью среза [::-1] и выведи результат.',
-    difficulty: 'Элита',
-    xpReward: 70,
-    currencyReward: 20,
-    status: 'locked',
-    terminalConfig: { fileSystem: '{}', goalCommand: 'py_str_reverse' },
-    initialCode: 'message = "Netrunner"\n# Переверни строку с помощью среза [::-1]\n# Выведи результат\n',
-    theory: `<h3 style="color:#00f3ff;margin-bottom:8px">Реверс через срез</h3>
-<p>Срез <code style="color:#fcee0a">[::-1]</code> — самый элегантный способ перевернуть строку:</p>
-<div style="background:#0a0a14;border-radius:6px;padding:12px;margin:10px 0;font-family:monospace">
-  <p style="margin:3px 0"><span style="color:#fcee0a">reversed_msg</span> = <span style="color:#fcee0a">message</span>[<span style="color:#fcee0a">::-1</span>]</p>
-  <p style="margin:3px 0"><span style="color:#00ff41">print</span>(<span style="color:#fcee0a">reversed_msg</span>)</p>
-</div>`
-  },
-  {
-    id: 'py_062',
-    courseId: 'course_py200',
-    module: 'Модуль 7: Строки и мастерство',
-    title: 'Финальный проект: Боевой отчёт',
-    type: 'terminal',
-    description: 'Создай функцию battle_report(hero, enemies): перебери врагов, найди самого сильного (max hp), и выведи f-строку с именем героя и врага. Используй словари, списки, функции и f-строки!',
-    difficulty: 'Легенда',
-    xpReward: 200,
-    currencyReward: 100,
-    status: 'locked',
-    terminalConfig: { fileSystem: '{}', goalCommand: 'py_final_report' },
-    initialCode: 'hero = {"name": "Ava", "power": 50}\nenemies = [\n    {"name": "Drone_X", "hp": 80},\n    {"name": "Drone_Z", "hp": 120},\n    {"name": "Drone_Q", "hp": 60}\n]\n\n# Напиши функцию battle_report(hero, enemies)\n# 1. Найди врага с максимальным hp\n# 2. Выведи: "Агент {hero_name} атакует {enemy_name} (HP: {hp})"\n',
-    theory: `<h3 style="color:#00f3ff;margin-bottom:8px">Всё вместе!</h3>
-<p>Объедини словари, циклы, функции и f-строки:</p>
-<div style="background:#0a0a14;border-radius:6px;padding:12px;margin:10px 0;font-family:monospace">
-  <p style="margin:3px 0"><span style="color:#ff00ff">def</span> <span style="color:#fcee0a">battle_report</span>(<span style="color:#fcee0a">hero</span>, <span style="color:#fcee0a">enemies</span>):</p>
-  <p style="margin:3px 0 3px 20px"><span style="color:#fcee0a">target</span> = <span style="color:#00ff41">max</span>(<span style="color:#fcee0a">enemies</span>, <span style="color:#fcee0a">key</span>=<span style="color:#ff00ff">lambda</span> <span style="color:#fcee0a">e</span>: <span style="color:#fcee0a">e</span>[<span style="color:#00ff41">"hp"</span>])</p>
-  <p style="margin:3px 0 3px 20px"><span style="color:#00ff41">print</span>(<span style="color:#ff00ff">f</span><span style="color:#00ff41">"Агент {hero['name']} атакует {target['name']} (HP: {target['hp']})"</span>)</p>
-</div>`
+    initialCode: `<style>\n  .hack-btn {\n    background: #0a0a14;\n    color: #00ff41;\n    border: 2px solid #00ff41;\n    padding: 12px 24px;\n    font-size: 16px;\n    border-radius: 8px;\n    cursor: pointer;\n    font-family: monospace;\n    /* Добавь: transition: all 0.3s; */\n  }\n  .hack-btn:hover {\n    /* background: #00ff41; */\n    /* color: black; */\n  }\n</style>\n<button class="hack-btn">[ ВЗЛОМАТЬ ]</button>`,
+    htmlConfig: {"targetTag":".hack-btn","targetStyle":"color"},
+    theory: `<h3 style="color:#00f3ff;margin-bottom:8px">Подсказка</h3>
+<p><strong>:hover</strong> — при наведении мыши. <strong>transition</strong> — плавная анимация.</p>
+<div style="background:#0a0a14;border-radius:6px;padding:12px;margin:10px 0;font-family:monospace;font-size:12px">
+  <p style="margin:2px 0">.btn:hover { background: #00ff41; color: black; }</p>
+</div>`,
   },
 
-  // =========================================================================
-  // WEB300: МОДУЛИ 3-5
-  // =========================================================================
-
-  // ── МОДУЛЬ 3: FLEXBOX ─────────────────────────────────────────────────────
+    // ── МОДУЛЬ 3: FLEXBOX ─────────────────────────────────────────────────────
   {
     id: 'web_m3_theory',
     courseId: 'course_web300',
@@ -4075,6 +3820,7 @@ export const MOCK_TASKS: Task[] = [
       explanation: 'justify-content управляет выравниванием по главной оси (горизонтальной при row). center — по центру. align-items — по поперечной оси (вертикальной).'
     }
   },
+  {id:'web_m3_q2',courseId:'course_web300',module:'Модуль 3: Flexbox',title:'Квиз: Направление',type:'quiz',description:'Квиз',difficulty:'Хакер',xpReward:50,currencyReward:15,status:'locked',quizData:{question:"Что делает flex-direction: column?",options:["Строка","Столбец","Справа налево","Скрывает"],correctIndex:1,explanation:"column — вертикально."}},
   {
     id: 'web_m3_practice',
     courseId: 'course_web300',
@@ -4175,6 +3921,7 @@ export const MOCK_TASKS: Task[] = [
       explanation: 'min-width: 768px означает «при ширине экрана 768px и больше». Стили внутри этого блока применяются на планшетах и десктопах, но не на узких мобильных экранах.'
     }
   },
+  {id:'web_m4_q2',courseId:'course_web300',module:'Модуль 4: Адаптивность',title:'Квиз: Единицы',type:'quiz',description:'Квиз',difficulty:'Хакер',xpReward:50,currencyReward:15,status:'locked',quizData:{question:"Чем % от px?",options:["Ничем","% от родителя, px фиксирован","px от экрана","Нет разницы"],correctIndex:1,explanation:"% от родителя. px фиксирован."}},
   {
     id: 'web_m4_practice',
     courseId: 'course_web300',
@@ -4277,6 +4024,7 @@ export const MOCK_TASKS: Task[] = [
       explanation: '<header> — семантический тег HTML5 для шапки сайта. <head> — служебный блок (title, meta), не отображается на странице. <div> работает, но не несёт смысловой нагрузки.'
     }
   },
+  {id:'web_m5_q2',courseId:'course_web300',module:'Модуль 5: Финальный проект',title:'Квиз: Семантика',type:'quiz',description:'Квиз',difficulty:'Хакер',xpReward:50,currencyReward:15,status:'locked',quizData:{question:"Какой тег для навигации?",options:["<div>","<nav>","<span>","<p>"],correctIndex:1,explanation:"<nav> — семантический тег навигации."}},
   {
     id: 'web_m5_practice',
     courseId: 'course_web300',
@@ -4403,6 +4151,7 @@ export const MOCK_TASKS: Task[] = [
       explanation: 'transition — это свойство для плавного перехода между двумя состояниями (например, обычное и :hover). @keyframes определяет анимацию, animation запускает её, а transform — трансформирует элемент.'
     }
   },
+  {id:'web_m6_q2',courseId:'course_web300',module:'Модуль 6: Анимации и переходы',title:'Квиз: Keyframes',type:'quiz',description:'Квиз',difficulty:'Хакер',xpReward:50,currencyReward:15,status:'locked',quizData:{question:"Что делает @keyframes?",options:["Медиа-запрос","Этапы анимации","Переменную","Шрифт"],correctIndex:1,explanation:"@keyframes — этапы анимации."}},
   {
     id: 'web_m6_practice',
     courseId: 'course_web300',
@@ -4516,6 +4265,7 @@ export const MOCK_TASKS: Task[] = [
       explanation: 'grid-column: 1 / -1 означает «от первой линии до последней», то есть элемент растянется на все колонки. -1 — это последняя линия сетки.'
     }
   },
+  {id:'web_m7_q2',courseId:'course_web300',module:'Модуль 7: CSS Grid и мастерство',title:'Квиз: Grid vs Flex',type:'quiz',description:'Квиз',difficulty:'Хакер',xpReward:50,currencyReward:15,status:'locked',quizData:{question:"Когда Grid лучше Flex?",options:["Никогда","Для 2D-сеток","Для одной строки","Для текста"],correctIndex:1,explanation:"Grid — двумерные сетки. Flex — одномерные."}},
   {
     id: 'web_m7_practice',
     courseId: 'course_web300',
@@ -4653,6 +4403,7 @@ export const MOCK_TASKS: Task[] = [
       explanation: 'Бинарный поиск делит массив пополам на каждом шаге. log₂(1 000 000) ≈ 20. Всего 20 шагов вместо миллиона! Вот сила O(log n).'
     }
   },
+  {id:'alg_m1_b1',courseId:'course_alg101',module:'Модуль 1: Сложность алгоритмов',title:'Блоки: Порядок O()',type:'blocks',description:'Расставь сложности от быстрой к медленной.',difficulty:'Хакер',xpReward:70,currencyReward:25,status:'locked',blocksConfig:{availableBlocks:["O(1)","O(log n)","O(n)","O(n log n)","O(n²)","O(2ⁿ)"],correctSequence:["O(1)","O(log n)","O(n)","O(n log n)","O(n²)","O(2ⁿ)"],theme:'robot',successMessage:"Верно! O(1) — мгновенно, O(2ⁿ) — экспоненциально медленно."}},
 
   // ── МОДУЛЬ 2: СОРТИРОВКИ ──────────────────────────────────────────────────
   {
@@ -4703,6 +4454,7 @@ export const MOCK_TASKS: Task[] = [
       explanation: 'QuickSort O(n log n) — около 20 миллионов операций. Пузырёк O(n²) — триллион операций. Для больших данных разница критична!'
     }
   },
+  {id:'alg_m2_b1',courseId:'course_alg101',module:'Модуль 2: Сортировка',title:'Блоки: Шаги Bubble Sort',type:'blocks',description:'Расставь шаги пузырьковой сортировки.',difficulty:'Хакер',xpReward:70,currencyReward:25,status:'locked',blocksConfig:{availableBlocks:["Сравнить соседние элементы","Если левый > правого — поменять местами","Повторить для всех пар","Повторять проходы, пока нет обменов"],correctSequence:["Сравнить соседние элементы","Если левый > правого — поменять местами","Повторить для всех пар","Повторять проходы, пока нет обменов"],theme:'robot',successMessage:"Bubble Sort: сравниваем пары, меняем местами, повторяем!"}},
 
   // ── МОДУЛЬ 3: РЕКУРСИЯ ────────────────────────────────────────────────────
   {
@@ -4767,6 +4519,7 @@ export const MOCK_TASKS: Task[] = [
       explanation: 'Без базового случая функция вызывает себя снова и снова, пока не закончится память стека (stack). Это называется Stack Overflow — переполнение стека.'
     }
   },
+  {id:'alg_m3_q2',courseId:'course_alg101',module:'Модуль 3: Рекурсия',title:'Квиз: Базовый случай',type:'quiz',description:'Квиз',difficulty:'Хакер',xpReward:50,currencyReward:15,status:'locked',quizData:{question:"Что будет если у рекурсии нет базового случая?",options:["Вернёт 0","Бесконечный цикл (stack overflow)","Ничего","Автоостановка"],correctIndex:1,explanation:"Без базового случая рекурсия не остановится — переполнение стека (stack overflow)."}},
   {
     id: 'alg_m3_p1',
     courseId: 'course_alg101',
