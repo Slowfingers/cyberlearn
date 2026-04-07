@@ -682,8 +682,8 @@ const TeacherDashboard: React.FC<TeacherDashboardProps> = ({
                                                 <div className="text-orange-400 font-mono font-bold">{selectedStudent.streak}</div>
                                                 <div className="text-gray-500 text-[9px] uppercase">Streak</div>
                                             </div>
-                                            <div className="bg-gray-900 border border-gray-800 rounded p-2 text-center">
-                                                <div className="text-white font-mono font-bold">{selectedStudent.lastActive}</div>
+                                            <div className="bg-gray-900 border border-gray-800 rounded p-2 text-center overflow-hidden">
+                                                <div className="text-white font-mono font-bold text-xs truncate">{selectedStudent.lastActive}</div>
                                                 <div className="text-gray-500 text-[9px] uppercase">Был</div>
                                             </div>
                                         </div>
