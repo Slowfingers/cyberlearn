@@ -277,7 +277,7 @@ export const getClassStudents = async (classId: string): Promise<StudentProgress
         const progress = getTaskProgress(s.id);
         const localCompleted = Object.values(progress).filter(v => v === 'completed').length;
         // Use Firebase-stored tasksCompleted if available (works cross-device), fallback to localStorage
-        const tasksCompleted = (s.tasksCompleted && s.tasksCompleted > 0) ? s.tasksCompleted : localCompleted;
+        const tasksCompleted = (s.tasksCompleted !== undefined) ? s.tasksCompleted : localCompleted;
         const totalTasks = MOCK_TASKS.length;
 
         // Streak data
