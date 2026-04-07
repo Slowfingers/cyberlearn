@@ -24,28 +24,28 @@ const App: React.FC = () => {
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
 
-  // Session Persistence
+  // Session Persistence (Firebase)
   useEffect(() => {
       const savedUserId = localStorage.getItem('cyberlearn_session_id');
       const savedUserRole = localStorage.getItem('cyberlearn_session_role');
       if (savedUserId && savedUserRole) {
-          const usersData = localStorage.getItem('cyberlearn_users');
-          if (usersData) {
-              const users: User[] = JSON.parse(usersData);
-              const found = users.find(u => u.id === savedUserId);
-              if (found) {
-                  setUser(found);
-                  if (found.role === 'teacher') {
-                      const classesData = localStorage.getItem('cyberlearn_classes');
-                      if (classesData) {
-                          const classes: Classroom[] = JSON.parse(classesData);
-                          const teacherClasses = classes.filter(c => c.teacherId === found.id);
+          (async () => {
+              try {
+                  const { getUsers, getTeacherClasses } = await import('./services/mockBackend');
+                  const users = await getUsers();
+                  const found = users.find(u => u.id === savedUserId);
+                  if (found) {
+                      setUser(found);
+                      if (found.role === 'teacher') {
+                          const teacherClasses = await getTeacherClasses(found.id);
                           setClassrooms(teacherClasses);
                           if (teacherClasses.length > 0) setActiveClassId(teacherClasses[0].id);
                       }
                   }
+              } catch (e) {
+                  console.error('Session restore error:', e);
               }
-          }
+          })();
       }
   }, []);
 
@@ -62,7 +62,7 @@ const App: React.FC = () => {
     localStorage.removeItem('cyberlearn_session_role');
   };
 
-  const handleTeacherLogin = (e: React.FormEvent) => {
+  const handleTeacherLogin = async (e: React.FormEvent) => {
       e.preventDefault();
       if (!name.trim() || !password.trim()) {
           setError("Укажите имя и пароль");
@@ -71,9 +71,8 @@ const App: React.FC = () => {
       setLoading(true);
       setError('');
 
-      // Simulate network delay
-      setTimeout(() => {
-        const result = loginOrRegisterTeacher(name, password);
+      try {
+        const result = await loginOrRegisterTeacher(name, password);
         if (result.success && result.user) {
             setUser(result.user);
             setClassrooms(result.classrooms || []);
@@ -87,11 +86,14 @@ const App: React.FC = () => {
         } else {
             setError(result.error || "Ошибка авторизации");
         }
-        setLoading(false);
-      }, 800);
+      } catch (err) {
+        setError("Ошибка подключения к серверу");
+        console.error(err);
+      }
+      setLoading(false);
   };
 
-  const handleStudentLogin = (e: React.FormEvent) => {
+  const handleStudentLogin = async (e: React.FormEvent) => {
       e.preventDefault();
       if (!name.trim() || !inviteCode.trim()) {
           setError("Заполните все поля");
@@ -100,8 +102,8 @@ const App: React.FC = () => {
       setLoading(true);
       setError('');
 
-      setTimeout(() => {
-        const result = joinClassroom(name, inviteCode);
+      try {
+        const result = await joinClassroom(name, inviteCode);
         if (result.success && result.user) {
             setUser(result.user);
             localStorage.setItem('cyberlearn_session_id', result.user.id);
@@ -109,8 +111,11 @@ const App: React.FC = () => {
         } else {
             setError(result.error || "Ошибка авторизации");
         }
-        setLoading(false);
-      }, 800);
+      } catch (err) {
+        setError("Ошибка подключения к серверу");
+        console.error(err);
+      }
+      setLoading(false);
   };
 
   const onClassCreated = (newClass: Classroom) => {

@@ -80,10 +80,12 @@ const StudentDashboard: React.FC<StudentDashboardProps> = ({ currentUser: propUs
   const sidebarRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
-      const allTasks = getAllTasks(propUser.id);
-      setTasks(allTasks);
-      const hidden = getHiddenCoursesForStudent(propUser.id);
-      setCourses(getCoursesWithProgress(allTasks, hidden));
+      (async () => {
+          const allTasks = getAllTasks(propUser.id);
+          setTasks(allTasks);
+          const hidden = await getHiddenCoursesForStudent(propUser.id);
+          setCourses(getCoursesWithProgress(allTasks, hidden));
+      })();
   }, [propUser.id]);
 
   const filteredTasks = tasks.filter(t => t.courseId === activeCourseId);
@@ -311,8 +313,9 @@ const StudentDashboard: React.FC<StudentDashboardProps> = ({ currentUser: propUs
           }
           
           setTasks(updatedTasks);
-          const hidden = getHiddenCoursesForStudent(propUser.id);
-          setCourses(getCoursesWithProgress(updatedTasks, hidden));
+          getHiddenCoursesForStudent(propUser.id).then(hidden => {
+              setCourses(getCoursesWithProgress(updatedTasks, hidden));
+          });
 
           // Persist task progress to localStorage
           if (currentUser) {
@@ -394,13 +397,13 @@ const StudentDashboard: React.FC<StudentDashboardProps> = ({ currentUser: propUs
           };
           
           setCurrentUser(updatedUser);
-          updateUserProfile(updatedUser);
+          updateUserProfile(updatedUser); // async, fire-and-forget
       }
   };
 
-  const handleBuyItem = (itemId: string) => {
+  const handleBuyItem = async (itemId: string) => {
       if (!currentUser) return;
-      const res = buyItem(currentUser.id, itemId);
+      const res = await buyItem(currentUser.id, itemId);
       if (res.success && res.user) {
           setCurrentUser(res.user);
           playSound('success');
@@ -412,9 +415,9 @@ const StudentDashboard: React.FC<StudentDashboardProps> = ({ currentUser: propUs
       }
   };
 
-  const handleEquipItem = (itemId: string) => {
+  const handleEquipItem = async (itemId: string) => {
       if (!currentUser) return;
-      const res = equipItem(currentUser.id, itemId);
+      const res = await equipItem(currentUser.id, itemId);
       if (res.success && res.user) {
           setCurrentUser(res.user);
           playSound('click');

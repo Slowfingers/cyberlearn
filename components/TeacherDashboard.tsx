@@ -88,7 +88,7 @@ const TeacherDashboard: React.FC<TeacherDashboardProps> = ({
 
   useEffect(() => {
     if (currentClass) {
-        setStudents(getClassStudents(currentClass.id));
+        getClassStudents(currentClass.id).then(s => setStudents(s));
         setIsCreatingClass(false);
         setViewMode('dashboard');
         setIsMobileMenuOpen(false);
@@ -99,36 +99,35 @@ const TeacherDashboard: React.FC<TeacherDashboardProps> = ({
     }
   }, [currentClass, activeClassId]);
 
-  const handleCreateClass = (e: React.FormEvent) => {
+  const handleCreateClass = async (e: React.FormEvent) => {
       e.preventDefault();
       if (!newClassName.trim()) return;
       playSound('success');
-      const cls = createClassroom(currentUser.id, newClassName);
+      const cls = await createClassroom(currentUser.id, newClassName);
       onClassCreated(cls);
       setNewClassName('');
       setIsCreatingClass(false);
       addToast(`Сектор "${newClassName}" создан`, 'success');
   };
 
-  const handleRenameClass = () => {
+  const handleRenameClass = async () => {
       if (!currentClass || !renameValue.trim()) return;
       const updated = { ...currentClass, name: renameValue.trim() };
-      updateClassroom(updated);
+      await updateClassroom(updated);
       onClassCreated(updated);
       setIsRenaming(false);
       playSound('success');
       addToast('Сектор переименован', 'success');
   };
 
-  const handleDeleteClass = () => {
+  const handleDeleteClass = async () => {
       if (!currentClass) return;
       if (!confirm(`Удалить сектор "${currentClass.name}"? Все студенты будут отключены от класса.`)) return;
-      const success = deleteClassroom(currentClass.id);
+      const success = await deleteClassroom(currentClass.id);
       if (success) {
           playSound('success');
           addToast('Сектор удалён', 'success');
           onSelectClass(null);
-          // Обновить список классов в родительском компоненте
           window.location.reload();
       } else {
           playSound('error');
@@ -154,9 +153,10 @@ const TeacherDashboard: React.FC<TeacherDashboardProps> = ({
       playSound('click');
   };
 
-  const refreshStudents = () => {
+  const refreshStudents = async () => {
       if (currentClass) {
-          setStudents(getClassStudents(currentClass.id));
+          const s = await getClassStudents(currentClass.id);
+          setStudents(s);
           playSound('click');
           addToast('Данные обновлены', 'info');
       }

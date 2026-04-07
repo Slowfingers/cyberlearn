@@ -1,14 +1,11 @@
 
 import { User, Classroom, StudentProgress, Task, Course } from "../types";
 import { MOCK_STUDENTS, LEVEL_THRESHOLDS, MOCK_TASKS, COURSES, COSMETICS } from "../constants";
+import { fbGetClassrooms, fbCreateClassroom, fbUpdateClassroom, fbDeleteClassroom, fbGetUsers, fbSaveUser } from './firebase';
 
-const USERS_KEY = 'cyberlearn_users';
-const CLASSES_KEY = 'cyberlearn_classes';
 const TASKS_KEY = 'cyberlearn_tasks';
 const TASK_PROGRESS_PREFIX = 'task_progress_';
 const FANTASY_PROGRESS_PREFIX = 'fantasy_progress_';
-
-// ... (Helper functions remain same)
 
 const generateInviteCode = (): string => {
     const chars = "ABCDEFGHJKLMNPQRSTUVWXYZ23456789";
@@ -33,33 +30,18 @@ export const getNextLevelThreshold = (currentLevel: number): number => {
     return LEVEL_THRESHOLDS[currentLevel];
 };
 
-// --- DATA ACCESS ---
+// --- DATA ACCESS (Firebase async) ---
 
-export const getUsers = (): User[] => {
-    const data = localStorage.getItem(USERS_KEY);
-    return data ? JSON.parse(data) : [];
+export const getUsers = async (): Promise<User[]> => {
+    return fbGetUsers();
 };
 
-export const getClassrooms = (): Classroom[] => {
-    const data = localStorage.getItem(CLASSES_KEY);
-    if (!data) {
-        // Инициализация тестового класса для разработки
-        const testClass: Classroom = {
-            id: 'c_demo',
-            teacherId: 'demo_teacher',
-            name: 'Демо-класс',
-            inviteCode: 'DEMO-01',
-            studentIds: []
-        };
-        const classes = [testClass];
-        localStorage.setItem(CLASSES_KEY, JSON.stringify(classes));
-        return classes;
-    }
-    return JSON.parse(data);
+export const getClassrooms = async (): Promise<Classroom[]> => {
+    return fbGetClassrooms();
 };
 
-export const getTeacherClasses = (teacherId: string): Classroom[] => {
-    const classes = getClassrooms();
+export const getTeacherClasses = async (teacherId: string): Promise<Classroom[]> => {
+    const classes = await getClassrooms();
     return classes.filter(c => c.teacherId === teacherId);
 };
 
@@ -68,20 +50,22 @@ export const getCustomTasks = (): Task[] => {
     return data ? JSON.parse(data) : [];
 }
 
-export const saveUsers = (users: User[]) => localStorage.setItem(USERS_KEY, JSON.stringify(users));
-const saveClasses = (classes: Classroom[]) => localStorage.setItem(CLASSES_KEY, JSON.stringify(classes));
+export const saveUsers = async (users: User[]): Promise<void> => {
+    for (const u of users) {
+        await fbSaveUser(u);
+    }
+};
+
 const saveCustomTasks = (tasks: Task[]) => localStorage.setItem(TASKS_KEY, JSON.stringify(tasks));
 
-export const updateUserProfile = (updatedUser: User): void => {
-    let users = getUsers();
-    users = users.map(u => u.id === updatedUser.id ? updatedUser : u);
-    saveUsers(users);
+export const updateUserProfile = async (updatedUser: User): Promise<void> => {
+    await fbSaveUser(updatedUser);
 };
 
 // --- MARKET ACTIONS ---
 
-export const buyItem = (userId: string, itemId: string): { success: boolean, user?: User, error?: string } => {
-    let users = getUsers();
+export const buyItem = async (userId: string, itemId: string): Promise<{ success: boolean, user?: User, error?: string }> => {
+    const users = await getUsers();
     let user = users.find(u => u.id === userId);
     if (!user) return { success: false, error: "User not found" };
 
@@ -99,12 +83,12 @@ export const buyItem = (userId: string, itemId: string): { success: boolean, use
     if (item.type === 'avatar') user.equipped.avatar = itemId;
     if (item.type === 'droneColor') user.equipped.droneColor = itemId;
 
-    saveUsers(users.map(u => u.id === userId ? user! : u));
+    await fbSaveUser(user);
     return { success: true, user };
 };
 
-export const equipItem = (userId: string, itemId: string): { success: boolean, user?: User } => {
-    let users = getUsers();
+export const equipItem = async (userId: string, itemId: string): Promise<{ success: boolean, user?: User }> => {
+    const users = await getUsers();
     let user = users.find(u => u.id === userId);
     if (!user) return { success: false };
 
@@ -114,14 +98,14 @@ export const equipItem = (userId: string, itemId: string): { success: boolean, u
     if (item.type === 'avatar') user.equipped.avatar = itemId;
     if (item.type === 'droneColor') user.equipped.droneColor = itemId;
 
-    saveUsers(users.map(u => u.id === userId ? user! : u));
+    await fbSaveUser(user);
     return { success: true, user };
 };
 
-// --- AUTH ACTIONS ---
+// --- AUTH ACTIONS (Firebase async) ---
 
-export const loginOrRegisterTeacher = (name: string, password?: string): { success: boolean, user?: User, classrooms?: Classroom[], error?: string } => {
-    let users = getUsers();
+export const loginOrRegisterTeacher = async (name: string, password?: string): Promise<{ success: boolean, user?: User, classrooms?: Classroom[], error?: string }> => {
+    const users = await getUsers();
     let user = users.find(u => u.name.toLowerCase() === name.toLowerCase() && u.role === 'teacher');
 
     if (!user) {
@@ -140,24 +124,20 @@ export const loginOrRegisterTeacher = (name: string, password?: string): { succe
             achievements: [],
             equipped: { avatar: 'av_1', droneColor: 'col_default' }
         };
-        users.push(user);
-        saveUsers(users);
+        await fbSaveUser(user);
     } else {
         if (user.password && user.password !== password) {
             return { success: false, error: "Неверный пароль" };
         } else if (!user.password && password) {
-            // For backward compatibility: if old user doesn't have a password but tries to login with one, set it.
-            // Or maybe just allow it or set it. Let's just set it.
             user.password = password;
-            saveUsers(users.map(u => u.id === user!.id ? user! : u));
+            await fbSaveUser(user);
         }
     }
-    const classrooms = getTeacherClasses(user.id);
+    const classrooms = await getTeacherClasses(user.id);
     return { success: true, user, classrooms };
 };
 
-export const createClassroom = (teacherId: string, className: string): Classroom => {
-    const classes = getClassrooms();
+export const createClassroom = async (teacherId: string, className: string): Promise<Classroom> => {
     const newClass: Classroom = {
         id: 'c_' + Date.now(),
         teacherId,
@@ -165,32 +145,16 @@ export const createClassroom = (teacherId: string, className: string): Classroom
         inviteCode: generateInviteCode(),
         studentIds: []
     };
-    classes.push(newClass);
-    saveClasses(classes);
+    await fbCreateClassroom(newClass);
     return newClass;
 };
 
-export const deleteClassroom = (classId: string): boolean => {
-    const classes = getClassrooms();
-    const filtered = classes.filter(c => c.id !== classId);
-    if (filtered.length === classes.length) return false; // Класс не найден
-    
-    // Удалить студентов из класса
-    const users = getUsers();
-    const updatedUsers = users.map(u => {
-        if (u.classId === classId) {
-            return { ...u, classId: undefined };
-        }
-        return u;
-    });
-    saveUsers(updatedUsers);
-    
-    saveClasses(filtered);
-    return true;
+export const deleteClassroom = async (classId: string): Promise<boolean> => {
+    return fbDeleteClassroom(classId);
 };
 
-export const joinClassroom = (studentName: string, inviteCode: string): { success: boolean, user?: User, error?: string } => {
-    const classes = getClassrooms();
+export const joinClassroom = async (studentName: string, inviteCode: string): Promise<{ success: boolean, user?: User, error?: string }> => {
+    const classes = await getClassrooms();
     const normalizedCode = inviteCode.trim().toUpperCase();
     const targetClass = classes.find(c => c.inviteCode.toUpperCase() === normalizedCode);
 
@@ -200,7 +164,7 @@ export const joinClassroom = (studentName: string, inviteCode: string): { succes
         return { success: false, error: "Код доступа недействителен." };
     }
 
-    let users = getUsers();
+    const users = await getUsers();
     let user = users.find(u => u.name.toLowerCase() === studentName.toLowerCase() && u.role === 'student');
 
     if (!user) {
@@ -216,19 +180,18 @@ export const joinClassroom = (studentName: string, inviteCode: string): { succes
             achievements: [],
             equipped: { avatar: 'av_1', droneColor: '#00f3ff' }
         };
-        users.push(user);
+        await fbSaveUser(user);
     } else {
         user.classId = targetClass.id;
-        users = users.map(u => u.id === user!.id ? user! : u);
+        await fbSaveUser(user);
     }
 
+    if (!targetClass.studentIds) targetClass.studentIds = [];
     if (!targetClass.studentIds.includes(user.id)) {
         targetClass.studentIds.push(user.id);
-        const updatedClasses = classes.map(c => c.id === targetClass.id ? targetClass : c);
-        saveClasses(updatedClasses);
+        await fbUpdateClassroom(targetClass);
     }
 
-    saveUsers(users);
     return { success: true, user };
 };
 
@@ -239,7 +202,7 @@ export const createTaskForClass = (classId: string, task: Task) => {
     saveCustomTasks(tasks);
 }
 
-// --- TASK PROGRESS PERSISTENCE ---
+// --- TASK PROGRESS PERSISTENCE (localStorage — per-device) ---
 
 export const getTaskProgress = (userId: string): Record<string, 'open' | 'completed' | 'locked'> => {
     const key = `${TASK_PROGRESS_PREFIX}${userId}`;
@@ -277,28 +240,26 @@ export const getCoursesWithProgress = (tasks: Task[], hiddenCourseIds?: string[]
         });
 };
 
-export const getHiddenCoursesForStudent = (userId: string): string[] => {
-    const users = getUsers();
+export const getHiddenCoursesForStudent = async (userId: string): Promise<string[]> => {
+    const users = await getUsers();
     const user = users.find(u => u.id === userId);
     if (!user?.classId) return [];
-    const classes = getClassrooms();
+    const classes = await getClassrooms();
     const cls = classes.find(c => c.id === user.classId);
     return cls?.hiddenCourses || [];
 };
 
-export const updateClassroom = (updatedClass: Classroom): void => {
-    let classes = getClassrooms();
-    classes = classes.map(c => c.id === updatedClass.id ? updatedClass : c);
-    saveClasses(classes);
+export const updateClassroom = async (updatedClass: Classroom): Promise<void> => {
+    await fbUpdateClassroom(updatedClass);
 };
 
-export const getClassStudents = (classId: string): StudentProgress[] => {
-    const classes = getClassrooms();
+export const getClassStudents = async (classId: string): Promise<StudentProgress[]> => {
+    const classes = await getClassrooms();
     const targetClass = classes.find(c => c.id === classId);
     if (!targetClass) return [];
 
-    const users = getUsers();
-    const realStudents = users.filter(u => targetClass.studentIds.includes(u.id));
+    const users = await getUsers();
+    const realStudents = users.filter(u => targetClass.studentIds?.includes(u.id));
 
     // Get all tasks for course progress calculation
     const allCourseTasks: Record<string, { courseId: string; title: string; color: string; taskIds: string[] }> = {};
