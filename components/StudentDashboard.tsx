@@ -3,7 +3,7 @@ import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { COSMETICS, ACHIEVEMENTS } from '../constants';
 import { Task, ExecutionResult, User, Course } from '../types';
 import { evaluateCodeLocally } from '../services/localEvaluation'; 
-import { calculateLevel, getNextLevelThreshold, updateUserProfile, getAllTasks, getCoursesWithProgress, buyItem, equipItem, saveTaskProgress, getHiddenCoursesForStudent, getStreak, recordActivity, StreakData } from '../services/mockBackend';
+import { calculateLevel, getNextLevelThreshold, updateUserProfile, getAllTasks, getCoursesWithProgress, buyItem, equipItem, saveTaskProgress, getTaskProgress, getHiddenCoursesForStudent, getStreak, recordActivity, StreakData } from '../services/mockBackend';
 import GameGrid from './GameGrid';
 import HanoiGame from './HanoiGame';
 import BlockCoding from './BlockCoding';
@@ -85,6 +85,27 @@ const StudentDashboard: React.FC<StudentDashboardProps> = ({ currentUser: propUs
           setTasks(allTasks);
           const hidden = await getHiddenCoursesForStudent(propUser.id);
           setCourses(getCoursesWithProgress(allTasks, hidden));
+
+          // Auto-sync: backfill Firebase completedTaskIds from localStorage if missing
+          const localProgress = getTaskProgress(propUser.id);
+          const localCompletedIds = Object.entries(localProgress)
+              .filter(([, v]) => v === 'completed')
+              .map(([k]) => k);
+          const firebaseCompletedIds = propUser.completedTaskIds || [];
+
+          if (localCompletedIds.length > firebaseCompletedIds.length) {
+              const merged = [...new Set([...firebaseCompletedIds, ...localCompletedIds])];
+              const streakData = getStreak(propUser.id);
+              const updatedUser: User = {
+                  ...propUser,
+                  completedTaskIds: merged,
+                  tasksCompleted: merged.length,
+                  lastActiveDate: streakData.lastActiveDate || propUser.lastActiveDate,
+                  streak: streakData.currentStreak ?? propUser.streak,
+              };
+              updateUserProfile(updatedUser);
+              setCurrentUser(updatedUser);
+          }
       })();
   }, [propUser.id]);
 
