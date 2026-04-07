@@ -274,20 +274,28 @@ export const getClassStudents = async (classId: string): Promise<StudentProgress
     });
 
     return realStudents.map(s => {
-        const progress = getTaskProgress(s.id);
-        const localCompleted = Object.values(progress).filter(v => v === 'completed').length;
-        // Use Firebase-stored tasksCompleted if available (works cross-device), fallback to localStorage
-        const tasksCompleted = (s.tasksCompleted !== undefined) ? s.tasksCompleted : localCompleted;
+        // Use Firebase-stored completedTaskIds (cross-device), fallback to localStorage
+        const firebaseCompleted = s.completedTaskIds || [];
+        const localProgress = getTaskProgress(s.id);
+        const localCompletedIds = Object.entries(localProgress)
+            .filter(([, v]) => v === 'completed')
+            .map(([k]) => k);
+        
+        // Merge: use whichever source has more completed tasks (Firebase is authoritative if populated)
+        const completedIds = firebaseCompleted.length >= localCompletedIds.length 
+            ? firebaseCompleted 
+            : localCompletedIds;
+        const completedSet = new Set(completedIds);
+        
+        const tasksCompleted = completedIds.length;
         const totalTasks = MOCK_TASKS.length;
 
-        // Streak data
-        const streakData = getStreak(s.id);
-        
-        // Last active
+        // Last active: prefer Firebase data, fallback to localStorage streak
         let lastActive = 'Неизвестно';
-        if (streakData.lastActiveDate) {
+        const lastActiveDate = s.lastActiveDate || getStreak(s.id).lastActiveDate;
+        if (lastActiveDate) {
             const today = new Date();
-            const last = new Date(streakData.lastActiveDate);
+            const last = new Date(lastActiveDate);
             const diffMs = today.getTime() - last.getTime();
             const diffDays = Math.floor(diffMs / (1000 * 60 * 60 * 24));
             if (diffDays === 0) lastActive = 'Сегодня';
@@ -296,9 +304,12 @@ export const getClassStudents = async (classId: string): Promise<StudentProgress
             else lastActive = `${Math.floor(diffDays / 7)} нед. назад`;
         }
 
-        // Per-course progress
+        // Streak: prefer Firebase, fallback to localStorage
+        const streak = (s.streak !== undefined) ? s.streak : getStreak(s.id).currentStreak;
+
+        // Per-course progress — computed from completedIds (works cross-device)
         const courseProgress = Object.values(allCourseTasks).map(c => {
-            const completed = c.taskIds.filter(tid => progress[tid] === 'completed').length;
+            const completed = c.taskIds.filter(tid => completedSet.has(tid)).length;
             return { courseId: c.courseId, title: c.title, completed, total: c.taskIds.length, color: c.color };
         });
 
@@ -311,7 +322,7 @@ export const getClassStudents = async (classId: string): Promise<StudentProgress
             totalErrors: s.totalErrors || 0,
             level: s.level || 1,
             lastActive,
-            streak: streakData.currentStreak,
+            streak,
             courseProgress,
             skills: { loops: 50, variables: 50, logic: 50 }
         };

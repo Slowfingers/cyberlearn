@@ -388,8 +388,13 @@ const StudentDashboard: React.FC<StudentDashboardProps> = ({ currentUser: propUs
               }
           }
 
-          const prevCompleted = currentUser.tasksCompleted || 0;
           const prevErrors = currentUser.totalErrors || 0;
+
+          // Build full list of completed task IDs from current tasks state
+          const allCompletedIds = tasks
+              .filter(t => t.status === 'completed' || t.id === task.id)
+              .map(t => t.id);
+          const uniqueCompletedIds = [...new Set(allCompletedIds)];
 
           const updatedUser = {
               ...currentUser,
@@ -397,8 +402,11 @@ const StudentDashboard: React.FC<StudentDashboardProps> = ({ currentUser: propUs
               currency: newCurrency,
               level: newLevel,
               achievements: newAchievements,
-              tasksCompleted: prevCompleted + 1,
+              tasksCompleted: uniqueCompletedIds.length,
               totalErrors: prevErrors + attempts,
+              completedTaskIds: uniqueCompletedIds,
+              lastActiveDate: updatedStreak.lastActiveDate,
+              streak: updatedStreak.currentStreak,
           };
           
           setCurrentUser(updatedUser);

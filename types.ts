@@ -39,6 +39,9 @@ export interface User {
   level: number;
   tasksCompleted?: number;
   totalErrors?: number;
+  completedTaskIds?: string[];
+  lastActiveDate?: string;
+  streak?: number;
   inventory: string[]; 
   achievements: string[]; 
   equipped: {
