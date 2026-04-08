@@ -165,7 +165,8 @@ export const joinClassroom = async (studentName: string, inviteCode: string): Pr
     }
 
     const users = await getUsers();
-    let user = users.find(u => u.name.toLowerCase() === studentName.toLowerCase() && u.role === 'student');
+    // Match by name AND classId — each class gets a separate account
+    let user = users.find(u => u.name.toLowerCase() === studentName.toLowerCase() && u.role === 'student' && u.classId === targetClass.id);
 
     if (!user) {
         user = {
@@ -180,9 +181,6 @@ export const joinClassroom = async (studentName: string, inviteCode: string): Pr
             achievements: [],
             equipped: { avatar: 'av_1', droneColor: '#00f3ff' }
         };
-        await fbSaveUser(user);
-    } else {
-        user.classId = targetClass.id;
         await fbSaveUser(user);
     }
 
