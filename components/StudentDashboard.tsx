@@ -930,7 +930,7 @@ const StudentDashboard: React.FC<StudentDashboardProps> = ({ currentUser: propUs
                     setActiveCourseId(null);
                     setActiveTask(null);
                 }}
-                className="flex items-center gap-1 text-gray-400 active:text-white py-3 pr-4 text-xs font-bold uppercase tracking-wider"
+                className="flex items-center gap-1 text-gray-200 active:text-white py-3 pr-4 text-xs font-bold uppercase tracking-wider hover:text-cyber-neonBlue transition-colors"
             >
                 <ChevronLeft size={18} /> Курсы
             </button>
@@ -951,15 +951,15 @@ const StudentDashboard: React.FC<StudentDashboardProps> = ({ currentUser: propUs
                 const modProgress = modTotal > 0 ? Math.round((modCompleted / modTotal) * 100) : 0;
                 return (
                 <div key={modName}>
-                    <div className="flex items-center justify-between mb-2 pl-2 ml-1 border-l-2 border-gray-700">
-                        <h3 className="text-[10px] font-bold text-gray-500 uppercase tracking-widest">
+                    <div className="flex items-center justify-between mb-2 pl-2 ml-1 border-l-2 border-gray-500">
+                        <h3 className="text-[10px] font-bold text-gray-300 uppercase tracking-widest">
                             {modName}
                         </h3>
                         <div className="flex items-center gap-1.5 pr-1">
-                            <div className="w-12 h-1 bg-gray-800 rounded-full overflow-hidden">
+                            <div className="w-12 h-1 bg-gray-700 rounded-full overflow-hidden">
                                 <div className="h-full bg-cyber-neonGreen transition-all duration-300" style={{ width: `${modProgress}%` }}></div>
                             </div>
-                            <span className="text-[9px] font-mono text-gray-600">{modCompleted}/{modTotal}</span>
+                            <span className="text-[9px] font-mono text-gray-400">{modCompleted}/{modTotal}</span>
                         </div>
                     </div>
                     <div className="space-y-1">
@@ -980,7 +980,7 @@ const StudentDashboard: React.FC<StudentDashboardProps> = ({ currentUser: propUs
                                 className={`w-full relative group text-left p-2 md:p-2 py-3 md:py-2 rounded-md flex items-center gap-3 transition-all duration-200 border border-transparent
                                     ${activeTask?.id === task.id 
                                     ? 'bg-cyber-neonBlue/10 border-cyber-neonBlue/50 text-white shadow-[inset_0_0_15px_rgba(0,243,255,0.1)]' 
-                                    : 'hover:bg-white/5 text-gray-400 hover:text-gray-200'} 
+                                    : 'hover:bg-white/5 text-gray-200 hover:text-white'} 
                                     ${task.status === 'locked' ? 'opacity-40 cursor-not-allowed grayscale' : 'cursor-pointer'}`}
                             >
                                 <div className="shrink-0">
@@ -997,7 +997,7 @@ const StudentDashboard: React.FC<StudentDashboardProps> = ({ currentUser: propUs
                                 
                                 <div className="flex-1 min-w-0">
                                     <div className="text-sm md:text-sm font-bold leading-tight font-sans break-words">{task.title}</div>
-                                    <div className="text-[10px] font-mono mt-1 md:mt-1 opacity-60 text-cyber-neonYellow">XP: {task.xpReward}</div>
+                                    <div className="text-[10px] font-mono mt-1 md:mt-1 opacity-80 text-cyber-neonYellow">XP: {task.xpReward}</div>
                                 </div>
                             </button>
                         ))}
@@ -1021,11 +1021,11 @@ const StudentDashboard: React.FC<StudentDashboardProps> = ({ currentUser: propUs
                 <div className="flex items-center border-b border-gray-800 px-4 py-3 bg-gray-950 shrink-0">
                     <button 
                         onClick={() => setShowMobileSidebar(true)} 
-                        className="md:hidden flex items-center gap-2 text-gray-400 active:text-white mr-3"
+                        className="md:hidden flex items-center gap-2 text-gray-200 active:text-white mr-3"
                     >
                         <ChevronLeft size={20} />
                     </button>
-                    <span className="text-xs font-bold uppercase text-gray-500 tracking-widest leading-tight break-words flex-1">{activeTask.title}</span>
+                    <span className="text-xs font-bold uppercase text-gray-300 tracking-widest leading-tight break-words flex-1">{activeTask.title}</span>
                 </div>
                 <div className="flex-1 overflow-y-auto p-5 md:p-12">
                 <div className="max-w-3xl mx-auto w-full">
@@ -1064,11 +1064,11 @@ const StudentDashboard: React.FC<StudentDashboardProps> = ({ currentUser: propUs
               <div className="flex items-center border-b border-gray-800 px-4 py-3 bg-gray-950 shrink-0">
                   <button 
                       onClick={() => setShowMobileSidebar(true)} 
-                      className="md:hidden flex items-center gap-2 text-gray-400 active:text-white mr-3"
+                      className="md:hidden flex items-center gap-2 text-gray-200 active:text-white mr-3"
                   >
                       <ChevronLeft size={20} />
                   </button>
-                  <span className="text-xs font-bold uppercase text-gray-500 tracking-widest leading-tight break-words flex-1">{activeTask.title}</span>
+                  <span className="text-xs font-bold uppercase text-gray-300 tracking-widest leading-tight break-words flex-1">{activeTask.title}</span>
               </div>
               <div className="flex-1 overflow-y-auto p-4 md:p-12 flex flex-col items-center justify-start md:justify-center">
               <div className="max-w-2xl w-full bg-[#0e0e12] border border-gray-800 p-6 md:p-12 relative shadow-2xl">
@@ -1163,11 +1163,11 @@ const StudentDashboard: React.FC<StudentDashboardProps> = ({ currentUser: propUs
               <div className="flex items-center border-b border-gray-800 px-4 py-3 bg-gray-950 shrink-0">
                   <button 
                       onClick={() => setShowMobileSidebar(true)} 
-                      className="md:hidden flex items-center gap-2 text-gray-400 active:text-white mr-3"
+                      className="md:hidden flex items-center gap-2 text-gray-200 active:text-white mr-3"
                   >
                       <ChevronLeft size={20} />
                   </button>
-                  <span className="text-xs font-bold uppercase text-gray-500 tracking-widest leading-tight break-words flex-1">{activeTask.title}</span>
+                  <span className="text-xs font-bold uppercase text-gray-300 tracking-widest leading-tight break-words flex-1">{activeTask.title}</span>
               </div>
               <BlockCoding 
                 task={activeTask} 
@@ -1188,11 +1188,11 @@ const StudentDashboard: React.FC<StudentDashboardProps> = ({ currentUser: propUs
             <div className="flex items-center border-b border-gray-800 px-4 py-3 bg-gray-950 shrink-0">
                 <button 
                     onClick={() => setShowMobileSidebar(true)} 
-                    className="md:hidden flex items-center gap-2 text-gray-400 active:text-white mr-3"
+                    className="md:hidden flex items-center gap-2 text-gray-200 active:text-white mr-3"
                 >
                     <ChevronLeft size={20} />
                 </button>
-                <span className="text-xs font-bold uppercase text-gray-500 tracking-widest leading-tight break-words flex-1">{activeTask?.title}</span>
+                <span className="text-xs font-bold uppercase text-gray-300 tracking-widest leading-tight break-words flex-1">{activeTask?.title}</span>
             </div>
             <div className="flex-1 overflow-hidden">
                 <HanoiGame task={activeTask!} onComplete={() => handleTaskCompletion(activeTask!)} />
@@ -1205,8 +1205,8 @@ const StudentDashboard: React.FC<StudentDashboardProps> = ({ currentUser: propUs
           <div className={`${!showMobileSidebar ? 'flex' : 'hidden'} md:flex flex-1 flex-col min-w-0 overflow-hidden`}>
             {/* MOBILE TOP BAR (always visible for coding tasks) */}
             <div className="md:hidden flex items-center border-b border-gray-800 px-2 py-2 bg-gray-950 shrink-0 gap-2">
-                <button onClick={() => setShowMobileSidebar(true)} className="p-2 text-gray-400 active:text-white shrink-0"><ChevronLeft size={20}/></button>
-                <span className="text-xs font-bold text-gray-400 uppercase leading-tight break-words flex-1">{activeTask.title}</span>
+                <button onClick={() => setShowMobileSidebar(true)} className="p-2 text-gray-200 active:text-white shrink-0"><ChevronLeft size={20}/></button>
+                <span className="text-xs font-bold text-gray-300 uppercase leading-tight break-words flex-1">{activeTask.title}</span>
                 <button 
                     onClick={handleRunCode}
                     disabled={isRunning}

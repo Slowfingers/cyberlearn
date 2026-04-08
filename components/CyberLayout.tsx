@@ -85,10 +85,10 @@ const CyberLayout: React.FC<LayoutProps> = ({ children, role, onLogout, title })
           </button>
           <button 
             onClick={handleLogoutClick}
-            className="flex items-center gap-1 md:gap-2 text-red-500 hover:text-white transition-colors group p-2 md:p-0"
+            className="flex items-center gap-1.5 md:gap-2 text-red-400 hover:text-red-300 transition-colors group p-2 md:p-0 border border-red-500/30 md:border-0 rounded-md"
             title="Отключиться от Матрицы"
           >
-            <span className="text-[10px] md:text-xs font-bold uppercase hidden sm:block group-hover:underline decoration-red-500 underline-offset-4">
+            <span className="text-[10px] md:text-xs font-bold uppercase group-hover:underline decoration-red-400 underline-offset-4">
               ВЫХОД
             </span>
             <LogOut size={16} className="md:w-[18px] md:h-[18px] group-hover:translate-x-1 transition-transform" />
