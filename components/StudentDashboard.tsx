@@ -28,6 +28,7 @@ const StudentDashboard: React.FC<StudentDashboardProps> = ({ currentUser: propUs
   const [taskTab, setTaskTab] = useState<'info' | 'code' | 'visual'>('info'); 
   const [showMobileSidebar, setShowMobileSidebar] = useState<boolean>(true);
   const [attemptCount, setAttemptCount] = useState<Record<string, number>>({});
+  const rewardedTaskIds = useRef<Set<string>>(new Set());
   
   // Profile State
   const [currentUser, setCurrentUser] = useState<User | null>(propUser);
@@ -339,7 +340,7 @@ const StudentDashboard: React.FC<StudentDashboardProps> = ({ currentUser: propUs
 
       if (taskIndex !== -1) {
           const updatedTasks = [...tasks];
-          isAlreadyCompleted = updatedTasks[taskIndex].status === 'completed';
+          isAlreadyCompleted = updatedTasks[taskIndex].status === 'completed' || rewardedTaskIds.current.has(task.id);
           updatedTasks[taskIndex] = { ...updatedTasks[taskIndex], status: 'completed' };
           
           let nextTaskToActivate: Task | null = null;
@@ -390,6 +391,7 @@ const StudentDashboard: React.FC<StudentDashboardProps> = ({ currentUser: propUs
       // Only award XP and Currency if the task wasn't already completed
       setLastXpAwarded(!isAlreadyCompleted);
       if (currentUser && !isAlreadyCompleted) {
+          rewardedTaskIds.current.add(task.id);
           // Record streak activity
           const updatedStreak = recordActivity(currentUser.id);
           setStreak(updatedStreak);

@@ -2,7 +2,7 @@
 import React, { useState, useRef } from 'react';
 import { Task } from '../types';
 import { playSound } from '../utils/sound';
-import { Trash2, Play, RotateCcw, Sparkles, GripVertical } from 'lucide-react';
+import { Trash2, Play, RotateCcw, Sparkles, GripVertical, ChevronUp, ChevronDown } from 'lucide-react';
 
 interface BlockCodingProps {
   task: Task;
@@ -47,6 +47,7 @@ const BlockCoding: React.FC<BlockCodingProps> = ({ task, onSuccess, onFail }) =>
   const [shakeIdx, setShakeIdx] = useState<number | null>(null);
   const [draggedBlock, setDraggedBlock] = useState<string | null>(null);
   const [dragOverIdx, setDragOverIdx] = useState<number | null>(null);
+  const [selectedSwapIdx, setSelectedSwapIdx] = useState<number | null>(null);
   const dropZoneRef = useRef<HTMLDivElement>(null);
 
   const theme = THEME_COLORS[config.theme || 'default'] || THEME_COLORS.default;
@@ -58,6 +59,39 @@ const BlockCoding: React.FC<BlockCodingProps> = ({ task, onSuccess, onFail }) =>
       blockColorMap.current[block] = BLOCK_COLORS[Object.keys(blockColorMap.current).length % BLOCK_COLORS.length];
     }
   });
+
+  const handleSwapTap = (idx: number) => {
+    if (result === 'success') return;
+    if (selectedSwapIdx === null) {
+      setSelectedSwapIdx(idx);
+      playSound('click');
+    } else if (selectedSwapIdx === idx) {
+      setSelectedSwapIdx(null);
+    } else {
+      setSequence(prev => {
+        const newSeq = [...prev];
+        [newSeq[selectedSwapIdx], newSeq[idx]] = [newSeq[idx], newSeq[selectedSwapIdx]];
+        return newSeq;
+      });
+      setSelectedSwapIdx(null);
+      setResult('idle');
+      playSound('type');
+    }
+  };
+
+  const moveBlock = (idx: number, direction: 'up' | 'down') => {
+    if (result === 'success') return;
+    const targetIdx = direction === 'up' ? idx - 1 : idx + 1;
+    if (targetIdx < 0 || targetIdx >= sequence.length) return;
+    setSequence(prev => {
+      const newSeq = [...prev];
+      [newSeq[idx], newSeq[targetIdx]] = [newSeq[targetIdx], newSeq[idx]];
+      return newSeq;
+    });
+    setSelectedSwapIdx(null);
+    setResult('idle');
+    playSound('click');
+  };
 
   const handleDragStart = (block: string) => {
     setDraggedBlock(block);
@@ -105,11 +139,13 @@ const BlockCoding: React.FC<BlockCodingProps> = ({ task, onSuccess, onFail }) =>
     setSequence(prev => prev.filter((_, i) => i !== idx));
     playSound('click');
     setResult('idle');
+    setSelectedSwapIdx(null);
   };
 
   const reset = () => {
     setSequence([]);
     setResult('idle');
+    setSelectedSwapIdx(null);
     playSound('click');
   };
 
@@ -312,7 +348,7 @@ const BlockCoding: React.FC<BlockCodingProps> = ({ task, onSuccess, onFail }) =>
         {/* DROP ZONE — Sequence */}
         <div>
           <h3 className="text-xs font-bold uppercase tracking-widest text-gray-500 mb-3">
-            Твоя программа — порядок важен!
+            Твоя программа — нажми на 2 блока чтобы поменять местами
           </h3>
           <div
             ref={dropZoneRef}
@@ -343,7 +379,7 @@ const BlockCoding: React.FC<BlockCodingProps> = ({ task, onSuccess, onFail }) =>
                   onDragOver={(e) => handleDragOver(e, idx)}
                   onDrop={(e) => handleDropReorder(e, idx)}
                   className={`
-                    flex items-center gap-3 group
+                    flex items-center gap-2 group
                     ${shakeIdx === idx ? 'animate-[shake_0.3s_ease-in-out_2]' : ''}
                   `}
                 >
@@ -359,23 +395,48 @@ const BlockCoding: React.FC<BlockCodingProps> = ({ task, onSuccess, onFail }) =>
                     {idx + 1}
                   </div>
 
-                  {/* Block */}
-                  <div className={`
-                    ${blockColorMap.current[block]}
-                    flex-1 px-4 py-3 rounded-lg border-2 font-bold text-white text-sm
-                    flex items-center justify-between
-                    ${result === 'success' ? 'opacity-90' : ''}
-                  `}>
+                  {/* Block — tap to select for swap */}
+                  <div 
+                    onClick={() => handleSwapTap(idx)}
+                    className={`
+                      ${blockColorMap.current[block]}
+                      flex-1 px-4 py-3 rounded-lg border-2 font-bold text-white text-sm
+                      flex items-center justify-between cursor-pointer
+                      ${result === 'success' ? 'opacity-90 cursor-default' : ''}
+                      ${selectedSwapIdx === idx ? 'ring-2 ring-white ring-offset-2 ring-offset-black scale-[1.02]' : ''}
+                      transition-all duration-150
+                    `}
+                  >
                     <span>{block}</span>
                     {result !== 'success' && (
                       <button 
-                        onClick={() => removeBlock(idx)}
+                        onClick={(e) => { e.stopPropagation(); removeBlock(idx); }}
                         className="opacity-0 group-hover:opacity-100 md:opacity-0 md:group-hover:opacity-100 active:opacity-100 transition-opacity p-1 hover:bg-black/30 rounded"
                       >
                         <Trash2 size={14} />
                       </button>
                     )}
                   </div>
+
+                  {/* Up/Down reorder buttons */}
+                  {result !== 'success' && sequence.length > 1 && (
+                    <div className="flex flex-col gap-0.5 shrink-0">
+                      <button
+                        onClick={() => moveBlock(idx, 'up')}
+                        disabled={idx === 0}
+                        className={`p-0.5 rounded transition-colors ${idx === 0 ? 'text-gray-700 cursor-not-allowed' : 'text-gray-400 hover:text-white hover:bg-gray-700 active:bg-gray-600'}`}
+                      >
+                        <ChevronUp size={16} />
+                      </button>
+                      <button
+                        onClick={() => moveBlock(idx, 'down')}
+                        disabled={idx === sequence.length - 1}
+                        className={`p-0.5 rounded transition-colors ${idx === sequence.length - 1 ? 'text-gray-700 cursor-not-allowed' : 'text-gray-400 hover:text-white hover:bg-gray-700 active:bg-gray-600'}`}
+                      >
+                        <ChevronDown size={16} />
+                      </button>
+                    </div>
+                  )}
                 </div>
               ))
             )}
