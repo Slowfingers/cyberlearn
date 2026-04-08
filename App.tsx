@@ -359,7 +359,8 @@ const App: React.FC = () => {
             classrooms={classrooms}
             activeClassId={activeClassId}
             onSelectClass={setActiveClassId}
-            onClassCreated={onClassCreated} 
+            onClassCreated={onClassCreated}
+            onReorderClassrooms={setClassrooms}
         />
       ) : (
         <StudentDashboard currentUser={user} />

@@ -42,8 +42,8 @@ const CyberLayout: React.FC<LayoutProps> = ({ children, role, onLogout, title })
              backgroundPosition: 'center center'
            }}>
       </div>
-      <div className="absolute inset-0 pointer-events-none z-50 crt-overlay opacity-20 mix-blend-overlay"></div>
-      <div className="absolute inset-0 pointer-events-none z-40 bg-[radial-gradient(circle_at_center,transparent_50%,rgba(0,0,0,0.8)_100%)]"></div>
+      <div className="absolute inset-0 pointer-events-none z-[5] crt-overlay opacity-20 mix-blend-overlay"></div>
+      <div className="absolute inset-0 pointer-events-none z-[5] bg-[radial-gradient(circle_at_center,transparent_60%,rgba(0,0,0,0.4)_100%)]"></div>
 
       {/* HEADER */}
       <header className="relative z-30 h-14 md:h-16 shrink-0 bg-cyber-dark/95 border-b border-cyber-neonBlue/30 backdrop-blur-md flex items-center justify-between px-3 md:px-6 shadow-[0_0_20px_rgba(0,243,255,0.1)] pt-[env(safe-area-inset-top)]">

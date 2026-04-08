@@ -14,6 +14,7 @@ interface TeacherDashboardProps {
   activeClassId: string | null;
   onSelectClass: (id: string | null) => void;
   onClassCreated: (newClass: Classroom) => void;
+  onReorderClassrooms: (classrooms: Classroom[]) => void;
 }
 
 type SortKey = 'name' | 'totalXP' | 'tasksCompleted' | 'totalErrors' | 'level' | 'streak';
@@ -24,7 +25,8 @@ const TeacherDashboard: React.FC<TeacherDashboardProps> = ({
     classrooms, 
     activeClassId, 
     onSelectClass, 
-    onClassCreated 
+    onClassCreated,
+    onReorderClassrooms
 }) => {
   const [viewMode, setViewMode] = useState<'dashboard' | 'create-task'>('dashboard');
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
@@ -162,6 +164,15 @@ const TeacherDashboard: React.FC<TeacherDashboardProps> = ({
       }
   };
 
+  const moveClassroom = (idx: number, direction: 'up' | 'down') => {
+      const targetIdx = direction === 'up' ? idx - 1 : idx + 1;
+      if (targetIdx < 0 || targetIdx >= classrooms.length) return;
+      const reordered = [...classrooms];
+      [reordered[idx], reordered[targetIdx]] = [reordered[targetIdx], reordered[idx]];
+      onReorderClassrooms(reordered);
+      playSound('click');
+  };
+
   // --- EDITOR LOGIC ---
   const handleGridClick = (x: number, y: number) => {
       playSound('type');
@@ -241,28 +252,49 @@ const TeacherDashboard: React.FC<TeacherDashboardProps> = ({
                         Нет активных секторов.
                     </div>
                 )}
-                {classrooms.map(cls => (
-                    <button
-                        key={cls.id}
-                        onClick={() => {
-                            playSound('click');
-                            onSelectClass(cls.id);
-                        }}
-                        className={`w-full text-left p-4 md:p-3 rounded flex items-center gap-3 transition-all ${
-                            activeClassId === cls.id
-                            ? 'bg-cyber-neonBlue/20 border border-cyber-neonBlue text-white shadow-[0_0_10px_rgba(0,243,255,0.2)]'
-                            : 'bg-gray-900/50 md:bg-transparent hover:bg-white/5 text-gray-400 border border-transparent hover:border-gray-700'
-                        }`}
-                    >
-                        <div className={`p-2 rounded ${activeClassId === cls.id ? 'bg-cyber-neonBlue text-black' : 'bg-black border border-gray-700'}`}>
-                             <Hash size={16} />
-                        </div>
-                        <div className="flex-1">
-                            <div className="font-bold text-sm">{cls.name}</div>
-                            <div className="text-[10px] font-mono opacity-50">CODE: {cls.inviteCode}</div>
-                        </div>
-                        <ChevronRight size={16} className={activeClassId === cls.id ? 'text-cyber-neonBlue' : 'text-gray-600'} />
-                    </button>
+                {classrooms.map((cls, idx) => (
+                    <div key={cls.id} className="flex items-center gap-1">
+                        <button
+                            onClick={() => {
+                                playSound('click');
+                                onSelectClass(cls.id);
+                            }}
+                            className={`flex-1 text-left p-4 md:p-3 rounded flex items-center gap-3 transition-all ${
+                                activeClassId === cls.id
+                                ? 'bg-cyber-neonBlue/20 border border-cyber-neonBlue text-white shadow-[0_0_10px_rgba(0,243,255,0.2)]'
+                                : 'bg-gray-900/50 md:bg-transparent hover:bg-white/5 text-gray-300 border border-transparent hover:border-gray-700'
+                            }`}
+                        >
+                            <div className={`p-2 rounded ${activeClassId === cls.id ? 'bg-cyber-neonBlue text-black' : 'bg-black border border-gray-700'}`}>
+                                 <Hash size={16} />
+                            </div>
+                            <div className="flex-1">
+                                <div className="font-bold text-sm">{cls.name}</div>
+                                <div className="text-[10px] font-mono opacity-50">CODE: {cls.inviteCode}</div>
+                            </div>
+                            <ChevronRight size={16} className={activeClassId === cls.id ? 'text-cyber-neonBlue' : 'text-gray-600'} />
+                        </button>
+                        {classrooms.length > 1 && (
+                            <div className="flex flex-col gap-0.5 shrink-0">
+                                <button
+                                    onClick={(e) => { e.stopPropagation(); moveClassroom(idx, 'up'); }}
+                                    disabled={idx === 0}
+                                    className={`p-0.5 rounded transition-colors ${idx === 0 ? 'text-gray-700 cursor-not-allowed' : 'text-gray-400 hover:text-white hover:bg-gray-700'}`}
+                                    title="Переместить вверх"
+                                >
+                                    <ChevronUp size={14} />
+                                </button>
+                                <button
+                                    onClick={(e) => { e.stopPropagation(); moveClassroom(idx, 'down'); }}
+                                    disabled={idx === classrooms.length - 1}
+                                    className={`p-0.5 rounded transition-colors ${idx === classrooms.length - 1 ? 'text-gray-700 cursor-not-allowed' : 'text-gray-400 hover:text-white hover:bg-gray-700'}`}
+                                    title="Переместить вниз"
+                                >
+                                    <ChevronDown size={14} />
+                                </button>
+                            </div>
+                        )}
+                    </div>
                 ))}
             </div>
 
