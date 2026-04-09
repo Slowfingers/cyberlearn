@@ -570,7 +570,7 @@ const StudentDashboard: React.FC<StudentDashboardProps> = ({ currentUser: propUs
                     </div>
 
                     {currentUser && (
-                        <div className="flex items-center gap-2 md:gap-4 w-full md:w-auto">
+                        <div className="flex items-center gap-1.5 md:gap-4 w-full md:w-auto flex-wrap">
                             {/* STREAK DISPLAY */}
                             {streak.currentStreak > 0 && (
                                 <div className="flex items-center gap-1.5 bg-black border border-orange-500/50 px-2.5 py-1.5 rounded" title={`Рекорд: ${streak.longestStreak} дней`}>
@@ -594,24 +594,24 @@ const StudentDashboard: React.FC<StudentDashboardProps> = ({ currentUser: propUs
                                 <span className="font-mono font-bold text-cyber-neonYellow text-sm">{currentUser.currency || 0}</span>
                             </div>
 
-                            <button onClick={() => setShowMarketModal(true)} className="flex items-center gap-1.5 bg-black border border-cyber-neonPink/50 px-2.5 py-1.5 rounded active:bg-cyber-neonPink/20 transition-colors">
+                            <button onClick={() => setShowMarketModal(true)} className="flex items-center gap-1.5 bg-black border border-cyber-neonPink/50 px-2 py-1.5 rounded active:bg-cyber-neonPink/20 transition-colors">
                                 <ShoppingBag size={14} className="text-cyber-neonPink shrink-0" />
                                 <span className="hidden sm:inline text-xs font-bold text-cyber-neonPink">МАГАЗИН</span>
                             </button>
 
                             <button 
                                 onClick={() => { playSound('open'); setShowProfileModal(true); }}
-                                className="flex items-center gap-2 md:gap-4 bg-cyber-panel border border-gray-700 p-2 rounded active:border-cyber-neonBlue transition-all group ml-auto md:ml-0"
+                                className="flex items-center gap-2 md:gap-3 bg-cyber-panel border border-gray-700 p-1.5 md:p-2 rounded active:border-cyber-neonBlue transition-all group ml-auto md:ml-0"
                             >
                                 <div className="text-right hidden md:block">
                                     <div className="text-white font-bold text-sm">{currentUser.name}</div>
                                     <div className="text-cyber-neonYellow font-mono text-xs">LVL {currentUser.level}</div>
                                 </div>
                                 <div className="text-right md:hidden">
-                                    <div className="text-white font-bold text-xs leading-none">{currentUser.name}</div>
-                                    <div className="text-cyber-neonYellow font-mono text-[10px] mt-0.5">LVL {currentUser.level}</div>
+                                    <div className="text-white font-bold text-[10px] leading-none">{currentUser.name}</div>
+                                    <div className="text-cyber-neonYellow font-mono text-[9px] mt-0.5">LVL {currentUser.level}</div>
                                 </div>
-                                 <div className="w-12 h-12 rounded bg-black border-2 border-cyber-neonBlue overflow-hidden shrink-0 flex items-center justify-center">
+                                 <div className="w-10 h-10 md:w-12 md:h-12 rounded bg-black border-2 border-cyber-neonBlue overflow-hidden shrink-0 flex items-center justify-center">
                                      <div style={{ transform: 'scale(1.6)', transformOrigin: 'center 60%' }}>
                                        <AnimatedSprite avatarId={COSMETICS.find(c => c.id === currentUser.equipped.avatar)?.value || '1'} animation="Idle" scale={1} />
                                      </div>
@@ -628,7 +628,7 @@ const StudentDashboard: React.FC<StudentDashboardProps> = ({ currentUser: propUs
              </div>
 
              {/* COURSES GRID */}
-             <div className="max-w-6xl mx-auto grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 md:gap-8 pb-12">
+             <div className="max-w-6xl mx-auto grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 md:gap-6 pb-12">
                 {courses.map((course, idx) => (
                     <button
                         key={course.id}
@@ -647,7 +647,7 @@ const StudentDashboard: React.FC<StudentDashboardProps> = ({ currentUser: propUs
                             setTimeout(() => { if (sidebarRef.current) sidebarRef.current.scrollTop = 0; }, 50);
                         }}
                         className={`
-                            relative min-h-[16rem] md:min-h-[20rem] flex flex-col justify-between rounded-xl border-2 p-5 text-left transition-all duration-300 group overflow-hidden
+                            relative min-h-[14rem] md:min-h-[20rem] flex flex-col justify-between rounded-xl border-2 p-4 md:p-5 text-left transition-all duration-300 group overflow-hidden
                             ${course.status === 'active' 
                                 ? 'bg-cyber-panel border-gray-700 active:border-cyber-neonBlue active:scale-95 md:hover:border-cyber-neonBlue md:hover:-translate-y-1' 
                                 : 'bg-black border-gray-800 opacity-60 cursor-not-allowed'}
@@ -660,14 +660,14 @@ const StudentDashboard: React.FC<StudentDashboardProps> = ({ currentUser: propUs
 
                         <div className="mb-4">
                             <div 
-                                className="w-12 h-12 md:w-16 md:h-16 rounded-lg mb-4 md:mb-6 flex items-center justify-center text-black font-bold shadow-lg shrink-0"
+                                className="w-10 h-10 md:w-16 md:h-16 rounded-lg mb-3 md:mb-6 flex items-center justify-center text-black font-bold shadow-lg shrink-0"
                                 style={{ backgroundColor: course.color }}
                             >
                                 {getIcon(course.icon)}
                             </div>
                             
-                            <h2 className="text-lg md:text-xl font-bold text-white uppercase tracking-wider mb-2 font-sans break-words">{course.title}</h2>
-                            <p className="text-gray-400 text-xs md:text-sm leading-relaxed break-words overflow-hidden">{course.description}</p>
+                            <h2 className="text-base md:text-xl font-bold text-white uppercase tracking-wider mb-1.5 md:mb-2 font-sans break-words leading-tight">{course.title}</h2>
+                            <p className="text-gray-400 text-[11px] md:text-sm leading-relaxed break-words line-clamp-3">{course.description}</p>
                         </div>
 
                         <div className="mt-auto">
@@ -830,18 +830,18 @@ const StudentDashboard: React.FC<StudentDashboardProps> = ({ currentUser: propUs
              {/* MARKET MODAL */}
              {showMarketModal && currentUser && (
                  <div className="fixed inset-0 z-[100] bg-black/95 backdrop-blur-md flex items-center justify-center p-4">
-                     <div className="w-full max-w-5xl h-[85vh] bg-[#0c0c10] border border-cyber-neonPink flex flex-col relative rounded-lg overflow-hidden shadow-[0_0_50px_rgba(255,0,255,0.1)]">
-                        <div className="p-4 border-b border-gray-800 flex justify-between items-center bg-gray-900">
-                             <h2 className="text-xl font-bold text-cyber-neonPink flex items-center gap-2"><ShoppingBag /> ЧЕРНЫЙ РЫНОК</h2>
-                             <div className="flex items-center gap-4">
-                                 <div className="text-cyber-neonYellow font-mono font-bold flex items-center gap-2 bg-black px-3 py-1 rounded border border-cyber-neonYellow/30">
-                                     <Coins size={16}/> {currentUser.currency}
+                     <div className="w-full max-w-lg md:max-w-5xl h-[90vh] md:h-[85vh] bg-[#0c0c10] border border-cyber-neonPink flex flex-col relative rounded-lg overflow-hidden shadow-[0_0_50px_rgba(255,0,255,0.1)]">
+                        <div className="p-3 md:p-4 border-b border-gray-800 flex justify-between items-center bg-gray-900 shrink-0">
+                             <h2 className="text-base md:text-xl font-bold text-cyber-neonPink flex items-center gap-2"><ShoppingBag size={18} /> <span className="hidden sm:inline">ЧЕРНЫЙ</span> РЫНОК</h2>
+                             <div className="flex items-center gap-2 md:gap-4">
+                                 <div className="text-cyber-neonYellow font-mono font-bold flex items-center gap-1.5 bg-black px-2 md:px-3 py-1 rounded border border-cyber-neonYellow/30 text-sm">
+                                     <Coins size={14}/> {currentUser.currency}
                                  </div>
-                                 <button onClick={() => setShowMarketModal(false)} className="text-gray-500 hover:text-white"><X size={24} /></button>
+                                 <button onClick={() => setShowMarketModal(false)} className="text-gray-500 hover:text-white p-1"><X size={22} /></button>
                              </div>
                         </div>
                         
-                        <div className="flex-1 overflow-y-auto p-4 md:p-6 grid grid-cols-2 md:grid-cols-2 lg:grid-cols-3 gap-4 md:gap-6">
+                        <div className="flex-1 overflow-y-auto p-3 md:p-6 grid grid-cols-2 lg:grid-cols-3 gap-3 md:gap-6 auto-rows-max">
                             {COSMETICS.map(item => {
                                 const isOwned = currentUser.inventory.includes(item.id);
                                 const isEquipped = currentUser.equipped.avatar === item.id || currentUser.equipped.droneColor === item.id;
@@ -849,7 +849,7 @@ const StudentDashboard: React.FC<StudentDashboardProps> = ({ currentUser: propUs
                                 const isLocked = currentUser.level < item.unlockLevel;
 
                                 return (
-                                    <div key={item.id} className={`bg-black border ${isEquipped ? 'border-cyber-neonBlue' : 'border-gray-800'} p-4 flex flex-col items-center text-center relative group hover:border-gray-600 transition-colors`}>
+                                    <div key={item.id} className={`bg-black border rounded-lg ${isEquipped ? 'border-cyber-neonBlue' : 'border-gray-800'} p-3 md:p-4 flex flex-col items-center text-center relative group hover:border-gray-600 transition-colors`}>
                                         {isLocked && (
                                             <div className="absolute inset-0 bg-black/80 flex items-center justify-center z-10 flex-col">
                                                 <Lock className="text-gray-500 mb-2" />
@@ -857,7 +857,7 @@ const StudentDashboard: React.FC<StudentDashboardProps> = ({ currentUser: propUs
                                             </div>
                                         )}
                                         
-                                        <div className="w-20 h-20 mb-4 rounded-full border border-gray-700 flex items-center justify-center overflow-hidden bg-gray-900">
+                                        <div className="w-16 h-16 md:w-20 md:h-20 mb-3 md:mb-4 rounded-full border border-gray-700 flex items-center justify-center overflow-hidden bg-gray-900">
                                             {item.type === 'avatar' ? (
                                                 <AnimatedSprite avatarId={item.value} animation="Idle" scale={1.5} />
                                             ) : (
@@ -865,14 +865,14 @@ const StudentDashboard: React.FC<StudentDashboardProps> = ({ currentUser: propUs
                                             )}
                                         </div>
                                         
-                                        <h3 className="text-white font-bold text-sm mb-1">{item.name}</h3>
-                                        <p className="text-gray-500 text-[10px] uppercase mb-4">{item.type === 'avatar' ? 'Аватар' : 'Цвет Дрона'}</p>
+                                        <h3 className="text-white font-bold text-xs md:text-sm mb-0.5 md:mb-1 leading-tight">{item.name}</h3>
+                                        <p className="text-gray-500 text-[9px] md:text-[10px] uppercase mb-2 md:mb-4">{item.type === 'avatar' ? 'Аватар' : 'Цвет Дрона'}</p>
                                         
                                         {isOwned ? (
                                             <button 
                                                 onClick={() => handleEquipItem(item.id)}
                                                 disabled={isEquipped}
-                                                className={`w-full py-2 text-xs font-bold uppercase ${isEquipped ? 'bg-cyber-neonBlue text-black cursor-default' : 'bg-gray-800 text-white hover:bg-gray-700'}`}
+                                                className={`w-full py-1.5 md:py-2 text-[10px] md:text-xs font-bold uppercase rounded ${isEquipped ? 'bg-cyber-neonBlue text-black cursor-default' : 'bg-gray-800 text-white hover:bg-gray-700'}`}
                                             >
                                                 {isEquipped ? 'Экипировано' : 'Надеть'}
                                             </button>
@@ -880,7 +880,7 @@ const StudentDashboard: React.FC<StudentDashboardProps> = ({ currentUser: propUs
                                             <button 
                                                 onClick={() => handleBuyItem(item.id)}
                                                 disabled={!canAfford || isLocked}
-                                                className={`w-full py-2 text-xs font-bold uppercase flex items-center justify-center gap-2 ${canAfford ? 'bg-cyber-neonPink text-black hover:bg-white' : 'bg-gray-900 text-gray-600 cursor-not-allowed'}`}
+                                                className={`w-full py-1.5 md:py-2 text-[10px] md:text-xs font-bold uppercase flex items-center justify-center gap-1.5 rounded ${canAfford ? 'bg-cyber-neonPink text-black hover:bg-white' : 'bg-gray-900 text-gray-600 cursor-not-allowed'}`}
                                             >
                                                 <span>Купить</span>
                                                 <span className="flex items-center gap-1"><Coins size={10}/> {item.cost}</span>

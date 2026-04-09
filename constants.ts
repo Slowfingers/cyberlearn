@@ -224,6 +224,46 @@ export const MOCK_TASKS: Task[] = [
     }
   },
 
+  // ── KIDS М1: дополнительные задания ──
+  {
+    id: 'kids_m1_b2',
+    courseId: 'course_kids101',
+    module: 'Модуль 1: Привет, Робик!',
+    title: '🧩 Одень Робика на прогулку!',
+    type: 'blocks',
+    description: 'Помоги Робику собраться — расставь шаги по порядку!',
+    difficulty: 'Новичок',
+    xpReward: 25,
+    currencyReward: 10,
+    status: 'locked',
+    blocksConfig: {
+      availableBlocks: ['👕 Надеть футболку', '👖 Надеть штаны', '👟 Обуть кроссовки', '🧢 Надеть кепку'],
+      correctSequence: ['👕 Надеть футболку', '👖 Надеть штаны', '👟 Обуть кроссовки', '🧢 Надеть кепку'],
+      theme: 'morning',
+      successMessage: '🤖 Робик: «Я красавчик! Спасибо, что помог одеться!» 😎',
+      illustration: `<div style="padding:20px;text-align:center"><p style="color:#ffe66d;font-weight:bold;margin-bottom:14px;font-size:1em">👔 Одень Робика!</p><div style="font-size:3em;margin:10px 0">🤖❓👕👖👟🧢</div><p style="color:#888;font-size:0.9em">Что сначала — кроссовки или штаны?</p></div>`
+    }
+  },
+  {
+    id: 'kids_m1_b3',
+    courseId: 'course_kids101',
+    module: 'Модуль 1: Привет, Робик!',
+    title: '🧩 Робик идёт в школу!',
+    type: 'blocks',
+    description: 'Расставь шаги — как Робик добирается до школы!',
+    difficulty: 'Новичок',
+    xpReward: 25,
+    currencyReward: 10,
+    status: 'locked',
+    blocksConfig: {
+      availableBlocks: ['🎒 Взять рюкзак', '🚪 Выйти из дома', '🚶 Идти по дороге', '🏫 Войти в школу'],
+      correctSequence: ['🎒 Взять рюкзак', '🚪 Выйти из дома', '🚶 Идти по дороге', '🏫 Войти в школу'],
+      theme: 'morning',
+      successMessage: '🤖 Робик: «Я в школе! Можно учиться!» 🏫🎉',
+      illustration: `<div style="padding:20px;text-align:center"><p style="color:#ffe66d;font-weight:bold;margin-bottom:14px;font-size:1em">🏫 Путь Робика в школу!</p><div style="display:flex;align-items:center;justify-content:center;gap:6px;flex-wrap:wrap"><div style="background:#111;border:3px solid #ffe66d;border-radius:50%;width:44px;height:44px;display:flex;align-items:center;justify-content:center;font-size:1.5em">🏠</div><div style="color:#ffe66d;font-size:1.2em">→</div><div style="background:#111;border:3px solid #555;border-radius:50%;width:44px;height:44px;display:flex;align-items:center;justify-content:center;font-size:1.2em;color:#666">❓</div><div style="color:#ffe66d;font-size:1.2em">→</div><div style="background:#111;border:3px solid #555;border-radius:50%;width:44px;height:44px;display:flex;align-items:center;justify-content:center;font-size:1.2em;color:#666">❓</div><div style="color:#ffe66d;font-size:1.2em">→</div><div style="background:#111;border:3px solid #00ff41;border-radius:50%;width:44px;height:44px;display:flex;align-items:center;justify-content:center;font-size:1.5em">🏫</div></div></div>`
+    }
+  },
+
   // ── KIDS МОДУЛЬ 2: ЧТО ВНУТРИ КОМПЬЮТЕРА? ─────────────────────────────────
   {
     id: 'kids_m2_t1',
@@ -291,6 +331,45 @@ export const MOCK_TASKS: Task[] = [
       options: ['В Блокнотике (RAM)', 'В Рюкзаке (диск) — он хранит навсегда!', 'На Экране', 'Нигде — всё пропало!'],
       correctIndex: 1,
       explanation: '🤖 Робик: «В Рюкзаке! Диск хранит всё, даже когда я сплю. А Блокнотик забывает!»'
+    }
+  },
+
+  // ── KIDS М2: дополнительные задания ──
+  {
+    id: 'kids_m2_b2',
+    courseId: 'course_kids101',
+    module: 'Модуль 2: Что внутри компьютера?',
+    title: '🧩 Что делает мышка?',
+    type: 'blocks',
+    description: 'Расставь — что происходит, когда ты кликаешь мышкой!',
+    difficulty: 'Новичок',
+    xpReward: 25,
+    currencyReward: 10,
+    status: 'locked',
+    blocksConfig: {
+      availableBlocks: ['🖱️ Нажимаем мышку', '📡 Сигнал идёт в мозг', '🧠 Мозг решает что делать', '📺 Экран показывает результат'],
+      correctSequence: ['🖱️ Нажимаем мышку', '📡 Сигнал идёт в мозг', '🧠 Мозг решает что делать', '📺 Экран показывает результат'],
+      theme: 'robot',
+      successMessage: '🤖 Робик: «Точно! Мышка → Мозг → Экран! Всё связано!» 🎉',
+      illustration: `<div style="padding:20px;text-align:center"><p style="color:#ff9f43;font-weight:bold;margin-bottom:14px;font-size:1em">🖱️ Что происходит при клике?</p><div style="font-size:2.5em;margin:10px 0">🖱️ → ❓ → ❓ → 📺</div></div>`
+    }
+  },
+  {
+    id: 'kids_m2_q3',
+    courseId: 'course_kids101',
+    module: 'Модуль 2: Что внутри компьютера?',
+    title: '❓ Загадка: Кто что делает?',
+    type: 'quiz',
+    description: 'Последняя загадка про дом Робика!',
+    difficulty: 'Новичок',
+    xpReward: 15,
+    currencyReward: 5,
+    status: 'locked',
+    quizData: {
+      question: '🤖 Робик: «Что делает клавиатура?»',
+      options: ['Показывает картинку', 'Передаёт твои команды компьютеру', 'Хранит файлы', 'Думает и считает'],
+      correctIndex: 1,
+      explanation: '🤖 Робик: «Клавиатура — как рация! Ты нажимаешь кнопки, и компьютер слышит тебя!»'
     }
   },
 
@@ -383,6 +462,46 @@ export const MOCK_TASKS: Task[] = [
     }
   },
 
+  // ── KIDS М3: дополнительные задания ──
+  {
+    id: 'kids_m3_b3',
+    courseId: 'course_kids101',
+    module: 'Модуль 3: Шаги для Робика',
+    title: '🧩 Почисти зубы Робику!',
+    type: 'blocks',
+    description: 'Расставь шаги — как Робик чистит зубки!',
+    difficulty: 'Новичок',
+    xpReward: 25,
+    currencyReward: 10,
+    status: 'locked',
+    blocksConfig: {
+      availableBlocks: ['🪥 Взять щётку', '💧 Намочить щётку', '🦷 Почистить зубки', '💦 Прополоскать рот'],
+      correctSequence: ['🪥 Взять щётку', '💧 Намочить щётку', '🦷 Почистить зубки', '💦 Прополоскать рот'],
+      theme: 'morning',
+      successMessage: '🤖 Робик: «Зубки сияют! Ты — мастер алгоритмов!» ✨',
+      illustration: `<div style="padding:20px;text-align:center"><p style="color:#ffe66d;font-weight:bold;margin-bottom:14px;font-size:1em">🦷 Робик чистит зубки!</p><div style="font-size:3em;margin:10px 0">🤖🪥✨</div></div>`
+    }
+  },
+  {
+    id: 'kids_m3_b4',
+    courseId: 'course_kids101',
+    module: 'Модуль 3: Шаги для Робика',
+    title: '🧩 Нарисуй домик по шагам!',
+    type: 'blocks',
+    description: 'Робик хочет нарисовать домик — помоги с алгоритмом!',
+    difficulty: 'Новичок',
+    xpReward: 25,
+    currencyReward: 10,
+    status: 'locked',
+    blocksConfig: {
+      availableBlocks: ['📐 Нарисовать квадрат', '🔺 Нарисовать крышу', '🚪 Нарисовать дверь', '🪟 Нарисовать окошко'],
+      correctSequence: ['📐 Нарисовать квадрат', '🔺 Нарисовать крышу', '🚪 Нарисовать дверь', '🪟 Нарисовать окошко'],
+      theme: 'art',
+      successMessage: '🤖 Робик: «Домик готов! Я теперь художник!» 🏠🎨',
+      illustration: `<div style="padding:20px;text-align:center"><p style="color:#00ff41;font-weight:bold;margin-bottom:14px;font-size:1em">🏠 Рисуем домик!</p><div style="position:relative;width:100px;height:100px;margin:10px auto"><div style="width:80px;height:60px;border:3px solid #555;position:absolute;bottom:0;left:10px"></div><div style="width:0;height:0;border-left:46px solid transparent;border-right:46px solid transparent;border-bottom:30px solid #555;position:absolute;top:5px;left:4px"></div></div><p style="color:#888;font-size:0.9em;margin-top:10px">Что сначала — крыша или стены?</p></div>`
+    }
+  },
+
   // ── KIDS МОДУЛЬ 4: РОБИК УЧИТСЯ ХОДИТЬ ────────────────────────────────────
   {
     id: 'kids_m4_t1',
@@ -469,6 +588,64 @@ export const MOCK_TASKS: Task[] = [
       options: ['1 команда', '2 команды', '3 команды', '10 команд'],
       correctIndex: 2,
       explanation: '🤖 Робик: «3 клетки = 3 команды! Одна команда = один шаг. Всё просто!»'
+    }
+  },
+
+  // ── KIDS М4: дополнительные задания ──
+  {
+    id: 'kids_m4_b3',
+    courseId: 'course_kids101',
+    module: 'Модуль 4: Робик учится ходить!',
+    title: '🧩 Робик ищет ключ!',
+    type: 'blocks',
+    description: 'Проведи Робика к ключику через лабиринт!',
+    difficulty: 'Новичок',
+    xpReward: 30,
+    currencyReward: 15,
+    status: 'locked',
+    blocksConfig: {
+      availableBlocks: ['➡️ Шаг вправо', '⬇️ Шаг вниз', '⬇️ Шаг вниз', '➡️ Шаг вправо'],
+      correctSequence: ['➡️ Шаг вправо', '⬇️ Шаг вниз', '⬇️ Шаг вниз', '➡️ Шаг вправо'],
+      theme: 'robot',
+      successMessage: '🤖 Робик: «Ключ найден! Я открою сундук с сокровищами!» 🔑',
+      gridMap: { cols: 3, rows: 3, start: [0, 0], goal: [2, 2], path: [[0, 1], [1, 1], [2, 1]], obstacles: [[1, 0]] }
+    }
+  },
+  {
+    id: 'kids_m4_b4',
+    courseId: 'course_kids101',
+    module: 'Модуль 4: Робик учится ходить!',
+    title: '🧩 Робик спасает котёнка!',
+    type: 'blocks',
+    description: 'Котёнок потерялся! Помоги Робику добраться до него!',
+    difficulty: 'Новичок',
+    xpReward: 35,
+    currencyReward: 15,
+    status: 'locked',
+    blocksConfig: {
+      availableBlocks: ['⬇️ Шаг вниз', '➡️ Шаг вправо', '➡️ Шаг вправо', '⬇️ Шаг вниз', '➡️ Шаг вправо'],
+      correctSequence: ['⬇️ Шаг вниз', '➡️ Шаг вправо', '➡️ Шаг вправо', '⬇️ Шаг вниз', '➡️ Шаг вправо'],
+      theme: 'robot',
+      successMessage: '🤖 Робик: «Котёнок спасён! Мяу! 🐱» 🎉',
+      gridMap: { cols: 4, rows: 3, start: [0, 0], goal: [2, 3], path: [[1, 0], [1, 1], [1, 2], [2, 2]], obstacles: [[0, 1], [0, 2]] }
+    }
+  },
+  {
+    id: 'kids_m4_q3',
+    courseId: 'course_kids101',
+    module: 'Модуль 4: Робик учится ходить!',
+    title: '❓ Загадка: Может ли Робик ходить по диагонали?',
+    type: 'quiz',
+    description: 'Робик проверяет — знаешь ли ты его правила!',
+    difficulty: 'Новичок',
+    xpReward: 15,
+    currencyReward: 5,
+    status: 'locked',
+    quizData: {
+      question: '🤖 Робик: «Могу ли я ходить наискосок (по диагонали)?»',
+      options: ['Да, легко!', 'Нет — только вверх, вниз, влево, вправо!', 'Только если попросить', 'Только по выходным'],
+      correctIndex: 1,
+      explanation: '🤖 Робик: «Нет! Я хожу только прямо — вверх, вниз, влево, вправо. По диагонали не умею!»'
     }
   },
 
@@ -560,6 +737,45 @@ export const MOCK_TASKS: Task[] = [
     }
   },
 
+  // ── KIDS М5: дополнительные задания ──
+  {
+    id: 'kids_m5_b2',
+    courseId: 'course_kids101',
+    module: 'Модуль 5: Робик и числа',
+    title: '🧩 Переведи букву в код Робика!',
+    type: 'blocks',
+    description: 'Расставь шаги — как Робик запоминает букву!',
+    difficulty: 'Новичок',
+    xpReward: 25,
+    currencyReward: 10,
+    status: 'locked',
+    blocksConfig: {
+      availableBlocks: ['🔤 Выбрать букву', '🔢 Найти её номер', '💡 Перевести в 0 и 1', '💾 Сохранить в памяти'],
+      correctSequence: ['🔤 Выбрать букву', '🔢 Найти её номер', '💡 Перевести в 0 и 1', '💾 Сохранить в памяти'],
+      theme: 'robot',
+      successMessage: '🤖 Робик: «Буква сохранена! Я запомню её навсегда!» 💾',
+      illustration: `<div style="padding:20px;text-align:center"><p style="color:#00f3ff;font-weight:bold;margin-bottom:14px;font-size:1em">🔤 Как Робик запоминает букву?</p><div style="display:flex;align-items:center;justify-content:center;gap:8px;flex-wrap:wrap;margin:10px 0"><div style="background:#111;border:3px solid #00f3ff;border-radius:12px;padding:10px 14px"><span style="color:#fff;font-size:1.5em;font-weight:bold">А</span></div><div style="color:#00f3ff;font-size:1.2em">→</div><div style="background:#111;border:3px solid #ffe66d;border-radius:12px;padding:10px 14px"><span style="color:#ffe66d;font-family:monospace;font-size:1.2em">1</span></div><div style="color:#00f3ff;font-size:1.2em">→</div><div style="background:#111;border:3px solid #00ff41;border-radius:12px;padding:10px 14px"><span style="color:#00ff41;font-family:monospace;font-size:1.2em">00000001</span></div></div></div>`
+    }
+  },
+  {
+    id: 'kids_m5_q4',
+    courseId: 'course_kids101',
+    module: 'Модуль 5: Робик и числа',
+    title: '❓ Загадка: Сколько бит в байте?',
+    type: 'quiz',
+    description: 'Робик проверяет — помнишь ли ты!',
+    difficulty: 'Новичок',
+    xpReward: 15,
+    currencyReward: 5,
+    status: 'locked',
+    quizData: {
+      question: '🤖 Робик: «Сколько лампочек (бит) в одном байте?»',
+      options: ['2 лампочки', '4 лампочки', '8 лампочек', '100 лампочек'],
+      correctIndex: 2,
+      explanation: '🤖 Робик: «8 лампочек = 1 байт! Это я запомню навсегда!»'
+    }
+  },
+
   // ── KIDS МОДУЛЬ 6: РОБИК РИСУЕТ ───────────────────────────────────────────
   {
     id: 'kids_m6_t1',
@@ -627,6 +843,64 @@ export const MOCK_TASKS: Task[] = [
       options: ['Жёлтый, белый, чёрный', 'Красный, зелёный, синий', 'Розовый, фиолетовый, оранжевый', 'Золотой, серебряный, бронзовый'],
       correctIndex: 1,
       explanation: '🤖 Робик: «Красный + Зелёный + Синий = любой цвет! Это RGB!»'
+    }
+  },
+
+  // ── KIDS М6: дополнительные задания ──
+  {
+    id: 'kids_m6_b2',
+    courseId: 'course_kids101',
+    module: 'Модуль 6: Робик рисует!',
+    title: '🧩 Смешай цвета для Робика!',
+    type: 'blocks',
+    description: 'Помоги Робику получить жёлтый цвет!',
+    difficulty: 'Новичок',
+    xpReward: 25,
+    currencyReward: 10,
+    status: 'locked',
+    blocksConfig: {
+      availableBlocks: ['🔴 Включить красную лампочку', '🟢 Включить зелёную лампочку', '🔵 Выключить синюю лампочку', '🟡 Получился жёлтый!'],
+      correctSequence: ['🔴 Включить красную лампочку', '🟢 Включить зелёную лампочку', '🔵 Выключить синюю лампочку', '🟡 Получился жёлтый!'],
+      theme: 'art',
+      successMessage: '🤖 Робик: «Красный + Зелёный = Жёлтый! Я — мастер красок!» 🟡',
+      illustration: `<div style="padding:20px;text-align:center"><p style="color:#00ff41;font-weight:bold;margin-bottom:14px;font-size:1em">🎨 Смешиваем цвета!</p><div style="display:flex;align-items:center;justify-content:center;gap:8px;margin:10px 0"><div style="width:40px;height:40px;border-radius:50%;background:#ff0000;border:3px solid #ff6666"></div><div style="color:#888;font-size:1.2em">+</div><div style="width:40px;height:40px;border-radius:50%;background:#00ff00;border:3px solid #66ff66"></div><div style="color:#888;font-size:1.2em">=</div><div style="width:40px;height:40px;border-radius:50%;background:#ffff00;border:3px solid #ffff66"></div></div><p style="color:#888;font-size:0.9em;margin-top:8px">🔴 + 🟢 = ?</p></div>`
+    }
+  },
+  {
+    id: 'kids_m6_q3',
+    courseId: 'course_kids101',
+    module: 'Модуль 6: Робик рисует!',
+    title: '❓ Загадка: Сколько пикселей?',
+    type: 'quiz',
+    description: 'Подумай — сколько точек на экране!',
+    difficulty: 'Новичок',
+    xpReward: 15,
+    currencyReward: 5,
+    status: 'locked',
+    quizData: {
+      question: '🤖 Робик: «На моём маленьком экране 3 точки в ширину и 2 в высоту. Сколько всего пикселей?»',
+      options: ['5 пикселей', '6 пикселей', '3 пикселя', '2 пикселя'],
+      correctIndex: 1,
+      explanation: '🤖 Робик: «3 × 2 = 6 пикселей! Умножаем ширину на высоту!»'
+    }
+  },
+  {
+    id: 'kids_m6_b3',
+    courseId: 'course_kids101',
+    module: 'Модуль 6: Робик рисует!',
+    title: '🧩 Робик рисует смайлик!',
+    type: 'blocks',
+    description: 'Расставь шаги — как Робик рисует смайлик по пикселям!',
+    difficulty: 'Новичок',
+    xpReward: 30,
+    currencyReward: 15,
+    status: 'locked',
+    blocksConfig: {
+      availableBlocks: ['⬜ Нарисовать круг (лицо)', '👀 Поставить глаза', '😊 Нарисовать улыбку', '🎨 Раскрасить жёлтым'],
+      correctSequence: ['⬜ Нарисовать круг (лицо)', '👀 Поставить глаза', '😊 Нарисовать улыбку', '🎨 Раскрасить жёлтым'],
+      theme: 'art',
+      successMessage: '🤖 Робик: «Смайлик готов! 😊 Я — пиксельный художник!» 🎨',
+      illustration: `<div style="padding:20px;text-align:center"><p style="color:#00ff41;font-weight:bold;margin-bottom:14px;font-size:1em">😊 Рисуем смайлик!</p><div style="display:inline-grid;grid-template-columns:repeat(5,1fr);gap:3px;margin:10px 0"><div style="width:24px;height:24px;background:#333;border-radius:4px"></div><div style="width:24px;height:24px;background:#ffe66d;border-radius:4px"></div><div style="width:24px;height:24px;background:#ffe66d;border-radius:4px"></div><div style="width:24px;height:24px;background:#ffe66d;border-radius:4px"></div><div style="width:24px;height:24px;background:#333;border-radius:4px"></div><div style="width:24px;height:24px;background:#ffe66d;border-radius:4px"></div><div style="width:24px;height:24px;background:#333;border-radius:4px"></div><div style="width:24px;height:24px;background:#ffe66d;border-radius:4px"></div><div style="width:24px;height:24px;background:#333;border-radius:4px"></div><div style="width:24px;height:24px;background:#ffe66d;border-radius:4px"></div><div style="width:24px;height:24px;background:#ffe66d;border-radius:4px"></div><div style="width:24px;height:24px;background:#ffe66d;border-radius:4px"></div><div style="width:24px;height:24px;background:#ffe66d;border-radius:4px"></div><div style="width:24px;height:24px;background:#ffe66d;border-radius:4px"></div><div style="width:24px;height:24px;background:#ffe66d;border-radius:4px"></div><div style="width:24px;height:24px;background:#ffe66d;border-radius:4px"></div><div style="width:24px;height:24px;background:#333;border-radius:4px"></div><div style="width:24px;height:24px;background:#ffe66d;border-radius:4px"></div><div style="width:24px;height:24px;background:#333;border-radius:4px"></div><div style="width:24px;height:24px;background:#ffe66d;border-radius:4px"></div><div style="width:24px;height:24px;background:#333;border-radius:4px"></div><div style="width:24px;height:24px;background:#ffe66d;border-radius:4px"></div><div style="width:24px;height:24px;background:#ffe66d;border-radius:4px"></div><div style="width:24px;height:24px;background:#ffe66d;border-radius:4px"></div><div style="width:24px;height:24px;background:#333;border-radius:4px"></div></div></div>`
     }
   },
 
@@ -715,6 +989,64 @@ export const MOCK_TASKS: Task[] = [
       options: ['Компьютер работает сам, без команд', 'Пароль можно говорить друзьям', 'Робик понимает точные команды, компьютер считает нулями и единичками, а в интернете надо быть осторожным!', 'Пиксели — это очень большие точки'],
       correctIndex: 2,
       explanation: '🤖 Робик: «ТЫ — ЛУЧШИЙ! 🎉🏆 Ты знаешь, как работает компьютер, как давать команды и быть в безопасности! Мы — настоящие друзья!»'
+    }
+  },
+
+  // ── KIDS М7: дополнительные задания ──
+  {
+    id: 'kids_m7_b2',
+    courseId: 'course_kids101',
+    module: 'Модуль 7: Робик в интернете!',
+    title: '🧩 Что делать при опасности?',
+    type: 'blocks',
+    description: 'Расставь шаги — как действовать, если что-то не так в интернете!',
+    difficulty: 'Новичок',
+    xpReward: 25,
+    currencyReward: 10,
+    status: 'locked',
+    blocksConfig: {
+      availableBlocks: ['🚨 Заметил странное сообщение', '🛑 Не нажимаю на ссылку', '👨‍👩‍👦 Рассказываю маме/папе', '🔒 Блокируем отправителя'],
+      correctSequence: ['🚨 Заметил странное сообщение', '🛑 Не нажимаю на ссылку', '👨‍👩‍👦 Рассказываю маме/папе', '🔒 Блокируем отправителя'],
+      theme: 'robot',
+      successMessage: '🤖 Робик: «Молодец! Ты знаешь, как защитить себя в интернете!» 🛡️',
+      illustration: `<div style="padding:20px;text-align:center"><p style="color:#ff6b6b;font-weight:bold;margin-bottom:14px;font-size:1em">🛡️ План безопасности!</p><div style="display:flex;flex-direction:column;gap:6px;align-items:center"><div style="background:#1a0a0a;border:2px solid #ff4444;border-radius:10px;padding:8px 14px;display:flex;align-items:center;gap:8px"><span style="font-size:1.3em">⚠️</span><span style="color:#ff8888;font-size:0.9em">Странное сообщение!</span></div><div style="color:#555;font-size:1em">⬇️</div><div style="background:#0a1a0a;border:2px solid #00ff41;border-radius:10px;padding:8px 14px"><span style="color:#a0ffa0;font-size:0.9em">Что делать? Расставь шаги!</span></div></div></div>`
+    }
+  },
+  {
+    id: 'kids_m7_q4',
+    courseId: 'course_kids101',
+    module: 'Модуль 7: Робик в интернете!',
+    title: '❓ Загадка: Какой пароль надёжный?',
+    type: 'quiz',
+    description: 'Помоги Робику выбрать лучший пароль!',
+    difficulty: 'Новичок',
+    xpReward: 15,
+    currencyReward: 5,
+    status: 'locked',
+    quizData: {
+      question: '🤖 Робик: «Какой пароль самый надёжный?»',
+      options: ['123456', 'робик', 'Кот42пиЩа!', 'пароль'],
+      correctIndex: 2,
+      explanation: '🤖 Робик: «Кот42пиЩа! — отлично! Есть буквы, цифры, знак и большие буквы! Не угадаешь!»'
+    }
+  },
+  {
+    id: 'kids_m7_b3',
+    courseId: 'course_kids101',
+    module: 'Модуль 7: Робик в интернете!',
+    title: '🧩 Робик отправляет сообщение!',
+    type: 'blocks',
+    description: 'Расставь шаги — как Робик отправляет письмо через интернет!',
+    difficulty: 'Новичок',
+    xpReward: 30,
+    currencyReward: 15,
+    status: 'locked',
+    blocksConfig: {
+      availableBlocks: ['✍️ Написать сообщение', '📧 Нажать «Отправить»', '🌐 Сообщение летит по проводам', '📬 Друг получил письмо!'],
+      correctSequence: ['✍️ Написать сообщение', '📧 Нажать «Отправить»', '🌐 Сообщение летит по проводам', '📬 Друг получил письмо!'],
+      theme: 'robot',
+      successMessage: '🤖 Робик: «Письмо доставлено! Интернет — это почта будущего!» 📬🚀',
+      illustration: `<div style="padding:20px;text-align:center"><p style="color:#00f3ff;font-weight:bold;margin-bottom:14px;font-size:1em">📧 Как работает электронная почта?</p><div style="display:flex;align-items:center;justify-content:center;gap:6px;flex-wrap:wrap;margin:10px 0"><div style="background:#111;border:3px solid #00f3ff;border-radius:50%;width:44px;height:44px;display:flex;align-items:center;justify-content:center;font-size:1.5em">🤖</div><div style="color:#00f3ff;font-size:1em">✉️→</div><div style="background:#111;border:3px solid #ffe66d;border-radius:12px;padding:6px 12px"><span style="color:#ffe66d;font-size:1.5em">🌐</span></div><div style="color:#00f3ff;font-size:1em">→✉️</div><div style="background:#111;border:3px solid #00ff41;border-radius:50%;width:44px;height:44px;display:flex;align-items:center;justify-content:center;font-size:1.5em">👦</div></div></div>`
     }
   },
 

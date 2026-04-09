@@ -195,8 +195,9 @@ const BlockCoding: React.FC<BlockCodingProps> = ({ task, onSuccess, onFail }) =>
             {/* GRID MAP — CodeCombat-style visual path */}
             {config.gridMap && (() => {
           const gm = config.gridMap;
-          const cellSize = 56;
-          const gap = 4;
+          const isMobile = typeof window !== 'undefined' && window.innerWidth < 640;
+          const cellSize = isMobile ? 44 : 56;
+          const gap = isMobile ? 3 : 4;
           const isOnPath = (r: number, c: number) => gm.path.some(([pr, pc]) => pr === r && pc === c);
           const isStart = (r: number, c: number) => gm.start[0] === r && gm.start[1] === c;
           const isGoal = (r: number, c: number) => gm.goal[0] === r && gm.goal[1] === c;
