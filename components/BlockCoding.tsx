@@ -324,25 +324,34 @@ const BlockCoding: React.FC<BlockCodingProps> = ({ task, onSuccess, onFail }) =>
             Доступные блоки — нажми или перетащи
           </h3>
           <div className="flex flex-wrap gap-2">
-            {shuffledBlocks.map((block, i) => (
+            {shuffledBlocks.map((block, i) => {
+              const totalAvailable = shuffledBlocks.filter(b => b === block).length;
+              const usedCount = sequence.filter(b => b === block).length;
+              const isUsed = usedCount >= totalAvailable;
+              // For blocks with same text, only disable if all instances are used
+              // Count how many instances of this block before index i are already accounted for
+              const sameBlocksBefore = shuffledBlocks.slice(0, i).filter(b => b === block).length;
+              const thisInstanceUsed = sameBlocksBefore < usedCount;
+              return (
               <button
                 key={`avail-${i}`}
-                draggable
-                onDragStart={() => handleDragStart(block)}
-                onClick={() => handleTapAdd(block)}
+                draggable={!isUsed}
+                onDragStart={() => !isUsed && handleDragStart(block)}
+                onClick={() => !isUsed && handleTapAdd(block)}
                 className={`
                   ${blockColorMap.current[block]}
                   px-4 py-3 rounded-xl border-2 font-bold text-white text-sm md:text-base
-                  cursor-grab active:cursor-grabbing hover:scale-105 active:scale-95
                   transition-all duration-150 select-none
-                  shadow-lg hover:shadow-xl
                   flex items-center gap-2
+                  ${isUsed || thisInstanceUsed
+                    ? 'opacity-30 cursor-not-allowed scale-95'
+                    : 'cursor-grab active:cursor-grabbing hover:scale-105 active:scale-95 shadow-lg hover:shadow-xl'}
                 `}
               >
                 <GripVertical size={14} className="opacity-50" />
                 {block}
               </button>
-            ))}
+            );})}
           </div>
         </div>
 

@@ -105,18 +105,17 @@ export const COSMETICS: CosmeticItem[] = [
   { id: 'col_white', type: 'droneColor', name: 'Чистый Код', value: '#ffffff', unlockLevel: 10, cost: 2000 },
   
   // AVATARS (value = sprite folder ID in /public/avatars/)
-  { id: 'av_1', type: 'avatar', name: 'Новичок', value: '1', unlockLevel: 1, cost: 0 },
-  { id: 'av_2', type: 'avatar', name: 'Хакер', value: '2', unlockLevel: 2, cost: 150 },
-  { id: 'av_3', type: 'avatar', name: 'Призрак', value: '3', unlockLevel: 3, cost: 300 },
-  { id: 'av_4', type: 'avatar', name: 'Инженер', value: '4', unlockLevel: 4, cost: 400 },
-  { id: 'av_5', type: 'avatar', name: 'Скаут', value: '5', unlockLevel: 5, cost: 500 },
-  { id: 'av_6', type: 'avatar', name: 'Оперативник', value: '6', unlockLevel: 6, cost: 600 },
-  { id: 'av_7', type: 'avatar', name: 'Снайпер', value: '7', unlockLevel: 7, cost: 750 },
-  { id: 'av_8', type: 'avatar', name: 'Медик', value: '8', unlockLevel: 8, cost: 900 },
-  { id: 'av_9', type: 'avatar', name: 'Сенсей', value: '9', unlockLevel: 9, cost: 1100 },
-  { id: 'av_10', type: 'avatar', name: 'Командир', value: '10', unlockLevel: 10, cost: 1300 },
-  { id: 'av_11', type: 'avatar', name: 'Архитектор', value: '11', unlockLevel: 11, cost: 1600 },
-  { id: 'av_12', type: 'avatar', name: 'Легенда', value: '12', unlockLevel: 12, cost: 2000 },
+  { id: 'av_1', type: 'avatar', name: 'Новичок', value: '2', unlockLevel: 1, cost: 0 },
+  { id: 'av_2', type: 'avatar', name: 'Хакер', value: '3', unlockLevel: 2, cost: 150 },
+  { id: 'av_3', type: 'avatar', name: 'Призрак', value: '4', unlockLevel: 3, cost: 300 },
+  { id: 'av_4', type: 'avatar', name: 'Инженер', value: '5', unlockLevel: 4, cost: 400 },
+  { id: 'av_5', type: 'avatar', name: 'Скаут', value: '6', unlockLevel: 5, cost: 500 },
+  { id: 'av_6', type: 'avatar', name: 'Оперативник', value: '7', unlockLevel: 6, cost: 600 },
+  { id: 'av_7', type: 'avatar', name: 'Снайпер', value: '8', unlockLevel: 7, cost: 750 },
+  { id: 'av_8', type: 'avatar', name: 'Медик', value: '9', unlockLevel: 8, cost: 900 },
+  { id: 'av_9', type: 'avatar', name: 'Сенсей', value: '10', unlockLevel: 9, cost: 1100 },
+  { id: 'av_10', type: 'avatar', name: 'Командир', value: '11', unlockLevel: 10, cost: 1300 },
+  { id: 'av_11', type: 'avatar', name: 'Архитектор', value: '12', unlockLevel: 11, cost: 1600 },
 ];
 
 export const MOCK_STUDENTS: StudentProgress[] = [

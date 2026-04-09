@@ -612,8 +612,8 @@ const StudentDashboard: React.FC<StudentDashboardProps> = ({ currentUser: propUs
                                     <div className="text-cyber-neonYellow font-mono text-[9px] mt-0.5">LVL {currentUser.level}</div>
                                 </div>
                                  <div className="w-10 h-10 md:w-12 md:h-12 rounded bg-black border-2 border-cyber-neonBlue overflow-hidden shrink-0 flex items-center justify-center">
-                                     <div style={{ transform: 'scale(1.6)', transformOrigin: 'center 60%' }}>
-                                       <AnimatedSprite avatarId={COSMETICS.find(c => c.id === currentUser.equipped.avatar)?.value || '1'} animation="Idle" scale={1} />
+                                     <div style={{ transform: 'scale(1.5)', transformOrigin: 'center center' }}>
+                                       <AnimatedSprite avatarId={COSMETICS.find(c => c.id === currentUser.equipped.avatar)?.value || '2'} animation="Idle" scale={1} />
                                      </div>
                                  </div>
                             </button>
@@ -720,7 +720,7 @@ const StudentDashboard: React.FC<StudentDashboardProps> = ({ currentUser: propUs
                             {/* Avatar + Name */}
                             <div className="text-center mb-6">
                                 <div className="w-28 h-28 mx-auto rounded-full border-4 border-cyber-neonBlue bg-black mb-4 flex items-center justify-center shadow-[0_0_30px_rgba(0,243,255,0.3)]">
-                                    <AnimatedSprite avatarId={COSMETICS.find(c => c.id === currentUser.equipped.avatar)?.value || '1'} animation="Idle" scale={2} />
+                                    <AnimatedSprite avatarId={COSMETICS.find(c => c.id === currentUser.equipped.avatar)?.value || '2'} animation="Idle" scale={2} />
                                 </div>
                                 <h3 className="text-2xl font-bold text-white uppercase">{currentUser.name}</h3>
                                 <span className="text-cyber-neonYellow font-mono text-sm">УРОВЕНЬ {currentUser.level}</span>
@@ -831,8 +831,11 @@ const StudentDashboard: React.FC<StudentDashboardProps> = ({ currentUser: propUs
              {showMarketModal && currentUser && (
                  <div className="fixed inset-0 z-[100] bg-black/95 backdrop-blur-md flex items-center justify-center p-4">
                      <div className="w-full max-w-lg md:max-w-5xl h-[90vh] md:h-[85vh] bg-[#0c0c10] border border-cyber-neonPink flex flex-col relative rounded-lg overflow-hidden shadow-[0_0_50px_rgba(255,0,255,0.1)]">
-                        <div className="p-3 md:p-4 border-b border-gray-800 flex justify-between items-center bg-gray-900 shrink-0">
-                             <h2 className="text-base md:text-xl font-bold text-cyber-neonPink flex items-center gap-2"><ShoppingBag size={18} /> <span className="hidden sm:inline">ЧЕРНЫЙ</span> РЫНОК</h2>
+                        <div className="p-3 md:p-4 border-b border-gray-800 flex justify-between items-center bg-gray-900 shrink-0 sticky top-0 z-10">
+                             <div className="flex items-center gap-2">
+                                 <button onClick={() => setShowMarketModal(false)} className="text-gray-400 hover:text-white p-1 -ml-1"><ChevronLeft size={22} /></button>
+                                 <h2 className="text-base md:text-xl font-bold text-cyber-neonPink flex items-center gap-2"><ShoppingBag size={18} /> <span className="hidden sm:inline">ЧЕРНЫЙ</span> РЫНОК</h2>
+                             </div>
                              <div className="flex items-center gap-2 md:gap-4">
                                  <div className="text-cyber-neonYellow font-mono font-bold flex items-center gap-1.5 bg-black px-2 md:px-3 py-1 rounded border border-cyber-neonYellow/30 text-sm">
                                      <Coins size={14}/> {currentUser.currency}
@@ -912,9 +915,9 @@ const StudentDashboard: React.FC<StudentDashboardProps> = ({ currentUser: propUs
   })();
 
   const equippedAvatarId = (() => {
-      if (!currentUser?.equipped?.avatar) return '1';
+      if (!currentUser?.equipped?.avatar) return '2';
       const cosmetic = COSMETICS.find(c => c.type === 'avatar' && c.id === currentUser.equipped.avatar);
-      return cosmetic?.value || '1';
+      return cosmetic?.value || '2';
   })();
 
   return (
