@@ -121,7 +121,7 @@ const CyberLayout: React.FC<LayoutProps> = ({ children, role, onLogout, title })
       )}
 
       {/* MAIN CONTENT AREA */}
-      <main className="relative z-10 flex-1 overflow-hidden flex flex-col pb-[env(safe-area-inset-bottom)]">
+      <main className="flex-1 overflow-hidden flex flex-col pb-[env(safe-area-inset-bottom)]">
         {children}
       </main>
     </div>

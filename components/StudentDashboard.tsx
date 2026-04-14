@@ -711,9 +711,11 @@ const StudentDashboard: React.FC<StudentDashboardProps> = ({ currentUser: propUs
                  const totalTasks = tasks.length;
 
                  return (
-                 <div className="fixed inset-0 z-[100] bg-black/95 backdrop-blur-md flex items-center justify-center p-4">
-                     <div className="w-full max-w-md max-h-[90vh] bg-[#0c0c10] border border-gray-700 flex flex-col relative rounded-lg overflow-hidden shadow-2xl animate-in zoom-in-95">
-                        <button onClick={() => setShowProfileModal(false)} className="absolute top-4 right-4 z-50 text-gray-500 hover:text-white p-2">
+                 <div className="fixed inset-0 z-[100] bg-black/95 backdrop-blur-md flex flex-col" onClick={(e) => { if (e.target === e.currentTarget) setShowProfileModal(false); }}>
+                     <div className="h-14 md:h-16 shrink-0" />
+                     <div className="flex-1 flex items-start md:items-center justify-center p-3 md:p-4 overflow-hidden">
+                     <div className="w-full max-w-md max-h-full md:max-h-[85vh] bg-[#0c0c10] border border-gray-700 flex flex-col relative rounded-lg overflow-hidden shadow-2xl animate-in zoom-in-95">
+                        <button onClick={() => setShowProfileModal(false)} className="absolute top-3 right-3 z-50 text-gray-500 hover:text-white p-2 active:bg-gray-800 rounded">
                             <X size={24} />
                         </button>
                         <div className="p-6 md:p-8 overflow-y-auto custom-scrollbar">
@@ -823,24 +825,28 @@ const StudentDashboard: React.FC<StudentDashboardProps> = ({ currentUser: propUs
                             <button onClick={() => setShowProfileModal(false)} className="w-full bg-cyber-neonBlue text-black py-3 font-bold uppercase tracking-widest hover:bg-white transition-colors rounded">ЗАКРЫТЬ</button>
                         </div>
                      </div>
+                     </div>
                  </div>
                  );
              })()}
 
              {/* MARKET MODAL */}
              {showMarketModal && currentUser && (
-                 <div className="fixed inset-0 z-[100] bg-black/95 backdrop-blur-md flex items-center justify-center p-4">
-                     <div className="w-full max-w-lg md:max-w-5xl h-[90vh] md:h-[85vh] bg-[#0c0c10] border border-cyber-neonPink flex flex-col relative rounded-lg overflow-hidden shadow-[0_0_50px_rgba(255,0,255,0.1)]">
-                        <div className="p-3 md:p-4 border-b border-gray-800 flex justify-between items-center bg-gray-900 shrink-0 sticky top-0 z-10">
+                 <div className="fixed inset-0 z-[100] bg-black/95 backdrop-blur-md flex flex-col" onClick={(e) => { if (e.target === e.currentTarget) setShowMarketModal(false); }}>
+                     {/* Spacer for global header on mobile */}
+                     <div className="h-14 md:h-16 shrink-0" />
+                     <div className="flex-1 flex items-start md:items-center justify-center p-3 md:p-4 overflow-hidden">
+                     <div className="w-full max-w-lg md:max-w-5xl h-full md:h-[85vh] bg-[#0c0c10] border border-cyber-neonPink flex flex-col relative rounded-lg overflow-hidden shadow-[0_0_50px_rgba(255,0,255,0.1)]">
+                        <div className="p-3 md:p-4 border-b border-gray-800 flex justify-between items-center bg-gray-900 shrink-0">
                              <div className="flex items-center gap-2">
-                                 <button onClick={() => setShowMarketModal(false)} className="text-gray-400 hover:text-white p-1 -ml-1"><ChevronLeft size={22} /></button>
+                                 <button onClick={() => setShowMarketModal(false)} className="text-gray-400 hover:text-white p-1.5 -ml-1 active:bg-gray-800 rounded"><ChevronLeft size={22} /></button>
                                  <h2 className="text-base md:text-xl font-bold text-cyber-neonPink flex items-center gap-2"><ShoppingBag size={18} /> <span className="hidden sm:inline">ЧЕРНЫЙ</span> РЫНОК</h2>
                              </div>
                              <div className="flex items-center gap-2 md:gap-4">
                                  <div className="text-cyber-neonYellow font-mono font-bold flex items-center gap-1.5 bg-black px-2 md:px-3 py-1 rounded border border-cyber-neonYellow/30 text-sm">
                                      <Coins size={14}/> {currentUser.currency}
                                  </div>
-                                 <button onClick={() => setShowMarketModal(false)} className="text-gray-500 hover:text-white p-1"><X size={22} /></button>
+                                 <button onClick={() => setShowMarketModal(false)} className="text-gray-500 hover:text-white p-1.5 active:bg-gray-800 rounded"><X size={22} /></button>
                              </div>
                         </div>
                         
@@ -893,6 +899,7 @@ const StudentDashboard: React.FC<StudentDashboardProps> = ({ currentUser: propUs
                                 )
                             })}
                         </div>
+                     </div>
                      </div>
                  </div>
              )}
@@ -1515,11 +1522,14 @@ const StudentDashboard: React.FC<StudentDashboardProps> = ({ currentUser: propUs
 
        {/* HINT MODAL */}
        {showHintModal && (
-            <div className="fixed inset-0 z-[100] bg-black/90 backdrop-blur-sm flex items-center justify-center p-4">
-                <div className="w-full max-w-lg bg-[#0a0a0f] border border-cyber-neonBlue p-6 relative">
-                    <button onClick={() => setShowHintModal(false)} className="absolute top-2 right-2 text-gray-500"><X size={24} /></button>
+            <div className="fixed inset-0 z-[100] bg-black/90 backdrop-blur-sm flex flex-col">
+                <div className="h-14 md:h-16 shrink-0" />
+                <div className="flex-1 flex items-center justify-center p-4">
+                <div className="w-full max-w-lg bg-[#0a0a0f] border border-cyber-neonBlue p-6 relative rounded-lg">
+                    <button onClick={() => setShowHintModal(false)} className="absolute top-2 right-2 text-gray-500 hover:text-white p-1"><X size={24} /></button>
                     <h2 className="text-cyber-neonBlue font-mono font-bold mb-4">ВХОДЯЩЕЕ СООБЩЕНИЕ</h2>
                     <div className="font-mono text-gray-300">{isHintLoading ? "Анализ..." : hint || "Ошибка."}</div>
+                </div>
                 </div>
             </div>
         )}

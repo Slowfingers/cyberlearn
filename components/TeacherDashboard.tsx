@@ -683,9 +683,11 @@ const TeacherDashboard: React.FC<TeacherDashboardProps> = ({
 
                         {/* STUDENT DETAIL MODAL */}
                         {selectedStudent && (
-                            <div className="fixed inset-0 z-[100] bg-black/95 backdrop-blur-md flex items-center justify-center p-4">
-                                <div className="w-full max-w-lg max-h-[90vh] bg-[#0c0c10] border border-cyber-neonBlue rounded-lg flex flex-col relative shadow-2xl animate-in zoom-in-95 overflow-hidden">
-                                    <button onClick={() => setSelectedStudent(null)} className="absolute top-4 right-4 z-50 text-gray-500 hover:text-white p-2"><X size={24} /></button>
+                            <div className="fixed inset-0 z-[100] bg-black/95 backdrop-blur-md flex flex-col" onClick={(e) => { if (e.target === e.currentTarget) setSelectedStudent(null); }}>
+                                <div className="h-14 md:h-16 shrink-0" />
+                                <div className="flex-1 flex items-start md:items-center justify-center p-3 md:p-4 overflow-hidden">
+                                <div className="w-full max-w-lg max-h-full md:max-h-[85vh] bg-[#0c0c10] border border-cyber-neonBlue rounded-lg flex flex-col relative shadow-2xl animate-in zoom-in-95 overflow-hidden">
+                                    <button onClick={() => setSelectedStudent(null)} className="absolute top-3 right-3 z-50 text-gray-500 hover:text-white p-2 active:bg-gray-800 rounded"><X size={24} /></button>
                                     <div className="p-6 overflow-y-auto custom-scrollbar">
                                         {/* Student Header */}
                                         <div className="text-center mb-6">
@@ -754,6 +756,7 @@ const TeacherDashboard: React.FC<TeacherDashboardProps> = ({
 
                                         <button onClick={() => setSelectedStudent(null)} className="w-full bg-cyber-neonBlue text-black py-3 font-bold uppercase tracking-widest hover:bg-white transition-colors rounded">ЗАКРЫТЬ</button>
                                     </div>
+                                </div>
                                 </div>
                             </div>
                         )}
