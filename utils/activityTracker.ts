@@ -1,8 +1,6 @@
 import { TaskAttempt } from '../types';
 import { fbSaveUser, fbGetUsers } from '../services/firebase';
 
-const ATTEMPT_KEY_PREFIX = 'task_attempt_';
-
 export interface ActiveAttempt {
   taskId: string;
   startTime: number;
@@ -11,24 +9,62 @@ export interface ActiveAttempt {
 }
 
 let currentAttempt: ActiveAttempt | null = null;
+let currentUserId: string | null = null;
 let visibilityListener: (() => void) | null = null;
+let beforeUnloadListener: (() => void) | null = null;
+let saveInProgress = false;
 
-export const startTaskAttempt = (taskId: string) => {
+// Immediately save a tab switch to Firebase (don't wait for task completion)
+const persistTabSwitch = async (userId: string, taskId: string) => {
+  if (saveInProgress) return;
+  saveInProgress = true;
+  try {
+    const users = await fbGetUsers();
+    const user = users.find(u => u.id === userId);
+    if (user) {
+      if (!user.suspiciousActivity) {
+        user.suspiciousActivity = { totalTabSwitches: 0, highErrorTasks: [] };
+      }
+      user.suspiciousActivity.totalTabSwitches = (user.suspiciousActivity.totalTabSwitches || 0) + 1;
+      await fbSaveUser(user);
+      console.log(`[ActivityTracker] Tab switch saved for ${userId} on ${taskId}. Total: ${user.suspiciousActivity.totalTabSwitches}`);
+    }
+  } catch (error) {
+    console.error('[ActivityTracker] Failed to save tab switch:', error);
+  } finally {
+    saveInProgress = false;
+  }
+};
+
+export const startTaskAttempt = (taskId: string, userId?: string) => {
   currentAttempt = {
     taskId,
     startTime: Date.now(),
     errors: 0,
     tabSwitches: 0,
   };
+  if (userId) currentUserId = userId;
 
   if (!visibilityListener) {
     visibilityListener = () => {
-      if (document.hidden && currentAttempt) {
+      if (document.hidden && currentAttempt && currentUserId) {
         currentAttempt.tabSwitches++;
-        console.log(`[ActivityTracker] Tab switch detected. Total: ${currentAttempt.tabSwitches}`);
+        console.log(`[ActivityTracker] Tab switch detected. Session: ${currentAttempt.tabSwitches}`);
+        // Persist immediately so data is saved even if student never completes task
+        persistTabSwitch(currentUserId, currentAttempt.taskId);
       }
     };
     document.addEventListener('visibilitychange', visibilityListener);
+  }
+
+  if (!beforeUnloadListener) {
+    beforeUnloadListener = () => {
+      // Use sendBeacon-like pattern: fire-and-forget save of current attempt
+      if (currentAttempt && currentUserId && (currentAttempt.errors > 0 || currentAttempt.tabSwitches > 0)) {
+        endTaskAttempt(currentUserId, false);
+      }
+    };
+    window.addEventListener('beforeunload', beforeUnloadListener);
   }
 };
 
@@ -68,7 +104,8 @@ export const endTaskAttempt = async (userId: string, success: boolean) => {
         user.suspiciousActivity = { totalTabSwitches: 0, highErrorTasks: [] };
       }
       
-      user.suspiciousActivity.totalTabSwitches += attempt.tabSwitches;
+      // NOTE: tabSwitches already persisted incrementally via persistTabSwitch,
+      // so we do NOT add them again here to avoid double-counting.
       
       if (attempt.errors > 10 && !user.suspiciousActivity.highErrorTasks.includes(attempt.taskId)) {
         user.suspiciousActivity.highErrorTasks.push(attempt.taskId);
@@ -84,11 +121,20 @@ export const endTaskAttempt = async (userId: string, success: boolean) => {
 };
 
 export const cleanupTracker = () => {
+  // Save any pending attempt before cleanup
+  if (currentAttempt && currentUserId && (currentAttempt.errors > 0 || currentAttempt.tabSwitches > 0)) {
+    endTaskAttempt(currentUserId, false);
+  }
   if (visibilityListener) {
     document.removeEventListener('visibilitychange', visibilityListener);
     visibilityListener = null;
   }
+  if (beforeUnloadListener) {
+    window.removeEventListener('beforeunload', beforeUnloadListener);
+    beforeUnloadListener = null;
+  }
   currentAttempt = null;
+  currentUserId = null;
 };
 
 export const getCurrentAttempt = () => currentAttempt;

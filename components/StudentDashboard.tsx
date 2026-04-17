@@ -211,7 +211,7 @@ const StudentDashboard: React.FC<StudentDashboardProps> = ({ currentUser: propUs
     }
 
     if (currentUser && ['grid', 'html', 'terminal', 'quiz'].includes(activeTask.type)) {
-        startTaskAttempt(activeTask.id);
+        startTaskAttempt(activeTask.id, currentUser.id);
     }
 
   }, [activeTask, currentUser]);
@@ -305,6 +305,11 @@ const StudentDashboard: React.FC<StudentDashboardProps> = ({ currentUser: propUs
         playSound('error');
         recordError();
         if (result.feedback) setAiFeedback(result.feedback);
+        // Save failed attempt to Firebase and start new attempt for next try
+        if (currentUser) {
+            await endTaskAttempt(currentUser.id, false);
+            startTaskAttempt(activeTask.id, currentUser.id);
+        }
         // Increment attempt counter on failure
         setAttemptCount(prev => ({
             ...prev,
@@ -332,6 +337,10 @@ const StudentDashboard: React.FC<StudentDashboardProps> = ({ currentUser: propUs
       } else {
           playSound('error');
           recordError();
+          if (currentUser) {
+              endTaskAttempt(currentUser.id, false);
+              startTaskAttempt(activeTask.id, currentUser.id);
+          }
           // Increment attempt counter on wrong answer
           setAttemptCount(prev => ({
               ...prev,
