@@ -28,6 +28,15 @@ export interface CosmeticItem {
   cost: number; // Price in Bits
 }
 
+export interface TaskAttempt {
+  taskId: string;
+  timestamp: string;
+  errors: number;
+  tabSwitches: number;
+  duration: number; // seconds
+  success: boolean;
+}
+
 export interface User {
   id: string;
   name: string;
@@ -47,6 +56,11 @@ export interface User {
   equipped: {
     avatar: string;
     droneColor: string;
+  };
+  taskAttempts?: TaskAttempt[]; // Detailed attempt history
+  suspiciousActivity?: {
+    totalTabSwitches: number;
+    highErrorTasks: string[]; // task IDs with >10 errors
   };
 }
 
@@ -158,6 +172,11 @@ export interface StudentProgress {
     variables: number;
     logic: number;
   };
+  // New: Cheating detection metrics
+  totalTabSwitches: number;
+  avgErrorsPerTask: number;
+  suspiciousTaskCount: number; // tasks with >10 errors or >5 tab switches
+  recentAttempts?: TaskAttempt[]; // Last 10 attempts
 }
 
 export interface ComicScene {

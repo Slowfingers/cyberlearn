@@ -4374,6 +4374,8 @@ export const MOCK_TASKS: Task[] = [
   <p style="margin:3px 0">enemyHp = enemyHp - heroPower</p>
   <p style="margin:6px 0 3px 0"><span style="color:#ff00ff">if</span> enemyHp &lt;= <span style="color:#fcee0a">0</span> <span style="color:#ff00ff">then</span></p>
   <p style="margin:3px 0 3px 20px"><span style="color:#00ff41">print</span>(<span style="color:#00ff41">"Victory!"</span>)</p>
+  <p style="margin:3px 0"><span style="color:#ff00ff">else</span></p>
+  <p style="margin:3px 0 3px 20px"><span style="color:#00ff41">print</span>(<span style="color:#00ff41">"Enemy survived!"</span>)</p>
   <p style="margin:3px 0"><span style="color:#ff00ff">end</span></p>
 </div>`
   },

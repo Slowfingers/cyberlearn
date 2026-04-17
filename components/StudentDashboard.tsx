@@ -11,6 +11,7 @@ import AnimatedSprite, { hasAnimation } from './AnimatedSprite';
 import CyberToast, { ToastMessage } from './CyberToast';
 import { Play, RotateCcw, CheckCircle, Lock, BookOpen, Zap, ArrowRight, ChevronLeft, Trophy, X, Bot, Code, Terminal as TerminalIcon, Cpu, Globe, Grid, LayoutList, Eye, Loader2, HelpCircle, ShoppingBag, Coins, BrainCircuit, Puzzle, Award, Flame } from 'lucide-react';
 import { playSound } from '../utils/sound';
+import { startTaskAttempt, recordError, endTaskAttempt, cleanupTracker } from '../utils/activityTracker';
 
 type MobileTab = 'tasks' | 'code' | 'visual';
 
@@ -144,6 +145,13 @@ const StudentDashboard: React.FC<StudentDashboardProps> = ({ currentUser: propUs
     setCurrentUser(propUser);
   }, [propUser]);
 
+  // Cleanup activity tracker on unmount
+  useEffect(() => {
+    return () => {
+      cleanupTracker();
+    };
+  }, []);
+
   useEffect(() => {
     // Scroll to bottom of terminal whenever history updates
     if (terminalEndRef.current) {
@@ -202,7 +210,11 @@ const StudentDashboard: React.FC<StudentDashboardProps> = ({ currentUser: propUs
         setQuizIsCorrect(false);
     }
 
-  }, [activeTask]);
+    if (currentUser && ['grid', 'html', 'terminal', 'quiz'].includes(activeTask.type)) {
+        startTaskAttempt(activeTask.id);
+    }
+
+  }, [activeTask, currentUser]);
 
   const handleRunCode = async () => {
     if (isRunning || !activeTask) return;
@@ -283,11 +295,15 @@ const StudentDashboard: React.FC<StudentDashboardProps> = ({ currentUser: propUs
         setLogs(prev => [...prev, '>>> ЦЕЛЬ ДОСТИГНУТА. ПРОТОКОЛ ЗАВЕРШЕН <<<']);
         setMissionSuccess(true);
         playSound('success');
+        if (currentUser) {
+            await endTaskAttempt(currentUser.id, true);
+        }
         handleTaskCompletion(activeTask);
     } else {
         const errorMsg = result.error || 'Ошибка исполнения';
         setLogs(prev => [...prev, `[ОШИБКА]: ${errorMsg}`]);
         playSound('error');
+        recordError();
         if (result.feedback) setAiFeedback(result.feedback);
         // Increment attempt counter on failure
         setAttemptCount(prev => ({
@@ -308,10 +324,14 @@ const StudentDashboard: React.FC<StudentDashboardProps> = ({ currentUser: propUs
       
       if (isCorrect) {
           playSound('success');
+          if (currentUser) {
+              endTaskAttempt(currentUser.id, true);
+          }
           // Don't auto-advance instantly on quiz so user can see "Correct" state
           handleTaskCompletion(activeTask, false);
       } else {
           playSound('error');
+          recordError();
           // Increment attempt counter on wrong answer
           setAttemptCount(prev => ({
               ...prev,

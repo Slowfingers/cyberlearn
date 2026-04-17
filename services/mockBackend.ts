@@ -311,6 +311,22 @@ export const getClassStudents = async (classId: string): Promise<StudentProgress
             return { courseId: c.courseId, title: c.title, completed, total: c.taskIds.length, color: c.color };
         });
 
+        // Calculate cheating detection metrics
+        const attempts = s.taskAttempts || [];
+        const totalTabSwitches = s.suspiciousActivity?.totalTabSwitches || 0;
+        
+        // Calculate average errors per task (only from attempts)
+        const totalErrorsFromAttempts = attempts.reduce((sum, a) => sum + a.errors, 0);
+        const avgErrorsPerTask = attempts.length > 0 
+            ? Math.round((totalErrorsFromAttempts / attempts.length) * 10) / 10 
+            : 0;
+        
+        // Count suspicious tasks (>10 errors OR >5 tab switches in single attempt)
+        const suspiciousTaskCount = attempts.filter(a => a.errors > 10 || a.tabSwitches > 5).length;
+        
+        // Get last 10 attempts
+        const recentAttempts = attempts.slice(-10);
+
         return {
             studentId: s.id,
             name: s.name,
@@ -322,7 +338,11 @@ export const getClassStudents = async (classId: string): Promise<StudentProgress
             lastActive,
             streak,
             courseProgress,
-            skills: { loops: 50, variables: 50, logic: 50 }
+            skills: { loops: 50, variables: 50, logic: 50 },
+            totalTabSwitches,
+            avgErrorsPerTask,
+            suspiciousTaskCount,
+            recentAttempts
         };
     });
 };

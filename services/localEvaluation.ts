@@ -194,7 +194,18 @@ export const evaluateCodeLocally = async (code: string, task: Task): Promise<Exe
             case 'lua_020': if (/print\s*\(\s*#\s*items\s*\)/.test(cleanCode)) success = true; else error = "Используй #items."; break;
             case 'lua_022': if (/pairs\s*\(\s*items\s*\)/.test(cleanCode)) success = true; else error = "Используй ipairs(items)."; break;
             case 'lua_032': if ((/>\ *max/.test(cleanCode) || /max\ *</.test(cleanCode)) && /for/.test(cleanCode)) success = true; else error = "Пройдись циклом и сравнивай с max."; break;
-            case 'lua_034': if (cleanCode.includes('enemyhp') && (cleanCode.includes('-') || cleanCode.includes('='))) success = true; else error = "Вычти урон из здоровья."; break;
+            case 'lua_034': 
+                if (
+                    /enemyhp\s*=\s*enemyhp\s*-\s*heropower/i.test(cleanCode) && 
+                    /if\s+enemyhp\s*<=\s*0/i.test(cleanCode) && 
+                    /print\s*\(\s*"Victory!"\s*\)/i.test(cleanCode) &&
+                    (/else/.test(cleanCode) && /print\s*\(\s*"Enemy survived!"\s*\)/i.test(cleanCode))
+                ) {
+                    success = true;
+                } else {
+                    error = "Вычти heroPower из enemyHp, проверь if enemyHp <= 0, выведи 'Victory!' или 'Enemy survived!'.";
+                }
+                break;
             case 'lua_041': if (/string\.reverse\s*\(\s*name\s*\)/.test(cleanCode) && /print/.test(cleanCode)) success = true; else error = "Используй string.reverse(name) и print."; break;
             case 'lua_042': if (/string\.upper/.test(cleanCode) && /string\.sub/.test(cleanCode) && /\.\./.test(cleanCode) && /print/.test(cleanCode)) success = true; else error = "Используй string.upper, string.sub и конкатенацию (..)."; break;
             case 'lua_051': if (/function/.test(cleanCode) && /count\s*=\s*count\s*\+\s*1/.test(cleanCode) && /return/.test(cleanCode)) success = true; else error = "Создай замыкание с count = count + 1 и return."; break;
