@@ -11,7 +11,7 @@ import AnimatedSprite, { hasAnimation } from './AnimatedSprite';
 import CyberToast, { ToastMessage } from './CyberToast';
 import { Play, RotateCcw, CheckCircle, Lock, BookOpen, Zap, ArrowRight, ChevronLeft, Trophy, X, Bot, Code, Terminal as TerminalIcon, Cpu, Globe, Grid, LayoutList, Eye, Loader2, HelpCircle, ShoppingBag, Coins, BrainCircuit, Puzzle, Award, Flame } from 'lucide-react';
 import { playSound } from '../utils/sound';
-import { startTaskAttempt, recordError, endTaskAttempt, cleanupTracker } from '../utils/activityTracker';
+import { startTaskAttempt, recordError, endTaskAttempt, cleanupTracker, initActivityTracking } from '../utils/activityTracker';
 
 type MobileTab = 'tasks' | 'code' | 'visual';
 
@@ -145,12 +145,15 @@ const StudentDashboard: React.FC<StudentDashboardProps> = ({ currentUser: propUs
     setCurrentUser(propUser);
   }, [propUser]);
 
-  // Cleanup activity tracker on unmount
+  // Initialize activity tracker on mount, cleanup on unmount
   useEffect(() => {
+    if (propUser?.id) {
+      initActivityTracking(propUser.id);
+    }
     return () => {
       cleanupTracker();
     };
-  }, []);
+  }, [propUser?.id]);
 
   useEffect(() => {
     // Scroll to bottom of terminal whenever history updates

@@ -172,10 +172,9 @@ export interface StudentProgress {
     variables: number;
     logic: number;
   };
-  // New: Cheating detection metrics
+  // Activity monitoring metrics
   totalTabSwitches: number;
   avgErrorsPerTask: number;
-  suspiciousTaskCount: number; // tasks with >10 errors or >5 tab switches
   recentAttempts?: TaskAttempt[]; // Last 10 attempts
 }
 

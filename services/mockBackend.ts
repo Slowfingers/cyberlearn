@@ -321,9 +321,6 @@ export const getClassStudents = async (classId: string): Promise<StudentProgress
             ? Math.round((totalErrorsFromAttempts / attempts.length) * 10) / 10 
             : 0;
         
-        // Count suspicious tasks (>10 errors OR >5 tab switches in single attempt)
-        const suspiciousTaskCount = attempts.filter(a => a.errors > 10 || a.tabSwitches > 5).length;
-        
         // Get last 10 attempts
         const recentAttempts = attempts.slice(-10);
 
@@ -341,7 +338,6 @@ export const getClassStudents = async (classId: string): Promise<StudentProgress
             skills: { loops: 50, variables: 50, logic: 50 },
             totalTabSwitches,
             avgErrorsPerTask,
-            suspiciousTaskCount,
             recentAttempts
         };
     });

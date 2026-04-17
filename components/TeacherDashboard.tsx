@@ -4,7 +4,7 @@ import { Classroom, User, StudentProgress, Task } from '../types';
 import { createClassroom, getClassStudents, createTaskForClass, updateClassroom, deleteClassroom } from '../services/mockBackend';
 import { COURSES } from '../constants';
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts';
-import { Users, Activity, BrainCircuit, Key, Copy, PlusCircle, RefreshCw, Layers, ChevronRight, Hash, Edit3, Save, Flag, PlayCircle, Ban, Menu, X, ArrowLeft, LogOut, BookOpen, EyeOff, Eye, Flame, Trophy, ChevronDown, ChevronUp, CheckCircle, ArrowUpDown, Target, Trash2, AlertTriangle, ExternalLink } from 'lucide-react';
+import { Users, Activity, BrainCircuit, Key, Copy, PlusCircle, RefreshCw, Layers, ChevronRight, Hash, Edit3, Save, Flag, PlayCircle, Ban, Menu, X, ArrowLeft, LogOut, BookOpen, EyeOff, Eye, Flame, Trophy, ChevronDown, ChevronUp, CheckCircle, ArrowUpDown, Target, Trash2, ExternalLink } from 'lucide-react';
 import { playSound } from '../utils/sound';
 import CyberToast, { ToastMessage } from './CyberToast';
 
@@ -17,7 +17,7 @@ interface TeacherDashboardProps {
   onReorderClassrooms: (classrooms: Classroom[]) => void;
 }
 
-type SortKey = 'name' | 'totalXP' | 'tasksCompleted' | 'totalErrors' | 'level' | 'streak' | 'totalTabSwitches' | 'suspiciousTaskCount';
+type SortKey = 'name' | 'totalXP' | 'tasksCompleted' | 'totalErrors' | 'level' | 'streak' | 'totalTabSwitches';
 type SortDir = 'asc' | 'desc';
 
 const TeacherDashboard: React.FC<TeacherDashboardProps> = ({ 
@@ -562,7 +562,6 @@ const TeacherDashboard: React.FC<TeacherDashboardProps> = ({
                                                     ['tasksCompleted', 'Задачи'],
                                                     ['totalErrors', 'Ошибки'],
                                                     ['totalTabSwitches', 'Вкладки'],
-                                                    ['suspiciousTaskCount', 'Подозр.'],
                                                     ['streak', 'Streak'],
                                                 ] as [SortKey, string][]).map(([key, label]) => (
                                                     <th
@@ -602,15 +601,6 @@ const TeacherDashboard: React.FC<TeacherDashboardProps> = ({
                                                         <span className={`flex items-center gap-1 ${student.totalTabSwitches > 20 ? 'text-orange-500 font-bold' : student.totalTabSwitches > 10 ? 'text-yellow-500' : 'text-gray-400'}`}>
                                                             <ExternalLink size={12} /> {student.totalTabSwitches}
                                                         </span>
-                                                    </td>
-                                                    <td className="p-3 whitespace-nowrap">
-                                                        {student.suspiciousTaskCount > 0 ? (
-                                                            <span className="flex items-center gap-1 text-red-500 font-bold">
-                                                                <AlertTriangle size={12} /> {student.suspiciousTaskCount}
-                                                            </span>
-                                                        ) : (
-                                                            <span className="text-gray-600">—</span>
-                                                        )}
                                                     </td>
                                                     <td className="p-3 whitespace-nowrap">
                                                         {student.streak > 0 ? (
@@ -749,24 +739,18 @@ const TeacherDashboard: React.FC<TeacherDashboardProps> = ({
                                             </div>
                                         </div>
 
-                                        {/* Cheating Detection Metrics */}
+                                        {/* Activity Monitoring */}
                                         <div className="mb-6 bg-gray-900/50 border border-gray-800 rounded p-4">
                                             <h4 className="text-xs font-bold text-gray-400 uppercase tracking-widest mb-3 flex items-center gap-2">
-                                                <AlertTriangle size={14} className="text-orange-500" />
+                                                <ExternalLink size={14} className="text-cyber-neonBlue" />
                                                 Мониторинг активности
                                             </h4>
-                                            <div className="grid grid-cols-3 gap-3 mb-3">
+                                            <div className="grid grid-cols-2 gap-3">
                                                 <div className="text-center">
                                                     <div className={`text-lg font-bold font-mono ${selectedStudent.totalTabSwitches > 20 ? 'text-red-500' : selectedStudent.totalTabSwitches > 10 ? 'text-orange-500' : 'text-gray-400'}`}>
                                                         {selectedStudent.totalTabSwitches}
                                                     </div>
-                                                    <div className="text-[9px] text-gray-500 uppercase">Переключений</div>
-                                                </div>
-                                                <div className="text-center">
-                                                    <div className={`text-lg font-bold font-mono ${selectedStudent.suspiciousTaskCount > 0 ? 'text-red-500' : 'text-gray-400'}`}>
-                                                        {selectedStudent.suspiciousTaskCount}
-                                                    </div>
-                                                    <div className="text-[9px] text-gray-500 uppercase">Подозр. задач</div>
+                                                    <div className="text-[9px] text-gray-500 uppercase">Переключений вкладки</div>
                                                 </div>
                                                 <div className="text-center">
                                                     <div className="text-lg font-bold font-mono text-gray-400">
@@ -775,12 +759,6 @@ const TeacherDashboard: React.FC<TeacherDashboardProps> = ({
                                                     <div className="text-[9px] text-gray-500 uppercase">Ср. ошибок</div>
                                                 </div>
                                             </div>
-                                            {selectedStudent.totalTabSwitches > 20 && (
-                                                <div className="text-[10px] text-orange-400 bg-orange-500/10 border border-orange-500/30 rounded p-2 flex items-start gap-2">
-                                                    <AlertTriangle size={12} className="shrink-0 mt-0.5" />
-                                                    <span>Высокая активность переключения вкладок может указывать на списывание</span>
-                                                </div>
-                                            )}
                                         </div>
 
                                         {/* Recent Attempts */}

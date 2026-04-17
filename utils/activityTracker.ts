@@ -11,74 +11,119 @@ export interface ActiveAttempt {
 let currentAttempt: ActiveAttempt | null = null;
 let currentUserId: string | null = null;
 let visibilityListener: (() => void) | null = null;
+let blurListener: (() => void) | null = null;
 let beforeUnloadListener: (() => void) | null = null;
-let saveInProgress = false;
 
-// Immediately save a tab switch to Firebase (don't wait for task completion)
-const persistTabSwitch = async (userId: string, taskId: string) => {
-  if (saveInProgress) return;
-  saveInProgress = true;
+// Queue of pending tab switch increments, debounced-flushed to Firebase
+let pendingIncrements = 0;
+let flushTimer: ReturnType<typeof setTimeout> | null = null;
+let flushInFlight = false;
+let lastSwitchAt = 0;
+const DEBOUNCE_MS = 600;
+const MIN_INTERVAL_MS = 400; // avoid double-counting blur+visibilitychange
+
+const flushPending = async () => {
+  if (flushInFlight || pendingIncrements === 0 || !currentUserId) return;
+  flushInFlight = true;
+  const count = pendingIncrements;
+  pendingIncrements = 0;
   try {
     const users = await fbGetUsers();
-    const user = users.find(u => u.id === userId);
+    const user = users.find(u => u.id === currentUserId);
     if (user) {
       if (!user.suspiciousActivity) {
         user.suspiciousActivity = { totalTabSwitches: 0, highErrorTasks: [] };
       }
-      user.suspiciousActivity.totalTabSwitches = (user.suspiciousActivity.totalTabSwitches || 0) + 1;
+      user.suspiciousActivity.totalTabSwitches = (user.suspiciousActivity.totalTabSwitches || 0) + count;
       await fbSaveUser(user);
-      console.log(`[ActivityTracker] Tab switch saved for ${userId} on ${taskId}. Total: ${user.suspiciousActivity.totalTabSwitches}`);
+      console.log(`[ActivityTracker] Saved ${count} tab switch(es). Total: ${user.suspiciousActivity.totalTabSwitches}`);
+    } else {
+      console.warn('[ActivityTracker] User not found for id:', currentUserId);
+      // Restore the count so it's not lost
+      pendingIncrements += count;
     }
-  } catch (error) {
-    console.error('[ActivityTracker] Failed to save tab switch:', error);
+  } catch (e) {
+    console.error('[ActivityTracker] Flush failed:', e);
+    pendingIncrements += count; // restore on failure
   } finally {
-    saveInProgress = false;
+    flushInFlight = false;
+    // If more piled up during flush, schedule another flush
+    if (pendingIncrements > 0) {
+      scheduleFlush();
+    }
   }
 };
 
+const scheduleFlush = () => {
+  if (flushTimer) clearTimeout(flushTimer);
+  flushTimer = setTimeout(() => {
+    flushTimer = null;
+    flushPending();
+  }, DEBOUNCE_MS);
+};
+
+const registerTabSwitch = () => {
+  const now = Date.now();
+  if (now - lastSwitchAt < MIN_INTERVAL_MS) return; // dedupe simultaneous blur+visibility events
+  lastSwitchAt = now;
+  pendingIncrements++;
+  if (currentAttempt) currentAttempt.tabSwitches++;
+  console.log(`[ActivityTracker] Tab switch detected (pending: ${pendingIncrements})`);
+  scheduleFlush();
+};
+
+// Initialize global listeners — call once when student logs in
+export const initActivityTracking = (userId: string) => {
+  currentUserId = userId;
+
+  if (!visibilityListener) {
+    visibilityListener = () => {
+      if (document.hidden) {
+        registerTabSwitch();
+      }
+    };
+    document.addEventListener('visibilitychange', visibilityListener);
+  }
+
+  if (!blurListener) {
+    blurListener = () => {
+      // Window blur (switching to other app/window) — also count as tab switch
+      registerTabSwitch();
+    };
+    window.addEventListener('blur', blurListener);
+  }
+
+  if (!beforeUnloadListener) {
+    beforeUnloadListener = () => {
+      // Best-effort sync flush via navigator.sendBeacon is not used here since we use RTDB SDK.
+      // Just try to flush synchronously in background.
+      if (pendingIncrements > 0) flushPending();
+    };
+    window.addEventListener('beforeunload', beforeUnloadListener);
+  }
+
+  console.log('[ActivityTracker] Initialized for user:', userId);
+};
+
 export const startTaskAttempt = (taskId: string, userId?: string) => {
+  if (userId) currentUserId = userId;
   currentAttempt = {
     taskId,
     startTime: Date.now(),
     errors: 0,
     tabSwitches: 0,
   };
-  if (userId) currentUserId = userId;
-
-  if (!visibilityListener) {
-    visibilityListener = () => {
-      if (document.hidden && currentAttempt && currentUserId) {
-        currentAttempt.tabSwitches++;
-        console.log(`[ActivityTracker] Tab switch detected. Session: ${currentAttempt.tabSwitches}`);
-        // Persist immediately so data is saved even if student never completes task
-        persistTabSwitch(currentUserId, currentAttempt.taskId);
-      }
-    };
-    document.addEventListener('visibilitychange', visibilityListener);
-  }
-
-  if (!beforeUnloadListener) {
-    beforeUnloadListener = () => {
-      // Use sendBeacon-like pattern: fire-and-forget save of current attempt
-      if (currentAttempt && currentUserId && (currentAttempt.errors > 0 || currentAttempt.tabSwitches > 0)) {
-        endTaskAttempt(currentUserId, false);
-      }
-    };
-    window.addEventListener('beforeunload', beforeUnloadListener);
-  }
 };
 
 export const recordError = () => {
-  if (currentAttempt) {
-    currentAttempt.errors++;
-  }
+  if (currentAttempt) currentAttempt.errors++;
 };
 
 export const endTaskAttempt = async (userId: string, success: boolean) => {
   if (!currentAttempt) return;
+  currentUserId = userId;
 
   const duration = Math.floor((Date.now() - currentAttempt.startTime) / 1000);
-  
   const attempt: TaskAttempt = {
     taskId: currentAttempt.taskId,
     timestamp: new Date().toISOString(),
@@ -91,43 +136,30 @@ export const endTaskAttempt = async (userId: string, success: boolean) => {
   try {
     const users = await fbGetUsers();
     const user = users.find(u => u.id === userId);
-    
     if (user) {
       if (!user.taskAttempts) user.taskAttempts = [];
       user.taskAttempts.push(attempt);
-      
       if (user.taskAttempts.length > 50) {
         user.taskAttempts = user.taskAttempts.slice(-50);
       }
-
-      if (!user.suspiciousActivity) {
-        user.suspiciousActivity = { totalTabSwitches: 0, highErrorTasks: [] };
-      }
-      
-      // NOTE: tabSwitches already persisted incrementally via persistTabSwitch,
-      // so we do NOT add them again here to avoid double-counting.
-      
-      if (attempt.errors > 10 && !user.suspiciousActivity.highErrorTasks.includes(attempt.taskId)) {
-        user.suspiciousActivity.highErrorTasks.push(attempt.taskId);
-      }
-
       await fbSaveUser(user);
     }
-  } catch (error) {
-    console.error('[ActivityTracker] Failed to save attempt:', error);
+  } catch (e) {
+    console.error('[ActivityTracker] endTaskAttempt failed:', e);
   }
 
   currentAttempt = null;
 };
 
 export const cleanupTracker = () => {
-  // Save any pending attempt before cleanup
-  if (currentAttempt && currentUserId && (currentAttempt.errors > 0 || currentAttempt.tabSwitches > 0)) {
-    endTaskAttempt(currentUserId, false);
-  }
+  if (pendingIncrements > 0) flushPending();
   if (visibilityListener) {
     document.removeEventListener('visibilitychange', visibilityListener);
     visibilityListener = null;
+  }
+  if (blurListener) {
+    window.removeEventListener('blur', blurListener);
+    blurListener = null;
   }
   if (beforeUnloadListener) {
     window.removeEventListener('beforeunload', beforeUnloadListener);
