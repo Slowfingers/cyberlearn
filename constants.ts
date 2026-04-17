@@ -130,7 +130,9 @@ export const MOCK_STUDENTS: StudentProgress[] = [
     lastActive: '2 мин назад',
     streak: 3,
     courseProgress: [],
-    skills: { loops: 80, variables: 90, logic: 75 }
+    skills: { loops: 80, variables: 90, logic: 75 },
+    totalTabSwitches: 0,
+    avgErrorsPerTask: 0
   }
 ];
 
@@ -760,7 +762,7 @@ export const MOCK_TASKS: Task[] = [
     id: 'kids_m5_q4',
     courseId: 'course_kids101',
     module: 'Модуль 5: Робик и числа',
-    title: '❓ Загадка: Сколько бит в байте?',
+    title: '❓ Загадка: Что такое бит?',
     type: 'quiz',
     description: 'Робик проверяет — помнишь ли ты!',
     difficulty: 'Новичок',
@@ -768,10 +770,10 @@ export const MOCK_TASKS: Task[] = [
     currencyReward: 5,
     status: 'locked',
     quizData: {
-      question: '🤖 Робик: «Сколько лампочек (бит) в одном байте?»',
-      options: ['2 лампочки', '4 лампочки', '8 лампочек', '100 лампочек'],
-      correctIndex: 2,
-      explanation: '🤖 Робик: «8 лампочек = 1 байт! Это я запомню навсегда!»'
+      question: '🤖 Робик: «Что такое 1 бит?»',
+      options: ['Большой файл', 'Одна лампочка (0 или 1)', 'Название робота', '100 байтов'],
+      correctIndex: 1,
+      explanation: '🤖 Робик: «1 бит = одна лампочка! Горит (1) или не горит (0)!»'
     }
   },
 

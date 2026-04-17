@@ -38,13 +38,10 @@ const flushPending = async () => {
       await fbSaveUser(user);
       console.log(`[ActivityTracker] Saved ${count} tab switch(es). Total: ${user.suspiciousActivity.totalTabSwitches}`);
     } else {
-      console.warn('[ActivityTracker] User not found for id:', currentUserId);
-      // Restore the count so it's not lost
-      pendingIncrements += count;
+      console.warn('[ActivityTracker] User not found, skipping save');
     }
   } catch (e) {
     console.error('[ActivityTracker] Flush failed:', e);
-    pendingIncrements += count; // restore on failure
   } finally {
     flushInFlight = false;
     // If more piled up during flush, schedule another flush

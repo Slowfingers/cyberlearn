@@ -192,7 +192,7 @@ export const evaluateCodeLocally = async (code: string, task: Task): Promise<Exe
             case 'lua_014': if (/function\s+attack\s*\(\s*target\s*\)/.test(cleanCode) && /attack\s*\(\s*"ogre"\s*\)/.test(cleanCode)) success = true; else error = "Функция attack(target) и вызов."; break;
             case 'lua_016': if (/return\s+power\s*\*\s*2/.test(cleanCode)) success = true; else error = "Функция должна возвращать результат."; break;
             case 'lua_020': if (/print\s*\(\s*#\s*items\s*\)/.test(cleanCode)) success = true; else error = "Используй #items."; break;
-            case 'lua_022': if (/pairs\s*\(\s*items\s*\)/.test(cleanCode)) success = true; else error = "Используй ipairs(items)."; break;
+            case 'lua_022': if (/(pairs|ipairs)\s*\(\s*items\s*\)/.test(cleanCode)) success = true; else error = "Используй pairs(items) или ipairs(items)."; break;
             case 'lua_032': if ((/>\ *max/.test(cleanCode) || /max\ *</.test(cleanCode)) && /for/.test(cleanCode)) success = true; else error = "Пройдись циклом и сравнивай с max."; break;
             case 'lua_034': 
                 if (
