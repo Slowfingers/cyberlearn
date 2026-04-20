@@ -196,10 +196,10 @@ export const evaluateCodeLocally = async (code: string, task: Task): Promise<Exe
             case 'lua_032': if ((/>\ *max/.test(cleanCode) || /max\ *</.test(cleanCode)) && /for/.test(cleanCode)) success = true; else error = "Пройдись циклом и сравнивай с max."; break;
             case 'lua_034': 
                 if (
-                    /enemyhp\s*=\s*enemyhp\s*-\s*heropower/i.test(cleanCode) && 
-                    /if\s+enemyhp\s*<=\s*0/i.test(cleanCode) && 
-                    /print\s*\(\s*"Victory!"\s*\)/i.test(cleanCode) &&
-                    (/else/.test(cleanCode) && /print\s*\(\s*"Enemy survived!"\s*\)/i.test(cleanCode))
+                    /enemyHp\s*=\s*enemyHp\s*-\s*heroPower/.test(cleanCode) && 
+                    /if\s+enemyHp\s*<=\s*0/.test(cleanCode) && 
+                    /print\s*\(\s*["']Victory!["']\s*\)/.test(cleanCode) &&
+                    (/else/.test(cleanCode) && /print\s*\(\s*["']Enemy survived!["']\s*\)/.test(cleanCode))
                 ) {
                     success = true;
                 } else {
