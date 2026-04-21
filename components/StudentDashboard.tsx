@@ -1326,7 +1326,7 @@ const StudentDashboard: React.FC<StudentDashboardProps> = ({ currentUser: propUs
                                     value={code}
                                     onChange={(e) => setCode(e.target.value)}
                                     // Removed Enter key binding to allow multiline typing
-                                    className="flex-1 bg-transparent border-none outline-none text-cyber-neonGreen font-mono resize-none min-h-[120px] md:min-h-[80px]"
+                                    className="flex-1 bg-transparent border-none outline-none text-cyber-neonGreen font-mono resize-none min-h-[120px] md:min-h-[200px]"
                                     spellCheck={false}
                                 />
                             </div>
@@ -1354,7 +1354,7 @@ const StudentDashboard: React.FC<StudentDashboardProps> = ({ currentUser: propUs
                                 ref={editorRef}
                                 value={code}
                                 onChange={(e) => setCode(e.target.value)}
-                                className="flex-1 bg-black text-gray-200 p-4 font-mono text-sm resize-none focus:outline-none leading-relaxed whitespace-pre min-w-0 min-h-[200px] md:min-h-0"
+                                className="flex-1 bg-black text-gray-200 p-4 font-mono text-sm resize-none focus:outline-none leading-relaxed whitespace-pre min-w-0 min-h-[200px] md:min-h-[300px]"
                                 spellCheck={false}
                                 placeholder={activeTask.type === 'html' ? "<!-- Пиши HTML код здесь -->" : "// Введите код..."}
                             />
