@@ -190,7 +190,7 @@ export const evaluateCodeLocally = async (code: string, task: Task): Promise<Exe
             case 'lua_008': if (/if\s+hasKey/.test(cleanCode) && /print/.test(cleanCode) && (/OPEN|ДОСТУП|ОТКРЫТ/i.test(cleanCode))) success = true; else error = "Напиши условие: if hasKey then print(\"ДОСТУП ОТКРЫТ\") ..."; break;
             case 'lua_009': if (/for\s+i\s*=\s*1\s*,\s*5\s+do/.test(cleanCode) && /print\s*\(\s*i\s*\)/.test(cleanCode)) success = true; else error = "Напиши for i = 1, 5 do и print(i)."; break;
             case 'lua_014': if (/function\s+attack\s*\(\s*target\s*\)/.test(cleanCode) && /attack\s*\(\s*"ogre"\s*\)/.test(cleanCode)) success = true; else error = "Функция attack(target) и вызов."; break;
-            case 'lua_016': if (/return\s+power\s*\*\s*2/.test(cleanCode)) success = true; else error = "Функция должна возвращать результат."; break;
+            case 'lua_016': if (/return\s+(power\s*\*\s*2|2\s*\*\s*power)/.test(cleanCode)) success = true; else error = "Функция должна возвращать power * 2."; break;
             case 'lua_020': if (/print\s*\(\s*#\s*items\s*\)/.test(cleanCode)) success = true; else error = "Используй #items."; break;
             case 'lua_022': if (/(pairs|ipairs)\s*\(\s*items\s*\)/.test(cleanCode)) success = true; else error = "Используй pairs(items) или ipairs(items)."; break;
             case 'lua_032': if ((/>\ *max/.test(cleanCode) || /max\ *</.test(cleanCode)) && /for/.test(cleanCode)) success = true; else error = "Пройдись циклом и сравнивай с max."; break;
