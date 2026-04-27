@@ -1215,6 +1215,7 @@ const StudentDashboard: React.FC<StudentDashboardProps> = ({ currentUser: propUs
                   <span className="text-xs font-bold uppercase text-gray-300 tracking-widest leading-tight break-words flex-1">{activeTask.title}</span>
               </div>
               <BlockCoding 
+                key={activeTask.id}
                 task={activeTask} 
                 onSuccess={() => { playSound('success'); setMissionSuccess(true); handleTaskCompletion(activeTask, false); }}
                 onFail={() => {

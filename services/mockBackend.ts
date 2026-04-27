@@ -257,7 +257,12 @@ export const getClassStudents = async (classId: string): Promise<StudentProgress
     if (!targetClass) return [];
 
     const users = await getUsers();
-    const realStudents = users.filter(u => targetClass.studentIds?.includes(u.id));
+    // Match students by classId (authoritative) OR legacy studentIds list,
+    // so newly registered students always show up even if studentIds write races.
+    const studentIdSet = new Set(targetClass.studentIds || []);
+    const realStudents = users.filter(u =>
+        u.role === 'student' && (u.classId === targetClass.id || studentIdSet.has(u.id))
+    );
 
     // Get all tasks for course progress calculation
     const allCourseTasks: Record<string, { courseId: string; title: string; color: string; taskIds: string[] }> = {};
