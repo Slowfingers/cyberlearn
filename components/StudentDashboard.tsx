@@ -213,11 +213,14 @@ const StudentDashboard: React.FC<StudentDashboardProps> = ({ currentUser: propUs
         setQuizIsCorrect(false);
     }
 
-    if (currentUser && ['grid', 'html', 'terminal', 'quiz'].includes(activeTask.type)) {
+  }, [activeTask]);
+
+  // Separate effect for tracking task attempts
+  useEffect(() => {
+    if (currentUser && activeTask && ['grid', 'html', 'terminal', 'quiz'].includes(activeTask.type)) {
         startTaskAttempt(activeTask.id, currentUser.id);
     }
-
-  }, [activeTask, currentUser]);
+  }, [activeTask?.id, currentUser?.id]);
 
   const handleRunCode = async () => {
     if (isRunning || !activeTask) return;
