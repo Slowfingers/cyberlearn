@@ -74,6 +74,16 @@ export const COURSES: Course[] = [
     totalModules: 7,
     color: '#00ff41' // neonGreen
   },
+  {
+    id: 'course_excel100',
+    title: 'EXCEL100: Таблицы Данных',
+    description: 'Научись работать с таблицами Excel! Формулы, графики, сортировка, фильтры и анализ данных для школьников.',
+    icon: 'Table',
+    difficulty: 'Beginner',
+    status: 'active',
+    totalModules: 5,
+    color: '#10b981' // green
+  },
 ];
 
 export const ACHIEVEMENTS: Achievement[] = [
@@ -92,6 +102,7 @@ export const ACHIEVEMENTS: Achievement[] = [
   { id: 'ach_py200', title: 'Нейро-Хакер', description: 'Пройди курс PY200: Нейро-Скриптинг полностью!', icon: '🐍', condition: 'py200_complete', type: 'cyber' },
   { id: 'ach_web300', title: 'Визуальный Взломщик', description: 'Пройди курс WEB300: Визуальный Взлом полностью!', icon: '🌐', condition: 'web300_complete', type: 'cyber' },
   { id: 'ach_alg404', title: 'Архитектор Протоколов', description: 'Пройди курс ALG404: Запретные Протоколы полностью!', icon: '🧠', condition: 'alg404_complete', type: 'cyber' },
+  { id: 'ach_excel100', title: 'Мастер Таблиц', description: 'Пройди курс EXCEL100: Таблицы Данных полностью!', icon: '📊', condition: 'excel100_complete', type: 'cyber' },
 ];
 
 export const COSMETICS: CosmeticItem[] = [
@@ -6409,6 +6420,440 @@ export const MOCK_TASKS: Task[] = [
       correctSequence: ['Несортированный массив O(n)', 'Отсортированный массив + бинарный поиск O(log n)', 'Хеш-таблица O(1)'],
       theme: 'robot',
       successMessage: 'Верно! O(n) > O(log n) > O(1). Хеш-таблица — самая быстрая для поиска по ключу!'
+    }
+  },
+
+  // =========================================================================
+  // EXCEL100: ТАБЛИЦЫ ДАННЫХ — ПОЛНЫЙ КУРС (5 МОДУЛЕЙ)
+  // =========================================================================
+
+  // ── МОДУЛЬ 1: ЗНАКОМСТВО С EXCEL ──────────────────────────────────────
+  {
+    id: 'excel_m1_t1',
+    courseId: 'course_excel100',
+    module: 'Модуль 1: Знакомство с Excel',
+    title: 'Теория: Что такое Excel и зачем он нужен',
+    type: 'theory',
+    description: 'Узнай, что такое Excel и как таблицы помогают организовать информацию.',
+    difficulty: 'Новичок',
+    xpReward: 30,
+    currencyReward: 10,
+    status: 'open',
+    theory: `<p style="color:#10b981;font-weight:bold;margin-bottom:12px">📊 Добро пожаловать в мир таблиц!</p>
+<p style="line-height:1.7"><strong style="color:#10b981">Excel</strong> — это программа для работы с таблицами. Представь большую тетрадь в клеточку, где каждая клеточка может хранить число, текст или формулу!</p>
+<h3 style="color:#10b981;margin-top:20px;margin-bottom:8px">🤔 Зачем нужен Excel?</h3>
+<div style="display:grid;grid-template-columns:repeat(2,1fr);gap:10px;margin:16px 0">
+  <div style="background:#f0fdf4;border:2px solid #10b981;border-radius:8px;padding:12px;text-align:center">
+    <p style="font-size:1.5em;margin:0">📝</p><p style="color:#10b981;font-weight:bold;margin:4px 0">Списки</p>
+    <p style="font-size:0.85em;margin:0;color:#666">Список покупок, оценок, друзей</p>
+  </div>
+  <div style="background:#f0fdf4;border:2px solid #10b981;border-radius:8px;padding:12px;text-align:center">
+    <p style="font-size:1.5em;margin:0">🧮</p><p style="color:#10b981;font-weight:bold;margin:4px 0">Расчёты</p>
+    <p style="font-size:0.85em;margin:0;color:#666">Сложить, умножить, найти среднее</p>
+  </div>
+  <div style="background:#f0fdf4;border:2px solid #10b981;border-radius:8px;padding:12px;text-align:center">
+    <p style="font-size:1.5em;margin:0">📈</p><p style="color:#10b981;font-weight:bold;margin:4px 0">Графики</p>
+    <p style="font-size:0.85em;margin:0;color:#666">Красивые диаграммы из чисел</p>
+  </div>
+  <div style="background:#f0fdf4;border:2px solid #10b981;border-radius:8px;padding:12px;text-align:center">
+    <p style="font-size:1.5em;margin:0">🔍</p><p style="color:#10b981;font-weight:bold;margin:4px 0">Поиск</p>
+    <p style="font-size:0.85em;margin:0;color:#666">Найти нужную информацию быстро</p>
+  </div>
+</div>
+<h3 style="color:#10b981;margin-top:20px;margin-bottom:8px">📐 Как устроен Excel?</h3>
+<p style="line-height:1.7">Excel состоит из <strong>ячеек</strong> — клеточек, которые расположены в <strong>столбцах</strong> (A, B, C...) и <strong>строках</strong> (1, 2, 3...).</p>
+<div style="background:#f0fdf4;border:2px solid #10b981;border-radius:8px;padding:14px;margin:12px 0">
+  <p style="margin:4px 0"><span style="color:#10b981;font-weight:bold">A1</span> — первая ячейка (столбец A, строка 1)</p>
+  <p style="margin:4px 0"><span style="color:#10b981;font-weight:bold">B3</span> — ячейка в столбце B, строка 3</p>
+  <p style="margin:4px 0"><span style="color:#10b981;font-weight:bold">C5</span> — ячейка в столбце C, строка 5</p>
+</div>
+<div style="background:#ecfdf5;border:1px solid #10b981;border-radius:8px;padding:12px;margin-top:16px">
+  <p style="color:#10b981;font-weight:bold;margin-bottom:4px">💡 Аналогия:</p>
+  <p style="margin:0;color:#333">Excel — как шахматная доска. У каждой клетки есть адрес: буква (столбец) + цифра (строка)!</p>
+</div>`
+  },
+  {
+    id: 'excel_m1_q1',
+    courseId: 'course_excel100',
+    module: 'Модуль 1: Знакомство с Excel',
+    title: 'Квиз: Что такое Excel?',
+    type: 'quiz',
+    description: 'Проверь, понял ли ты основы Excel.',
+    difficulty: 'Новичок',
+    xpReward: 20,
+    currencyReward: 5,
+    status: 'locked',
+    quizData: {
+      question: "Что такое ячейка в Excel?",
+      options: ["Клеточка для хранения данных","Кнопка на клавиатуре","Программа для рисования","Файл на компьютере"],
+      correctIndex: 0,
+      explanation: "Ячейка — это клеточка в таблице, где можно хранить текст, числа или формулы. У каждой ячейки есть адрес, например A1 или B5."
+    }
+  },
+  {
+    id: 'excel_m1_q2',
+    courseId: 'course_excel100',
+    module: 'Модуль 1: Знакомство с Excel',
+    title: 'Квиз: Адреса ячеек',
+    type: 'quiz',
+    description: 'Проверь знание адресов ячеек.',
+    difficulty: 'Новичок',
+    xpReward: 20,
+    currencyReward: 5,
+    status: 'locked',
+    quizData: {
+      question: "Как называется ячейка в столбце B, строке 3?",
+      options: ["3B","B3","2C","C2"],
+      correctIndex: 1,
+      explanation: "Адрес ячейки: сначала буква столбца (B), потом номер строки (3). Получается B3!"
+    }
+  },
+
+  // ── МОДУЛЬ 2: ФОРМУЛЫ И РАСЧЁТЫ ───────────────────────────────────────
+  {
+    id: 'excel_m2_t1',
+    courseId: 'course_excel100',
+    module: 'Модуль 2: Формулы и расчёты',
+    title: 'Теория: Простые формулы',
+    type: 'theory',
+    description: 'Научись складывать, вычитать, умножать и делить прямо в Excel!',
+    difficulty: 'Новичок',
+    xpReward: 40,
+    currencyReward: 10,
+    status: 'locked',
+    theory: `<p style="color:#10b981;font-weight:bold;margin-bottom:12px">🧮 Excel — твой калькулятор!</p>
+<p style="line-height:1.7">В Excel можно не только хранить числа, но и <strong>считать</strong> их! Для этого используются <strong style="color:#10b981">формулы</strong>.</p>
+<h3 style="color:#10b981;margin-top:20px;margin-bottom:8px">✏️ Как написать формулу?</h3>
+<p style="line-height:1.7">Любая формула начинается со знака <strong style="color:#10b981">=</strong> (равно).</p>
+<div style="background:#f0fdf4;border:2px solid #10b981;border-radius:8px;padding:16px;margin:12px 0;font-family:monospace;font-size:14px">
+  <p style="margin:4px 0"><span style="color:#10b981">=5+3</span> → результат: <strong>8</strong></p>
+  <p style="margin:4px 0"><span style="color:#10b981">=10-4</span> → результат: <strong>6</strong></p>
+  <p style="margin:4px 0"><span style="color:#10b981">=6*2</span> → результат: <strong>12</strong> (умножение)</p>
+  <p style="margin:4px 0"><span style="color:#10b981">=20/5</span> → результат: <strong>4</strong> (деление)</p>
+</div>
+<h3 style="color:#10b981;margin-top:20px;margin-bottom:8px">🔗 Формулы с ячейками</h3>
+<p style="line-height:1.7">Можно использовать адреса ячеек вместо чисел!</p>
+<div style="background:#f0fdf4;border:2px solid #10b981;border-radius:8px;padding:16px;margin:12px 0;font-family:monospace;font-size:14px">
+  <p style="margin:4px 0;color:#666">Если в A1 число 5, а в A2 число 3:</p>
+  <p style="margin:4px 0"><span style="color:#10b981">=A1+A2</span> → результат: <strong>8</strong></p>
+  <p style="margin:4px 0"><span style="color:#10b981">=A1*A2</span> → результат: <strong>15</strong></p>
+</div>
+<div style="background:#ecfdf5;border:1px solid #10b981;border-radius:8px;padding:12px;margin-top:16px">
+  <p style="color:#10b981;font-weight:bold;margin-bottom:4px">💡 Почему это удобно?</p>
+  <p style="margin:0;color:#333">Если изменишь число в A1, формула автоматически пересчитается! Не нужно ничего переписывать.</p>
+</div>`
+  },
+  {
+    id: 'excel_m2_q1',
+    courseId: 'course_excel100',
+    module: 'Модуль 2: Формулы и расчёты',
+    title: 'Квиз: Формулы',
+    type: 'quiz',
+    description: 'Проверь знание формул.',
+    difficulty: 'Новичок',
+    xpReward: 30,
+    currencyReward: 10,
+    status: 'locked',
+    quizData: {
+      question: "С какого символа начинается любая формула в Excel?",
+      options: ["#","=","@","$"],
+      correctIndex: 1,
+      explanation: "Любая формула в Excel начинается со знака = (равно). Например: =5+3 или =A1+B1"
+    }
+  },
+  {
+    id: 'excel_m2_t2',
+    courseId: 'course_excel100',
+    module: 'Модуль 2: Формулы и расчёты',
+    title: 'Теория: Функции СУММ и СРЗНАЧ',
+    type: 'theory',
+    description: 'Узнай, как быстро сложить много чисел и найти среднее значение.',
+    difficulty: 'Новичок',
+    xpReward: 50,
+    currencyReward: 15,
+    status: 'locked',
+    theory: `<p style="color:#10b981;font-weight:bold;margin-bottom:12px">⚡ Функции — супер-формулы!</p>
+<p style="line-height:1.7">Представь: нужно сложить 100 чисел. Писать =A1+A2+A3+...+A100? Долго! Для этого есть <strong style="color:#10b981">функции</strong>.</p>
+<h3 style="color:#10b981;margin-top:20px;margin-bottom:8px">➕ СУММ — сложить всё</h3>
+<div style="background:#f0fdf4;border:2px solid #10b981;border-radius:8px;padding:16px;margin:12px 0;font-family:monospace;font-size:14px">
+  <p style="margin:4px 0"><span style="color:#10b981">=СУММ(A1:A5)</span></p>
+  <p style="margin:4px 0;color:#666;font-size:0.9em">Сложит все числа от A1 до A5</p>
+</div>
+<p style="line-height:1.7"><strong>A1:A5</strong> — это диапазон (от A1 до A5). Двоеточие означает «до».</p>
+<h3 style="color:#10b981;margin-top:20px;margin-bottom:8px">📊 СРЗНАЧ — среднее значение</h3>
+<div style="background:#f0fdf4;border:2px solid #10b981;border-radius:8px;padding:16px;margin:12px 0;font-family:monospace;font-size:14px">
+  <p style="margin:4px 0"><span style="color:#10b981">=СРЗНАЧ(B1:B10)</span></p>
+  <p style="margin:4px 0;color:#666;font-size:0.9em">Найдёт среднее арифметическое чисел от B1 до B10</p>
+</div>
+<h3 style="color:#10b981;margin-top:20px;margin-bottom:8px">📝 Пример</h3>
+<div style="background:#f0fdf4;border:2px solid #10b981;border-radius:8px;padding:14px;margin:12px 0">
+  <p style="margin:4px 0">У тебя оценки: 5, 4, 5, 3, 4 (в ячейках A1-A5)</p>
+  <p style="margin:4px 0"><span style="color:#10b981">=СРЗНАЧ(A1:A5)</span> → <strong>4.2</strong> (средняя оценка)</p>
+</div>
+<div style="background:#ecfdf5;border:1px solid #10b981;border-radius:8px;padding:12px;margin-top:16px">
+  <p style="color:#10b981;font-weight:bold;margin-bottom:4px">💡 Совет:</p>
+  <p style="margin:0;color:#333">Функции пишутся БОЛЬШИМИ БУКВАМИ. Excel сам подскажет, когда начнёшь печатать!</p>
+</div>`
+  },
+  {
+    id: 'excel_m2_q2',
+    courseId: 'course_excel100',
+    module: 'Модуль 2: Формулы и расчёты',
+    title: 'Квиз: Функции',
+    type: 'quiz',
+    description: 'Проверь знание функций.',
+    difficulty: 'Новичок',
+    xpReward: 30,
+    currencyReward: 10,
+    status: 'locked',
+    quizData: {
+      question: "Какая функция найдёт среднее значение чисел?",
+      options: ["СУММ","СРЗНАЧ","МАКС","МИН"],
+      correctIndex: 1,
+      explanation: "СРЗНАЧ (среднее значение) складывает все числа и делит на их количество. СУММ просто складывает."
+    }
+  },
+
+  // ── МОДУЛЬ 3: СОРТИРОВКА И ФИЛЬТРЫ ────────────────────────────────────
+  {
+    id: 'excel_m3_t1',
+    courseId: 'course_excel100',
+    module: 'Модуль 3: Сортировка и фильтры',
+    title: 'Теория: Сортировка данных',
+    type: 'theory',
+    description: 'Научись упорядочивать данные по возрастанию и убыванию.',
+    difficulty: 'Хакер',
+    xpReward: 40,
+    currencyReward: 15,
+    status: 'locked',
+    theory: `<p style="color:#10b981;font-weight:bold;margin-bottom:12px">🔄 Наведи порядок!</p>
+<p style="line-height:1.7"><strong style="color:#10b981">Сортировка</strong> — это расстановка данных по порядку. Как книги на полке: по алфавиту или по размеру.</p>
+<h3 style="color:#10b981;margin-top:20px;margin-bottom:8px">📈 Виды сортировки</h3>
+<div style="display:flex;flex-direction:column;gap:10px;margin:12px 0">
+  <div style="background:#f0fdf4;border-left:4px solid #10b981;padding:12px;border-radius:0 6px 6px 0">
+    <p style="color:#10b981;font-weight:bold;margin-bottom:4px">По возрастанию ↑</p>
+    <p style="margin:0;color:#666">От меньшего к большему: 1, 2, 3, 4, 5 или А, Б, В</p>
+  </div>
+  <div style="background:#f0fdf4;border-left:4px solid #10b981;padding:12px;border-radius:0 6px 6px 0">
+    <p style="color:#10b981;font-weight:bold;margin-bottom:4px">По убыванию ↓</p>
+    <p style="margin:0;color:#666">От большего к меньшему: 5, 4, 3, 2, 1 или Я, Ю, Э</p>
+  </div>
+</div>
+<h3 style="color:#10b981;margin-top:20px;margin-bottom:8px">🎯 Как сортировать?</h3>
+<div style="background:#f0fdf4;border:2px solid #10b981;border-radius:8px;padding:14px;margin:12px 0">
+  <p style="margin:4px 0"><strong>1.</strong> Выдели столбец с данными</p>
+  <p style="margin:4px 0"><strong>2.</strong> Нажми кнопку «Сортировка» на панели</p>
+  <p style="margin:4px 0"><strong>3.</strong> Выбери: по возрастанию или убыванию</p>
+</div>
+<h3 style="color:#10b981;margin-top:20px;margin-bottom:8px">📝 Пример</h3>
+<p style="line-height:1.7">У тебя список учеников с оценками. Сортировка по убыванию покажет, кто получил самые высокие оценки!</p>
+<div style="background:#ecfdf5;border:1px solid #10b981;border-radius:8px;padding:12px;margin-top:16px">
+  <p style="color:#10b981;font-weight:bold;margin-bottom:4px">💡 Важно:</p>
+  <p style="margin:0;color:#333">Если сортируешь таблицу, выдели ВСЕ столбцы, чтобы строки не перепутались!</p>
+</div>`
+  },
+  {
+    id: 'excel_m3_q1',
+    courseId: 'course_excel100',
+    module: 'Модуль 3: Сортировка и фильтры',
+    title: 'Квиз: Сортировка',
+    type: 'quiz',
+    description: 'Проверь понимание сортировки.',
+    difficulty: 'Хакер',
+    xpReward: 30,
+    currencyReward: 10,
+    status: 'locked',
+    quizData: {
+      question: "Что означает сортировка по возрастанию?",
+      options: ["От большего к меньшему","От меньшего к большему","Случайный порядок","Только для букв"],
+      correctIndex: 1,
+      explanation: "Сортировка по возрастанию — от меньшего к большему. Например: 1, 2, 3, 4, 5 или А, Б, В, Г."
+    }
+  },
+  {
+    id: 'excel_m3_t2',
+    courseId: 'course_excel100',
+    module: 'Модуль 3: Сортировка и фильтры',
+    title: 'Теория: Фильтры',
+    type: 'theory',
+    description: 'Узнай, как показывать только нужные данные, скрывая остальные.',
+    difficulty: 'Хакер',
+    xpReward: 50,
+    currencyReward: 15,
+    status: 'locked',
+    theory: `<p style="color:#10b981;font-weight:bold;margin-bottom:12px">🔍 Найди то, что нужно!</p>
+<p style="line-height:1.7"><strong style="color:#10b981">Фильтр</strong> — это как сито. Показывает только те строки, которые подходят под условие. Остальные временно скрываются.</p>
+<h3 style="color:#10b981;margin-top:20px;margin-bottom:8px">🎯 Как работает фильтр?</h3>
+<div style="background:#f0fdf4;border:2px solid #10b981;border-radius:8px;padding:14px;margin:12px 0">
+  <p style="margin:4px 0"><strong>1.</strong> Выдели заголовки таблицы</p>
+  <p style="margin:4px 0"><strong>2.</strong> Нажми кнопку «Фильтр»</p>
+  <p style="margin:4px 0"><strong>3.</strong> Появятся стрелочки ▼ возле заголовков</p>
+  <p style="margin:4px 0"><strong>4.</strong> Кликни на стрелочку и выбери условие</p>
+</div>
+<h3 style="color:#10b981;margin-top:20px;margin-bottom:8px">📝 Примеры фильтров</h3>
+<div style="background:#f0fdf4;border:2px solid #10b981;border-radius:8px;padding:14px;margin:12px 0">
+  <p style="margin:4px 0">📚 <strong>Оценки:</strong> показать только пятёрки</p>
+  <p style="margin:4px 0">🎂 <strong>Возраст:</strong> показать детей старше 10 лет</p>
+  <p style="margin:4px 0">🏙️ <strong>Города:</strong> показать только Москву</p>
+</div>
+<h3 style="color:#10b981;margin-top:20px;margin-bottom:8px">⚡ Несколько фильтров</h3>
+<p style="line-height:1.7">Можно применить фильтры к нескольким столбцам сразу! Например: показать учеников из Москвы с оценкой 5.</p>
+<div style="background:#ecfdf5;border:1px solid #10b981;border-radius:8px;padding:12px;margin-top:16px">
+  <p style="color:#10b981;font-weight:bold;margin-bottom:4px">💡 Важно:</p>
+  <p style="margin:0;color:#333">Фильтр не удаляет данные! Он их просто прячет. Убери фильтр — всё вернётся!</p>
+</div>`
+  },
+  {
+    id: 'excel_m3_q2',
+    courseId: 'course_excel100',
+    module: 'Модуль 3: Сортировка и фильтры',
+    title: 'Квиз: Фильтры',
+    type: 'quiz',
+    description: 'Проверь знание фильтров.',
+    difficulty: 'Хакер',
+    xpReward: 30,
+    currencyReward: 10,
+    status: 'locked',
+    quizData: {
+      question: "Что делает фильтр в Excel?",
+      options: ["Удаляет ненужные строки","Временно скрывает строки, не подходящие под условие","Меняет цвет ячеек","Сортирует данные"],
+      correctIndex: 1,
+      explanation: "Фильтр временно скрывает строки, которые не подходят под условие. Данные не удаляются — их можно вернуть, убрав фильтр!"
+    }
+  },
+
+  // ── МОДУЛЬ 4: ГРАФИКИ И ДИАГРАММЫ ─────────────────────────────────────
+  {
+    id: 'excel_m4_t1',
+    courseId: 'course_excel100',
+    module: 'Модуль 4: Графики и диаграммы',
+    title: 'Теория: Зачем нужны графики',
+    type: 'theory',
+    description: 'Узнай, как превратить скучные числа в красивые картинки!',
+    difficulty: 'Элита',
+    xpReward: 40,
+    currencyReward: 15,
+    status: 'locked',
+    theory: `<p style="color:#10b981;font-weight:bold;margin-bottom:12px">📊 Картинка лучше тысячи чисел!</p>
+<p style="line-height:1.7">Представь: таблица с 100 числами. Сложно понять, что происходит? <strong style="color:#10b981">График</strong> покажет это за секунду!</p>
+<h3 style="color:#10b981;margin-top:20px;margin-bottom:8px">🎨 Виды диаграмм</h3>
+<div style="display:grid;grid-template-columns:repeat(2,1fr);gap:10px;margin:16px 0">
+  <div style="background:#f0fdf4;border:2px solid #10b981;border-radius:8px;padding:12px">
+    <p style="font-size:1.5em;margin:0">📊</p>
+    <p style="color:#10b981;font-weight:bold;margin:4px 0">Столбчатая</p>
+    <p style="font-size:0.85em;margin:0;color:#666">Сравнить несколько значений</p>
+  </div>
+  <div style="background:#f0fdf4;border:2px solid #10b981;border-radius:8px;padding:12px">
+    <p style="font-size:1.5em;margin:0">🥧</p>
+    <p style="color:#10b981;font-weight:bold;margin:4px 0">Круговая</p>
+    <p style="font-size:0.85em;margin:0;color:#666">Показать части целого</p>
+  </div>
+  <div style="background:#f0fdf4;border:2px solid #10b981;border-radius:8px;padding:12px">
+    <p style="font-size:1.5em;margin:0">📈</p>
+    <p style="color:#10b981;font-weight:bold;margin:4px 0">Линейная</p>
+    <p style="font-size:0.85em;margin:0;color:#666">Показать изменения во времени</p>
+  </div>
+  <div style="background:#f0fdf4;border:2px solid #10b981;border-radius:8px;padding:12px">
+    <p style="font-size:1.5em;margin:0">📉</p>
+    <p style="color:#10b981;font-weight:bold;margin:4px 0">График с областями</p>
+    <p style="font-size:0.85em;margin:0;color:#666">Показать тренды</p>
+  </div>
+</div>
+<h3 style="color:#10b981;margin-top:20px;margin-bottom:8px">🎯 Как создать диаграмму?</h3>
+<div style="background:#f0fdf4;border:2px solid #10b981;border-radius:8px;padding:14px;margin:12px 0">
+  <p style="margin:4px 0"><strong>1.</strong> Выдели данные (числа и подписи)</p>
+  <p style="margin:4px 0"><strong>2.</strong> Нажми «Вставка» → «Диаграмма»</p>
+  <p style="margin:4px 0"><strong>3.</strong> Выбери тип диаграммы</p>
+  <p style="margin:4px 0"><strong>4.</strong> Готово! Можно менять цвета и стиль</p>
+</div>
+<h3 style="color:#10b981;margin-top:20px;margin-bottom:8px">📝 Пример</h3>
+<p style="line-height:1.7">У тебя оценки за 4 четверти: 4, 5, 4, 5. Линейный график покажет, как менялась успеваемость!</p>
+<div style="background:#ecfdf5;border:1px solid #10b981;border-radius:8px;padding:12px;margin-top:16px">
+  <p style="color:#10b981;font-weight:bold;margin-bottom:4px">💡 Совет:</p>
+  <p style="margin:0;color:#333">Круговая диаграмма хороша для процентов. Например: сколько времени ты тратишь на уроки, игры и сон.</p>
+</div>`
+  },
+  {
+    id: 'excel_m4_q1',
+    courseId: 'course_excel100',
+    module: 'Модуль 4: Графики и диаграммы',
+    title: 'Квиз: Диаграммы',
+    type: 'quiz',
+    description: 'Проверь знание диаграмм.',
+    difficulty: 'Элита',
+    xpReward: 30,
+    currencyReward: 10,
+    status: 'locked',
+    quizData: {
+      question: "Какая диаграмма лучше всего показывает части целого?",
+      options: ["Столбчатая","Круговая","Линейная","График с областями"],
+      correctIndex: 1,
+      explanation: "Круговая диаграмма (пирог) показывает, как целое делится на части. Например: 30% — уроки, 40% — сон, 30% — игры."
+    }
+  },
+
+  // ── МОДУЛЬ 5: ФИНАЛЬНЫЙ ПРОЕКТ ────────────────────────────────────────
+  {
+    id: 'excel_m5_t1',
+    courseId: 'course_excel100',
+    module: 'Модуль 5: Финальный проект',
+    title: 'Теория: Создаём свой проект',
+    type: 'theory',
+    description: 'Собери все знания вместе и создай полезную таблицу!',
+    difficulty: 'Легенда',
+    xpReward: 50,
+    currencyReward: 20,
+    status: 'locked',
+    theory: `<p style="color:#10b981;font-weight:bold;margin-bottom:12px">🏆 Время применить знания!</p>
+<p style="line-height:1.7">Ты изучил ячейки, формулы, сортировку, фильтры и графики. Теперь создадим <strong style="color:#10b981">полезную таблицу</strong>!</p>
+<h3 style="color:#10b981;margin-top:20px;margin-bottom:8px">📋 Идеи для проектов</h3>
+<div style="display:flex;flex-direction:column;gap:10px;margin:12px 0">
+  <div style="background:#f0fdf4;border-left:4px solid #10b981;padding:12px;border-radius:0 6px 6px 0">
+    <p style="color:#10b981;font-weight:bold;margin-bottom:4px">📚 Дневник оценок</p>
+    <p style="margin:0;color:#666">Предметы, оценки, средний балл, график успеваемости</p>
+  </div>
+  <div style="background:#f0fdf4;border-left:4px solid #10b981;padding:12px;border-radius:0 6px 6px 0">
+    <p style="color:#10b981;font-weight:bold;margin-bottom:4px">💰 Учёт карманных денег</p>
+    <p style="margin:0;color:#666">Доходы, расходы, остаток, круговая диаграмма трат</p>
+  </div>
+  <div style="background:#f0fdf4;border-left:4px solid #10b981;padding:12px;border-radius:0 6px 6px 0">
+    <p style="color:#10b981;font-weight:bold;margin-bottom:4px">🎮 Коллекция игр</p>
+    <p style="margin:0;color:#666">Название, жанр, оценка, время прохождения, сортировка</p>
+  </div>
+  <div style="background:#f0fdf4;border-left:4px solid #10b981;padding:12px;border-radius:0 6px 6px 0">
+    <p style="color:#10b981;font-weight:bold;margin-bottom:4px">⏰ Расписание недели</p>
+    <p style="margin:0;color:#666">Дни, уроки, время, цветное оформление</p>
+  </div>
+</div>
+<h3 style="color:#10b981;margin-top:20px;margin-bottom:8px">🎯 Что должно быть в проекте?</h3>
+<div style="background:#f0fdf4;border:2px solid #10b981;border-radius:8px;padding:14px;margin:12px 0">
+  <p style="margin:4px 0">✅ Минимум 3 столбца с данными</p>
+  <p style="margin:4px 0">✅ Хотя бы одна формула (СУММ, СРЗНАЧ или другая)</p>
+  <p style="margin:4px 0">✅ Сортировка или фильтр</p>
+  <p style="margin:4px 0">✅ Одна диаграмма</p>
+  <p style="margin:4px 0">✅ Красивое оформление (цвета, границы)</p>
+</div>
+<div style="background:#ecfdf5;border:1px solid #10b981;border-radius:8px;padding:12px;margin-top:16px">
+  <p style="color:#10b981;font-weight:bold;margin-bottom:4px">🚀 Ты готов!</p>
+  <p style="margin:0;color:#333">Excel — мощный инструмент. С ним ты можешь организовать любую информацию: от домашних заданий до бюджета!</p>
+</div>`
+  },
+  {
+    id: 'excel_m5_q1',
+    courseId: 'course_excel100',
+    module: 'Модуль 5: Финальный проект',
+    title: 'Квиз: Итоговый',
+    type: 'quiz',
+    description: 'Финальная проверка знаний Excel.',
+    difficulty: 'Легенда',
+    xpReward: 50,
+    currencyReward: 20,
+    status: 'locked',
+    quizData: {
+      question: "Что из этого НЕ является функцией Excel?",
+      options: ["СУММ","СРЗНАЧ","МАКС","ГРАФИК"],
+      correctIndex: 3,
+      explanation: "ГРАФИК — это не функция, а тип диаграммы. СУММ, СРЗНАЧ и МАКС — это функции для расчётов."
     }
   },
 ];
