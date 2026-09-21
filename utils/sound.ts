@@ -4,7 +4,7 @@
 
 let audioCtx: AudioContext | null = null;
 let masterGain: GainNode | null = null;
-let isMuted: boolean = localStorage.getItem('cyberlearn_sound_muted') === 'true';
+let isMuted: boolean = typeof localStorage !== 'undefined' && localStorage.getItem('cyberlearn_sound_muted') === 'true';
 
 export const isSoundMuted = (): boolean => isMuted;
 
@@ -29,7 +29,7 @@ const initAudio = () => {
     }
 };
 
-type SoundType = 'hover' | 'click' | 'type' | 'error' | 'success' | 'move' | 'open' | 'page';
+type SoundType = 'hover' | 'click' | 'type' | 'error' | 'success' | 'move' | 'open' | 'page' | 'chirp' | 'mascot_pop' | 'hit';
 
 export const playSound = (type: SoundType) => {
     try {
@@ -161,6 +161,37 @@ export const playSound = (type: SoundType) => {
                 noise.connect(filter);
                 filter.connect(gain);
                 noise.start(now);
+                break;
+
+            case 'chirp':
+                osc.type = 'sine';
+                osc.frequency.setValueAtTime(600, now);
+                osc.frequency.exponentialRampToValueAtTime(1400, now + 0.08);
+                osc.frequency.exponentialRampToValueAtTime(900, now + 0.16);
+                gain.gain.setValueAtTime(0.08, now);
+                gain.gain.exponentialRampToValueAtTime(0.001, now + 0.18);
+                osc.start(now);
+                osc.stop(now + 0.18);
+                break;
+
+            case 'mascot_pop':
+                osc.type = 'triangle';
+                osc.frequency.setValueAtTime(450, now);
+                osc.frequency.exponentialRampToValueAtTime(950, now + 0.12);
+                gain.gain.setValueAtTime(0.12, now);
+                gain.gain.exponentialRampToValueAtTime(0.001, now + 0.15);
+                osc.start(now);
+                osc.stop(now + 0.15);
+                break;
+
+            case 'hit':
+                osc.type = 'triangle';
+                osc.frequency.setValueAtTime(320, now);
+                osc.frequency.exponentialRampToValueAtTime(80, now + 0.08);
+                gain.gain.setValueAtTime(0.12, now);
+                gain.gain.exponentialRampToValueAtTime(0.001, now + 0.08);
+                osc.start(now);
+                osc.stop(now + 0.08);
                 break;
         }
 

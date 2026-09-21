@@ -1,19 +1,109 @@
 
-import React, { useState, useEffect, useRef, useCallback } from 'react';
+import React, { useState, useEffect, useRef, useCallback, useMemo } from 'react';
 import { COSMETICS, ACHIEVEMENTS } from '../constants';
-import { Task, ExecutionResult, User, Course } from '../types';
-import { evaluateCodeLocally } from '../services/localEvaluation'; 
+import { Task, ExecutionResult, User, Course, GridEvent } from '../types';
+import { evaluateCodeLocally, shuffledQuiz } from '../services/localEvaluation';
 import { calculateLevel, getNextLevelThreshold, updateUserProfile, getAllTasks, getCoursesWithProgress, buyItem, equipItem, saveTaskProgress, getTaskProgress, getHiddenCoursesForStudent, getStreak, recordActivity, StreakData } from '../services/mockBackend';
 import GameGrid from './GameGrid';
 import HanoiGame from './HanoiGame';
 import BlockCoding from './BlockCoding';
 import AnimatedSprite, { hasAnimation } from './AnimatedSprite';
 import CyberToast, { ToastMessage } from './CyberToast';
-import { Play, RotateCcw, CheckCircle, Lock, BookOpen, Zap, ArrowRight, ChevronLeft, Trophy, X, Bot, Code, Terminal as TerminalIcon, Cpu, Globe, Grid, LayoutList, Eye, Loader2, HelpCircle, ShoppingBag, Coins, BrainCircuit, Puzzle, Award, Flame } from 'lucide-react';
+import { TypingGame } from './interactives/TypingGame';
+import { ProcessManagerGame } from './interactives/ProcessManagerGame';
+import { SpreadsheetGame } from './interactives/SpreadsheetGame';
+import { SortingGame } from './interactives/SortingGame';
+import { BinaryTreeGame } from './interactives/BinaryTreeGame';
+import { PhishingInspectorGame } from './interactives/PhishingInspectorGame';
+import { NeuronLabGame } from './interactives/NeuronLabGame';
+import { NetworkRouteGame } from './interactives/NetworkRouteGame';
+import { FileOrganizerGame } from './interactives/FileOrganizerGame';
+import { BinaryBulbsGame } from './interactives/BinaryBulbsGame';
+import { WireframeBuilderGame } from './interactives/WireframeBuilderGame';
+import { FakeDetectorGame } from './interactives/FakeDetectorGame';
+import { CircuitBuilderGame } from './interactives/CircuitBuilderGame';
+import { AiKidsTrainerGame } from './interactives/AiKidsTrainerGame';
+import { BigMascotTheoryStory } from './BigMascotTheoryStory';
+import { Play, RotateCcw, CheckCircle, Lock, BookOpen, Zap, ArrowRight, ChevronLeft, Trophy, X, Bot, Code, Terminal as TerminalIcon, Cpu, Globe, Grid, LayoutList, Eye, Loader2, HelpCircle, ShoppingBag, Coins, BrainCircuit, Puzzle, Award, Flame, Activity, ArrowUpDown, GitBranch, ShieldAlert, Brain, Lightbulb, Folder, Smartphone, ShieldCheck } from 'lucide-react';
 import { playSound } from '../utils/sound';
 import { startTaskAttempt, recordError, endTaskAttempt, cleanupTracker, initActivityTracking } from '../utils/activityTracker';
 
 type MobileTab = 'tasks' | 'code' | 'visual';
+
+// Helper labels for curriculum tasks
+export const getTaskTypeLabel = (type: string) => {
+  switch (type) {
+    case 'grid': return 'Управление роботом';
+    case 'quiz': return 'Тест на понимание';
+    case 'theory': return 'Теоретический модуль';
+    case 'html': return 'Веб-разработка';
+    case 'terminal': return 'Кибер-терминал';
+    case 'hanoi': return 'Декомпозиция (Башня)';
+    case 'blocks': return 'Блочное программирование';
+    case 'typing': return 'Клавиатурный тренажер';
+    case 'process_manager': return 'Диспетчер процессов';
+    case 'spreadsheet': return 'Электронные таблицы';
+    case 'sorting': return 'Сортировка кристаллов';
+    case 'tree_search': return 'Бинарные деревья';
+    case 'phishing_detect': return 'Анализ фишинга';
+    case 'ai_neuron': return 'Нейролаборатория';
+    case 'network_route': return 'Сетевой маршрут';
+    case 'file_organizer': return 'Сортировщик файлов';
+    case 'binary_switches':
+    case 'binary_bulbs': return 'Двоичные лампочки';
+    case 'wireframe_builder': return 'Прототип интерфейса';
+    case 'circuit_builder':
+    case 'circuit': return 'Сборка микросхем';
+    case 'fake_detector': return 'Детектор фейков';
+    case 'ai_kids_trainer':
+    case 'ai_trainer': return 'Обучение ИИ';
+    default: return 'Практическое задание';
+  }
+};
+
+export const getTaskPracticeGoal = (task: Task) => {
+  if (task.type === 'file_organizer') {
+    return 'Перед тобой откроется рабочий стол с неразобранными файлами (.png, .mp3, .docx, .exe). Ориентируясь на расширение файла, перетащи каждый файл мышкой в подходящую по цвету папку!';
+  }
+  if (task.type === 'binary_switches' || task.type === 'binary_bulbs') {
+    return 'Включай лампочки с весами 8, 4, 2, 1, чтобы получить в сумме число, загаданное компьютером. Потренируйся считать в двоичном коде!';
+  }
+  if (task.type === 'quiz') {
+    return 'Внимательно прочитай контрольный вопрос и выбери правильный ответ, чтобы подтвердить нейросетевой допуск!';
+  }
+  if (task.type === 'typing') {
+    return 'Расположи пальчики на домашнем ряду клавиатуры (ФЫВА ОЛДЖ) и напечатай кодовые команды быстро и без опечаток!';
+  }
+  if (task.type === 'sorting') {
+    return 'Сравнивай соседние кристаллы и меняй их местами пузырьковым методом, чтобы упорядочить ряд по возрастанию энергии!';
+  }
+  if (task.type === 'hanoi') {
+    return 'Перенеси пирамидку деталей робота на третий штырек, соблюдая строгое правило: меньшая деталь всегда должна лежать сверху!';
+  }
+  if (task.type === 'grid') {
+    return 'Составь точную программу для робота, обойди опасные препятствия и лазеры и доведи его до целевого кристалла!';
+  }
+  if (task.type === 'circuit_builder') {
+    return 'Соедини логические вентили (И, ИЛИ, НЕ, XOR) в единую схему, чтобы зажечь сигнальный светодиод питания!';
+  }
+  if (task.type === 'fake_detector') {
+    return 'Исследуй элементы страницы: проверь значок замка, адрес сайта (URL) и ошибки, чтобы защитить систему от подделки!';
+  }
+  if (task.type === 'ai_kids_trainer') {
+    return 'Обучи нейросеть распознавать изображения: разметь обучающие карточки и протестируй точность работы ИИ!';
+  }
+  if (task.type === 'wireframe_builder') {
+    return 'Спроектируй удобный мобильный интерфейс: перетащи блоки кнопок, картинок и текста на макет экрана смартфона!';
+  }
+  return task.description;
+};
+
+// Фолбэк для 3D-наставника: если BigMascotTheoryStory упал, показываем обычную теорию
+class MascotErrorBoundary extends React.Component<{ fallback: React.ReactNode; children: React.ReactNode }, { hasError: boolean }> {
+  state = { hasError: false };
+  static getDerivedStateFromError() { return { hasError: true }; }
+  render() { return this.state.hasError ? this.props.fallback : this.props.children; }
+}
 
 interface StudentDashboardProps {
   currentUser: import('../types').User;
@@ -41,6 +131,15 @@ const StudentDashboard: React.FC<StudentDashboardProps> = ({ currentUser: propUs
   const [logs, setLogs] = useState<string[]>([]);
   const [playerPos, setPlayerPos] = useState<[number, number]>([0,0]);
   const [pathHistory, setPathHistory] = useState<[number, number][]>([]);
+
+  // Lesson stage: 1 = объяснение (Байтик + теория), 2 = практика
+  const [lessonStage, setLessonStage] = useState<'explanation' | 'practice'>('explanation');
+  // Стадия, которую выставить ПОСЛЕ смены задачи (эффект сброса перезаписывает state)
+  const pendingLessonStage = useRef<'explanation' | 'practice'>('explanation');
+
+  // Grid action animation state
+  const [activeGridAction, setActiveGridAction] = useState<GridEvent | null>(null);
+  const [destroyedObstacles, setDestroyedObstacles] = useState<string[]>([]);
   
   const [hint, setHint] = useState<string>('');
   const [isHintLoading, setIsHintLoading] = useState(false);
@@ -168,6 +267,12 @@ const StudentDashboard: React.FC<StudentDashboardProps> = ({ currentUser: propUs
     }
   }, [liveOutput]);
 
+  // Ответы квиза перемешиваются детерминированно по id задачи (correctIndex в данных всегда 0)
+  const quiz = useMemo(
+    () => (activeTask?.type === 'quiz' && activeTask.quizData ? shuffledQuiz(activeTask.id, activeTask.quizData) : null),
+    [activeTask?.id]
+  );
+
   useEffect(() => {
     if (!activeTask) return;
     
@@ -176,7 +281,11 @@ const StudentDashboard: React.FC<StudentDashboardProps> = ({ currentUser: propUs
     setHint('');
     setAiFeedback('');
     setMissionSuccess(false);
-    setShowTheory(false); 
+    setShowTheory(false);
+    setLessonStage(pendingLessonStage.current);
+    pendingLessonStage.current = 'explanation';
+    setActiveGridAction(null);
+    setDestroyedObstacles([]); 
     setShowHintModal(false);
     
     // Reset attempt counter for new task (keep history for completed tasks)
@@ -206,7 +315,7 @@ const StudentDashboard: React.FC<StudentDashboardProps> = ({ currentUser: propUs
     if (activeTask.type === 'quiz' && activeTask.status === 'completed') {
         setQuizSubmitted(true);
         setQuizIsCorrect(true);
-        setQuizSelectedOption(activeTask.quizData?.correctIndex ?? null);
+        setQuizSelectedOption(quiz?.correctIndex ?? null);
     } else {
         setQuizSelectedOption(null);
         setQuizSubmitted(false);
@@ -239,6 +348,8 @@ const StudentDashboard: React.FC<StudentDashboardProps> = ({ currentUser: propUs
     if (activeTask.mapConfig) {
         setPlayerPos(activeTask.mapConfig.start);
         setPathHistory([activeTask.mapConfig.start]);
+        setDestroyedObstacles([]);
+        setActiveGridAction(null);
     }
 
     const currentInput = code;
@@ -251,8 +362,33 @@ const StudentDashboard: React.FC<StudentDashboardProps> = ({ currentUser: propUs
     // --- INSTANT LOCAL CHECK ---
     const result: ExecutionResult = await evaluateCodeLocally(currentInput, activeTask);
     
-    // Grid animation
-    if (result.steps && result.steps.length > 0) {
+    // Grid animation: события move/jump/attack, иначе просто путь
+    if (result.gridEvents && result.gridEvents.length > 0) {
+        for (let i = 0; i < result.gridEvents.length; i++) {
+            const event = result.gridEvents[i];
+            setActiveGridAction(event);
+
+            if (event.type === 'move') {
+                await new Promise(r => setTimeout(r, 200));
+                setPlayerPos([event.x, event.y]);
+                setPathHistory(prev => [...prev, [event.x, event.y]]);
+            } else if (event.type === 'jump') {
+                await new Promise(r => setTimeout(r, 400));
+                setPlayerPos([event.x, event.y]);
+                setPathHistory(prev => [...prev, [event.x, event.y]]);
+            } else if (event.type === 'attack') {
+                await new Promise(r => setTimeout(r, 300));
+                const targetKey = `${event.targetX},${event.targetY}`;
+                const isObstacle = activeTask.mapConfig?.obstacles.some(o => o[0] === event.targetX && o[1] === event.targetY);
+                if (isObstacle) {
+                    setDestroyedObstacles(prev => [...prev, targetKey]);
+                }
+            }
+
+            setActiveGridAction(null);
+            await new Promise(r => setTimeout(r, 100));
+        }
+    } else if (result.steps && result.steps.length > 0) {
         for (let i = 0; i < result.steps.length; i++) {
             await new Promise(r => setTimeout(r, 200)); 
             const step = result.steps[i];
@@ -329,7 +465,7 @@ const StudentDashboard: React.FC<StudentDashboardProps> = ({ currentUser: propUs
   const handleQuizSubmit = () => {
       if (!activeTask || activeTask.type !== 'quiz' || quizSelectedOption === null) return;
       
-      const isCorrect = quizSelectedOption === activeTask.quizData?.correctIndex;
+      const isCorrect = quizSelectedOption === quiz?.correctIndex;
       setQuizSubmitted(true);
       setQuizIsCorrect(isCorrect);
       
@@ -448,28 +584,40 @@ const StudentDashboard: React.FC<StudentDashboardProps> = ({ currentUser: propUs
           }
           
           const newAchievements = [...(currentUser.achievements || [])];
-          if (!newAchievements.includes('ach_1')) newAchievements.push('ach_1');
-          if (task.type === 'terminal' && !newAchievements.includes('ach_4')) newAchievements.push('ach_4');
-          if (task.type === 'hanoi' && !newAchievements.includes('ach_5')) newAchievements.push('ach_5');
-
-          // Course completion achievements (data-driven)
-          const courseAchMap: Record<string, string> = {
-              'course_code100': 'ach_code100',
-              'course_cs101': 'ach_cs101',
-              'course_lua101': 'ach_lua101',
-              'course_py200': 'ach_py200',
-              'course_web300': 'ach_web300',
-              'course_alg101': 'ach_alg404',
-          };
-          const achId = courseAchMap[task.courseId];
-          if (achId && !newAchievements.includes(achId)) {
-              const courseTasks = tasks.filter(t => t.courseId === task.courseId);
-              const allDone = courseTasks.every(t => t.id === task.id ? true : t.status === 'completed');
-              if (allDone) {
+          const grantAchievement = (achId: string) => {
+              if (!newAchievements.includes(achId) && ACHIEVEMENTS.some(a => a.id === achId)) {
                   newAchievements.push(achId);
                   const achInfo = ACHIEVEMENTS.find(a => a.id === achId);
                   if (achInfo) addToast(`🏆 ${achInfo.title}`, 'success');
               }
+          };
+
+          grantAchievement('ach_1');
+
+          // Ачивки по типу задачи
+          const typeAchMap: Partial<Record<Task['type'], string>> = {
+              typing: 'ach_typing',
+              binary_switches: 'ach_binary',
+              binary_bulbs: 'ach_binary',
+              circuit_builder: 'ach_circuit',
+              grid: 'ach_robot',
+              terminal: 'ach_terminal',
+              html: 'ach_web',
+              hanoi: 'ach_hanoi',
+              phishing_detect: 'ach_safety',
+              fake_detector: 'ach_safety',
+              ai_neuron: 'ach_ai',
+              ai_kids_trainer: 'ach_ai',
+          };
+          const typeAch = typeAchMap[task.type];
+          if (typeAch) grantAchievement(typeAch);
+
+          // Ачивка за полное прохождение курса: course_gradeN -> ach_gradeN
+          const gradeAchId = `ach_${task.courseId.replace('course_', '')}`;
+          if (ACHIEVEMENTS.some(a => a.id === gradeAchId) && !newAchievements.includes(gradeAchId)) {
+              const courseTasks = tasks.filter(t => t.courseId === task.courseId);
+              const allDone = courseTasks.every(t => t.id === task.id ? true : t.status === 'completed');
+              if (allDone) grantAchievement(gradeAchId);
           }
 
           const prevErrors = currentUser.totalErrors || 0;
@@ -1009,42 +1157,85 @@ const StudentDashboard: React.FC<StudentDashboardProps> = ({ currentUser: propUs
                     </div>
                     <div className="space-y-1">
                         {filteredTasks.filter(t => t.module === modName).map(task => (
-                             <button 
+                             <div
                                 key={task.id}
-                                onClick={() => {
-                                    playSound('click');
-                                    setActiveTask(task);
-                                    if (window.innerWidth < 768) {
-                                        setShowMobileSidebar(false);
-                                        if (['grid', 'html', 'terminal'].includes(task.type)) {
-                                            setTaskTab('info');
-                                        }
-                                    }
-                                }}
-                                disabled={task.status === 'locked'}
                                 className={`w-full relative group text-left p-2 md:p-2 py-3 md:py-2 rounded-md flex items-center gap-3 transition-all duration-200 border border-transparent
                                     ${activeTask?.id === task.id 
                                     ? 'bg-cyber-neonBlue/10 border-cyber-neonBlue/50 text-white shadow-[inset_0_0_15px_rgba(0,243,255,0.1)]' 
                                     : 'hover:bg-white/5 text-gray-200 hover:text-white'} 
-                                    ${task.status === 'locked' ? 'opacity-40 cursor-not-allowed grayscale' : 'cursor-pointer'}`}
+                                    ${task.status === 'locked' ? 'opacity-40 grayscale' : ''}`}
                             >
-                                <div className="shrink-0">
-                                    {task.status === 'locked' ? <Lock size={16} /> : 
-                                     task.status === 'completed' ? <CheckCircle size={16} className="text-cyber-neonGreen drop-shadow-[0_0_5px_rgba(0,255,65,0.8)]"/> : 
-                                     task.type === 'theory' ? <BookOpen size={16} className="text-cyber-neonPink" /> :
-                                     task.type === 'quiz' ? <HelpCircle size={16} className="text-cyber-neonYellow" /> :
-                                     task.type === 'terminal' ? <TerminalIcon size={16} className="text-cyber-neonGreen" /> :
-                                     task.type === 'html' ? <Globe size={16} className="text-cyber-neonPink" /> :
-                                     task.type === 'blocks' ? <Puzzle size={16} className="text-cyan-400" /> :
-                                     task.type === 'hanoi' ? <BrainCircuit size={16} className="text-cyber-neonBlue" /> :
-                                     <div className={`w-4 h-4 rounded-sm border ${activeTask?.id === task.id ? 'bg-cyber-neonBlue border-cyber-neonBlue animate-pulse' : 'border-gray-500'}`}></div>}
-                                </div>
-                                
-                                <div className="flex-1 min-w-0">
-                                    <div className="text-sm md:text-sm font-bold leading-tight font-sans break-words">{task.title}</div>
-                                    <div className="text-[10px] font-mono mt-1 md:mt-1 opacity-80 text-cyber-neonYellow">XP: {task.xpReward}</div>
-                                </div>
-                            </button>
+                                <button
+                                    onClick={() => {
+                                        playSound('click');
+                                        setActiveTask(task);
+                                        setLessonStage('explanation');
+                                        if (window.innerWidth < 768) {
+                                            setShowMobileSidebar(false);
+                                            if (['grid', 'html', 'terminal'].includes(task.type)) {
+                                                setTaskTab('info');
+                                            }
+                                        }
+                                    }}
+                                    disabled={task.status === 'locked'}
+                                    className="flex-1 min-w-0 flex items-center gap-3 text-left cursor-pointer disabled:cursor-not-allowed"
+                                >
+                                    <div className="shrink-0">
+                                        {task.status === 'locked' ? <Lock size={16} /> : 
+                                         task.status === 'completed' ? <CheckCircle size={16} className="text-cyber-neonGreen drop-shadow-[0_0_5px_rgba(0,255,65,0.8)]"/> : 
+                                         task.type === 'theory' ? <BookOpen size={16} className="text-cyber-neonPink" /> :
+                                         task.type === 'quiz' ? <HelpCircle size={16} className="text-cyber-neonYellow" /> :
+                                         task.type === 'terminal' ? <TerminalIcon size={16} className="text-cyber-neonGreen" /> :
+                                         task.type === 'html' ? <Globe size={16} className="text-cyber-neonPink" /> :
+                                         task.type === 'blocks' ? <Puzzle size={16} className="text-cyan-400" /> :
+                                         task.type === 'hanoi' ? <BrainCircuit size={16} className="text-cyber-neonBlue" /> :
+                                         task.type === 'typing' ? <TerminalIcon size={16} className="text-cyber-neonBlue" /> :
+                                         task.type === 'process_manager' ? <Activity size={16} className="text-red-400" /> :
+                                         task.type === 'spreadsheet' ? <Grid size={16} className="text-cyber-neonGreen" /> :
+                                         task.type === 'sorting' ? <ArrowUpDown size={16} className="text-cyber-neonYellow" /> :
+                                         task.type === 'tree_search' ? <GitBranch size={16} className="text-cyber-neonGreen" /> :
+                                         task.type === 'phishing_detect' ? <ShieldAlert size={16} className="text-cyber-neonPink" /> :
+                                         task.type === 'ai_neuron' ? <Brain size={16} className="text-purple-400" /> :
+                                         task.type === 'network_route' ? <Globe size={16} className="text-cyber-neonBlue" /> :
+                                         task.type === 'file_organizer' ? <Folder size={16} className="text-cyan-400" /> :
+                                         task.type === 'binary_switches' || task.type === 'binary_bulbs' ? <Lightbulb size={16} className="text-amber-400" /> :
+                                         task.type === 'wireframe_builder' ? <Smartphone size={16} className="text-indigo-400" /> :
+                                         task.type === 'fake_detector' ? <ShieldCheck size={16} className="text-emerald-400" /> :
+                                         task.type === 'circuit_builder' ? <Zap size={16} className="text-yellow-400" /> :
+                                         task.type === 'ai_kids_trainer' ? <Bot size={16} className="text-purple-400" /> :
+                                         <div className={`w-4 h-4 rounded-sm border ${activeTask?.id === task.id ? 'bg-cyber-neonBlue border-cyber-neonBlue animate-pulse' : 'border-gray-500'}`}></div>}
+                                    </div>
+                                    
+                                    <div className="flex-1 min-w-0">
+                                        <div className="text-sm md:text-sm font-bold leading-tight font-sans break-words">{task.title}</div>
+                                        <div className="text-[10px] font-mono mt-1 md:mt-1 opacity-80 text-cyber-neonYellow">XP: {task.xpReward}</div>
+                                    </div>
+                                </button>
+
+                                {task.type !== 'theory' && task.status !== 'locked' && (
+                                    <button
+                                        onClick={() => {
+                                            playSound('click');
+                                            if (task.id === activeTask?.id) {
+                                                setLessonStage('practice');
+                                            } else {
+                                                pendingLessonStage.current = 'practice';
+                                                setActiveTask(task);
+                                            }
+                                            if (window.innerWidth < 768) {
+                                                setShowMobileSidebar(false);
+                                                if (['grid', 'html', 'terminal'].includes(task.type)) {
+                                                    setTaskTab('info');
+                                                }
+                                            }
+                                        }}
+                                        title={`2. Задание (${getTaskTypeLabel(task.type)})`}
+                                        className="shrink-0 px-2 py-1.5 rounded bg-cyber-neonGreen/15 border border-cyber-neonGreen/40 text-cyber-neonGreen hover:bg-cyber-neonGreen hover:text-black transition-all flex items-center gap-1 text-[10px] font-bold uppercase"
+                                    >
+                                        <Zap size={12} /> 2
+                                    </button>
+                                )}
+                            </div>
                         ))}
                     </div>
                 </div>
@@ -1060,43 +1251,87 @@ const StudentDashboard: React.FC<StudentDashboardProps> = ({ currentUser: propUs
           </div>
       )}
 
-      {/* 1. THEORY VIEW */}
-      {activeTask?.type === 'theory' && (
+      {/* 1. EXPLANATION STAGE (Байтик + теория) — также покрывает type 'theory' */}
+      {activeTask && (lessonStage === 'explanation' || activeTask.type === 'theory') && (
           <div className={`${!showMobileSidebar ? 'flex' : 'hidden'} md:flex flex-1 flex-col bg-black relative overflow-hidden`}>
-                <div className="flex items-center border-b border-gray-800 px-4 py-3 bg-gray-950 shrink-0">
+                <div className="flex items-center border-b border-gray-800 px-4 py-3 bg-gray-950 shrink-0 gap-3">
                     <button 
                         onClick={() => setShowMobileSidebar(true)} 
-                        className="md:hidden flex items-center gap-2 text-gray-200 active:text-white mr-3"
+                        className="md:hidden flex items-center gap-2 text-gray-200 active:text-white"
                     >
                         <ChevronLeft size={20} />
                     </button>
+                    <div className="p-1.5 rounded bg-cyber-neonBlue/10 text-cyber-neonBlue border border-cyber-neonBlue/30 shrink-0">
+                        <BookOpen size={16} />
+                    </div>
                     <span className="text-xs font-bold uppercase text-gray-300 tracking-widest leading-tight break-words flex-1">{activeTask.title}</span>
-                </div>
-                <div className="flex-1 overflow-y-auto p-5 md:p-12">
-                <div className="max-w-3xl mx-auto w-full">
-                    <div className="mb-8 border-b border-gray-800 pb-4">
-                        <h1 className="text-3xl md:text-5xl font-bold text-cyber-neonPink font-sans uppercase mb-2 animate-in slide-in-from-left">
-                            {activeTask.title}
-                        </h1>
-                        <div className="text-cyber-neonBlue font-mono text-sm tracking-widest">{'>> ЗАГРУЗКА_ДАННЫХ...'}</div>
-                    </div>
-                    
-                    <div className="prose prose-invert prose-lg max-w-none font-sans text-gray-300 space-y-6">
-                         <div dangerouslySetInnerHTML={{ __html: activeTask.theory || '' }} />
-                    </div>
-
-                    <div className="mt-12 pt-8 border-t border-gray-800 flex justify-end">
-                        <button 
-                            onClick={activeTask.status === 'completed' ? handleNextTask : handleTheoryComplete}
-                            className="px-8 py-4 bg-cyber-neonBlue text-black font-bold text-lg uppercase tracking-widest hover:bg-white transition-all flex items-center gap-3"
-                            style={{ clipPath: 'polygon(10% 0, 100% 0, 100% 70%, 90% 100%, 0 100%, 0 30%)' }}
+                    {activeTask.type !== 'theory' && (
+                        <button
+                            onClick={() => { playSound('click'); setLessonStage('practice'); }}
+                            className="shrink-0 px-3 py-1.5 rounded-lg text-[10px] font-bold uppercase bg-cyber-neonGreen/15 border border-cyber-neonGreen/40 text-cyber-neonGreen hover:bg-cyber-neonGreen hover:text-black transition-all flex items-center gap-1"
                         >
-                             {(() => {
-                                 const courseTasks = tasks.filter(t => t.courseId === activeTask.courseId);
-                                 const idx = courseTasks.findIndex(t => t.id === activeTask.id);
-                                 return idx < courseTasks.length - 1 ? 'Далее' : 'Завершить';
-                             })()} <ArrowRight />
+                            <Zap size={12} /> 2. Задание ({getTaskTypeLabel(activeTask.type)})
                         </button>
+                    )}
+                </div>
+                <div className="flex-1 overflow-y-auto p-4 md:p-8">
+                <div className="max-w-4xl mx-auto w-full space-y-6">
+                    <MascotErrorBoundary fallback={null}>
+                        <BigMascotTheoryStory
+                            task={activeTask}
+                            onStartPractice={() => {
+                                playSound('click');
+                                if (activeTask.type !== 'theory') {
+                                    setLessonStage('practice');
+                                } else {
+                                    handleTheoryComplete();
+                                }
+                            }}
+                            onAwardBonusXP={(xp) => {
+                                if (currentUser) {
+                                    const updated = { ...currentUser, xp: currentUser.xp + xp };
+                                    setCurrentUser(updated);
+                                    updateUserProfile(updated);
+                                }
+                            }}
+                        />
+                    </MascotErrorBoundary>
+
+                    {activeTask.theory && (
+                        <div className="bg-black/80 border border-gray-800 p-6 md:p-8 rounded-xl shadow-xl prose prose-invert max-w-none text-sm leading-relaxed">
+                            <div dangerouslySetInnerHTML={{ __html: activeTask.theory }} />
+                        </div>
+                    )}
+
+                    <div className="p-5 rounded-xl bg-gradient-to-r from-emerald-950/40 via-black to-cyan-950/40 border border-cyber-neonGreen/40 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+                        <div className="max-w-xl">
+                            <div className="text-[10px] font-mono text-cyber-neonGreen uppercase font-bold tracking-wider mb-1 flex items-center gap-1.5">
+                                <Zap size={14} /> ТВОЯ ЦЕЛЬ {activeTask.type !== 'theory' ? 'В ПРАКТИЧЕСКОМ ЗАДАНИИ (ЭТАП 2)' : ''}:
+                            </div>
+                            <p className="text-xs text-gray-300 leading-relaxed">
+                                {getTaskPracticeGoal(activeTask)}
+                            </p>
+                        </div>
+
+                        {activeTask.type !== 'theory' ? (
+                            <button 
+                                onClick={() => { playSound('click'); setLessonStage('practice'); }}
+                                className="px-6 py-3.5 bg-cyber-neonBlue text-black font-bold uppercase tracking-wider text-xs rounded-xl hover:bg-white transition-all flex items-center gap-2 shadow-[0_0_20px_rgba(0,243,255,0.3)] shrink-0"
+                            >
+                                К заданию <ArrowRight size={14} />
+                            </button>
+                        ) : (
+                            <button 
+                                onClick={activeTask.status === 'completed' ? handleNextTask : handleTheoryComplete}
+                                className="px-6 py-3.5 bg-cyber-neonGreen text-black font-bold uppercase tracking-wider text-xs rounded-xl hover:bg-white transition-all flex items-center gap-2 shadow-[0_0_20px_rgba(0,255,65,0.3)] shrink-0"
+                            >
+                                <CheckCircle size={14} /> {(() => {
+                                    const courseTasks = tasks.filter(t => t.courseId === activeTask.courseId);
+                                    const idx = courseTasks.findIndex(t => t.id === activeTask.id);
+                                    return idx < courseTasks.length - 1 ? 'Материал усвоен — далее' : 'Материал усвоен — завершить';
+                                })()}
+                            </button>
+                        )}
                     </div>
                 </div>
                 </div>
@@ -1104,7 +1339,7 @@ const StudentDashboard: React.FC<StudentDashboardProps> = ({ currentUser: propUs
       )}
 
       {/* 2. QUIZ VIEW */}
-      {activeTask?.type === 'quiz' && (
+      {activeTask?.type === 'quiz' && lessonStage === 'practice' && (
           <div className={`${!showMobileSidebar ? 'flex' : 'hidden'} md:flex flex-1 flex-col bg-black relative overflow-hidden`}>
               <div className="flex items-center border-b border-gray-800 px-4 py-3 bg-gray-950 shrink-0">
                   <button 
@@ -1131,10 +1366,10 @@ const StudentDashboard: React.FC<StudentDashboardProps> = ({ currentUser: propUs
                   </div>
 
                   <div className="space-y-4">
-                      {activeTask.quizData?.options.map((opt, idx) => {
+                      {quiz?.options.map((opt, idx) => {
                           let stateClass = "border-gray-700 hover:border-cyber-neonBlue hover:bg-white/5 text-gray-300";
                           if (quizSubmitted) {
-                              if (idx === activeTask.quizData?.correctIndex) stateClass = "border-cyber-neonGreen bg-cyber-neonGreen/20 text-cyber-neonGreen";
+                              if (idx === quiz?.correctIndex) stateClass = "border-cyber-neonGreen bg-cyber-neonGreen/20 text-cyber-neonGreen";
                               else if (idx === quizSelectedOption) stateClass = "border-red-500 bg-red-500/20 text-red-500";
                               else stateClass = "border-gray-800 opacity-50";
                           } else if (idx === quizSelectedOption) {
@@ -1203,7 +1438,7 @@ const StudentDashboard: React.FC<StudentDashboardProps> = ({ currentUser: propUs
       )}
 
       {/* 3. BLOCKS (drag-and-drop) VIEW */}
-      {activeTask?.type === 'blocks' && (
+      {activeTask?.type === 'blocks' && lessonStage === 'practice' && (
           <div className={`${!showMobileSidebar ? 'flex' : 'hidden'} md:flex flex-1 flex-col bg-black relative overflow-hidden`}>
               <div className="flex items-center border-b border-gray-800 px-4 py-3 bg-gray-950 shrink-0">
                   <button 
@@ -1229,7 +1464,7 @@ const StudentDashboard: React.FC<StudentDashboardProps> = ({ currentUser: propUs
       )}
 
       {/* 4. TOWER OF HANOI MINI GAME */}
-      {isHanoiTask && (
+      {isHanoiTask && lessonStage === 'practice' && (
         <div className={`${!showMobileSidebar ? 'flex' : 'hidden'} md:flex flex-1 flex-col w-full relative overflow-hidden`}>
             <div className="flex items-center border-b border-gray-800 px-4 py-3 bg-gray-950 shrink-0">
                 <button 
@@ -1246,8 +1481,53 @@ const StudentDashboard: React.FC<StudentDashboardProps> = ({ currentUser: propUs
         </div>
       )}
 
-      {/* 4. CODE/TERMINAL TASK VIEW */}
-      {isCodingTask && activeTask && (
+      {/* 5. INTERACTIVE TRAINERS */}
+      {activeTask && lessonStage === 'practice' && (() => {
+          const t = activeTask;
+          const complete = () => handleTaskCompletion(t);
+          const header = (
+              <div className="flex items-center border-b border-gray-800 px-4 py-3 bg-gray-950 shrink-0">
+                  <button 
+                      onClick={() => setShowMobileSidebar(true)} 
+                      className="md:hidden flex items-center gap-2 text-gray-200 active:text-white mr-3"
+                  >
+                      <ChevronLeft size={20} />
+                  </button>
+                  <span className="text-xs font-bold uppercase text-gray-300 tracking-widest leading-tight break-words flex-1">{t.title}</span>
+                  <span className="hidden md:block text-[10px] font-mono text-gray-500 uppercase">{getTaskTypeLabel(t.type)}</span>
+              </div>
+          );
+          const wrap = (game: React.ReactNode) => (
+              <div className={`${!showMobileSidebar ? 'flex' : 'hidden'} md:flex flex-1 flex-col bg-black relative overflow-hidden`}>
+                  {header}
+                  <div className="flex-1 overflow-hidden">{game}</div>
+              </div>
+          );
+
+          switch (t.type) {
+              case 'typing': return wrap(<TypingGame task={t} onComplete={complete} />);
+              case 'process_manager': return wrap(<ProcessManagerGame task={t} onComplete={complete} />);
+              case 'spreadsheet': return wrap(<SpreadsheetGame task={t} onComplete={complete} />);
+              case 'sorting': return wrap(<SortingGame task={t} onComplete={complete} />);
+              case 'tree_search': return wrap(<BinaryTreeGame task={t} onComplete={complete} />);
+              case 'phishing_detect': return wrap(<PhishingInspectorGame task={t} onComplete={complete} />);
+              case 'ai_neuron': return wrap(<NeuronLabGame task={t} onComplete={complete} />);
+              case 'network_route': return wrap(<NetworkRouteGame task={t} onComplete={complete} />);
+              case 'file_organizer': return wrap(<FileOrganizerGame task={t} onComplete={complete} />);
+              case 'binary_switches':
+              case 'binary_bulbs': return wrap(<BinaryBulbsGame task={t} onComplete={complete} />);
+              case 'wireframe_builder': return wrap(<WireframeBuilderGame task={t} onComplete={complete} />);
+              case 'circuit_builder':
+              case 'circuit': return wrap(<CircuitBuilderGame task={t} onComplete={complete} />);
+              case 'fake_detector': return wrap(<FakeDetectorGame task={t} onComplete={complete} />);
+              case 'ai_kids_trainer':
+              case 'ai_trainer': return wrap(<AiKidsTrainerGame task={t} onComplete={complete} />);
+              default: return null;
+          }
+      })()}
+
+      {/* 6. CODE/TERMINAL TASK VIEW */}
+      {isCodingTask && activeTask && lessonStage === 'practice' && (
           <div className={`${!showMobileSidebar ? 'flex' : 'hidden'} md:flex flex-1 flex-col min-w-0 overflow-hidden`}>
             {/* MOBILE TOP BAR (always visible for coding tasks) */}
             <div className="md:hidden flex items-center border-b border-gray-800 px-2 py-2 bg-gray-950 shrink-0 gap-2">
@@ -1430,7 +1710,7 @@ const StudentDashboard: React.FC<StudentDashboardProps> = ({ currentUser: propUs
                          <div className="w-full relative bg-black flex items-center justify-center overflow-hidden border-b border-cyber-neonBlue/20 shrink-0 aspect-square md:max-h-[50vh]">
                              
                              {activeTask.type === 'grid' && activeTask.mapConfig && (
-                                <GameGrid task={activeTask} playerPos={playerPos} pathHistory={pathHistory} droneColor={equippedDroneColorValue} />
+                                <GameGrid task={activeTask} playerPos={playerPos} pathHistory={pathHistory} droneColor={equippedDroneColorValue} activeAction={activeGridAction} destroyedObstacles={destroyedObstacles} />
                              )}
 
                              {activeTask.type === 'terminal' && (
@@ -1499,7 +1779,7 @@ const StudentDashboard: React.FC<StudentDashboardProps> = ({ currentUser: propUs
       )}
 
       {/* --- MOBILE BOTTOM NAVIGATION (coding tasks only) --- */}
-      {isCodingTask && !showMobileSidebar && (
+      {isCodingTask && lessonStage === 'practice' && !showMobileSidebar && (
         <div className="md:hidden h-14 bg-gray-900 border-t border-gray-800 flex items-stretch shrink-0 z-[60] w-full">
             <button onClick={() => setTaskTab('info')} className={`flex flex-col items-center justify-center flex-1 py-2 gap-1 ${taskTab === 'info' ? 'text-cyber-neonBlue bg-black' : 'text-gray-500'}`}>
                 <LayoutList size={18} />

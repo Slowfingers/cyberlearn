@@ -1,6 +1,6 @@
 
 import React, { useEffect, useRef } from 'react';
-import { Task } from '../types';
+import { Task, GridEvent } from '../types';
 import { playSound } from '../utils/sound';
 
 interface GameGridProps {
@@ -8,6 +8,8 @@ interface GameGridProps {
   playerPos: [number, number]; // [x, y]
   pathHistory: [number, number][]; // Trace
   droneColor?: string; // Customization
+  activeAction?: GridEvent | null; // Trigger animations for move/jump/attack
+  destroyedObstacles?: string[]; // IDs of destroyed walls "x,y"
 }
 
 interface Particle {
@@ -19,7 +21,15 @@ interface Particle {
     color: string;
 }
 
-const GameGrid: React.FC<GameGridProps> = ({ task, playerPos, pathHistory, droneColor = '#00f3ff' }) => {
+interface LaserBeam {
+    sx: number;
+    sy: number;
+    ex: number;
+    ey: number;
+    life: number;
+}
+
+const GameGrid: React.FC<GameGridProps> = ({ task, playerPos, pathHistory, droneColor = '#00f3ff', activeAction, destroyedObstacles = [] }) => {
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const containerRef = useRef<HTMLDivElement>(null);
   
@@ -30,6 +40,9 @@ const GameGrid: React.FC<GameGridProps> = ({ task, playerPos, pathHistory, drone
   const pathHistoryRef = useRef(pathHistory);
   const colorRef = useRef(droneColor);
   const particlesRef = useRef<Particle[]>([]);
+  const lasersRef = useRef<LaserBeam[]>([]);
+  const destroyedRef = useRef(destroyedObstacles);
+  const shakeRef = useRef(0);
 
   useEffect(() => {
     taskRef.current = task;
@@ -37,25 +50,49 @@ const GameGrid: React.FC<GameGridProps> = ({ task, playerPos, pathHistory, drone
     // Check if player moved to spawn particles and play sound
     if (prevPlayerPosRef.current[0] !== playerPos[0] || prevPlayerPosRef.current[1] !== playerPos[1]) {
         // Spawn particles at old position moving towards new
-        spawnParticles(prevPlayerPosRef.current[0], prevPlayerPosRef.current[1]);
+        spawnParticles(prevPlayerPosRef.current[0], prevPlayerPosRef.current[1], 12, colorRef.current || '#00f3ff');
         playSound('move');
     }
     prevPlayerPosRef.current = playerPos;
     playerPosRef.current = playerPos;
     pathHistoryRef.current = pathHistory;
     colorRef.current = droneColor;
-  }, [task, playerPos, pathHistory, droneColor]);
+    destroyedRef.current = destroyedObstacles;
+  }, [task, playerPos, pathHistory, droneColor, destroyedObstacles]);
 
-  const spawnParticles = (gx: number, gy: number) => {
+  // Handle action events (jump land burst, attack laser)
+  useEffect(() => {
+      if (!activeAction) return;
+      if (activeAction.type === 'jump') {
+          spawnParticles(activeAction.x, activeAction.y, 10, '#fcee0a');
+          shakeRef.current = 5;
+      } else if (activeAction.type === 'attack') {
+          playSound('error'); // zap sound
+          if (activeAction.targetX !== undefined && activeAction.targetY !== undefined) {
+              lasersRef.current.push({
+                  sx: activeAction.x,
+                  sy: activeAction.y,
+                  ex: activeAction.targetX,
+                  ey: activeAction.targetY,
+                  life: 1.0
+              });
+              const hitWall = task.mapConfig?.obstacles.some(o => o[0] === activeAction.targetX && o[1] === activeAction.targetY);
+              spawnParticles(activeAction.targetX, activeAction.targetY, hitWall ? 20 : 5, hitWall ? '#ff003c' : '#ffffff');
+              if (hitWall) shakeRef.current = 10;
+          }
+      }
+  }, [activeAction]);
+
+  const spawnParticles = (gx: number, gy: number, count = 12, color?: string) => {
       // Spawn heavier burst for mobile visibility
-      for(let i=0; i<12; i++) {
+      for(let i=0; i<count; i++) {
           particlesRef.current.push({
               x: gx + 0.5, // Center of cell
               y: gy + 0.5,
               vx: (Math.random() - 0.5) * 0.2, // Faster speed
               vy: (Math.random() - 0.5) * 0.2,
               life: 1.0,
-              color: colorRef.current || '#00f3ff'
+              color: color || colorRef.current || '#00f3ff'
           });
       }
   };
@@ -70,7 +107,9 @@ const GameGrid: React.FC<GameGridProps> = ({ task, playerPos, pathHistory, drone
 
     // --- UTILS ---
     const isObstacle = (x: number, y: number, obstacles: [number, number][]) => {
-        return obstacles.some(obs => obs[0] === x && obs[1] === y);
+        // Exists in map AND not destroyed by attack
+        const exists = obstacles.some(obs => obs[0] === x && obs[1] === y);
+        return exists && !destroyedRef.current.includes(`${x},${y}`);
     };
 
     // --- DRAWING FUNCTIONS ---
@@ -201,6 +240,15 @@ const GameGrid: React.FC<GameGridProps> = ({ task, playerPos, pathHistory, drone
         ctx.setTransform(1, 0, 0, 1, 0, 0);
         ctx.scale(dpr, dpr);
         
+        // Screen shake
+        if (shakeRef.current > 0) {
+            const dx = (Math.random() - 0.5) * shakeRef.current;
+            const dy = (Math.random() - 0.5) * shakeRef.current;
+            ctx.translate(dx, dy);
+            shakeRef.current *= 0.9;
+            if (shakeRef.current < 0.5) shakeRef.current = 0;
+        }
+
         ctx.fillStyle = '#050505';
         ctx.fillRect(0, 0, rect.width, rect.height);
 
@@ -260,6 +308,25 @@ const GameGrid: React.FC<GameGridProps> = ({ task, playerPos, pathHistory, drone
             });
             ctx.stroke();
             ctx.restore();
+        }
+
+        // Laser beams (attack)
+        for (let i = lasersRef.current.length - 1; i >= 0; i--) {
+            const beam = lasersRef.current[i];
+            beam.life -= 0.1;
+            const start = getPos(beam.sx, beam.sy);
+            const end = getPos(beam.ex, beam.ey);
+            ctx.save();
+            ctx.strokeStyle = `rgba(255, 0, 60, ${beam.life})`;
+            ctx.lineWidth = 4 + Math.random() * 4;
+            ctx.shadowColor = '#ff003c';
+            ctx.shadowBlur = 20;
+            ctx.beginPath();
+            ctx.moveTo(start.x, start.y);
+            ctx.lineTo(end.x, end.y);
+            ctx.stroke();
+            ctx.restore();
+            if (beam.life <= 0) lasersRef.current.splice(i, 1);
         }
 
         // Proper Particle Rendering

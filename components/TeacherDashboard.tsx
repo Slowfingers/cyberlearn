@@ -199,7 +199,7 @@ const TeacherDashboard: React.FC<TeacherDashboardProps> = ({
       
       const newTask: Task = {
           id: `custom_${Date.now()}`,
-          courseId: 'course_cs101',
+          courseId: 'course_grade3',
           module: 'Кастомные миссии',
           title: taskTitle,
           type: 'grid',

@@ -189,41 +189,43 @@ const App: React.FC = () => {
                     <div className="pointer-events-none absolute inset-2 sm:inset-6 rounded-[12px] sm:rounded-[20px] border border-white/5 backdrop-blur-sm bg-white/2 animate-[pulse_5s_ease-in-out_infinite]"></div>
                     <div className="pointer-events-none absolute -top-4 sm:-top-8 left-1/2 -translate-x-1/2 w-24 sm:w-32 h-6 sm:h-8 bg-gradient-to-r from-transparent via-white/10 to-transparent blur-lg animate-pulse"></div>
 
-                    {/* Selection cards */}
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4 sm:gap-6 animate-in fade-in slide-in-from-bottom-10 duration-500">
+                    {/* Selection: главная карточка ученика + маленькая кнопка куратора */}
+                    <div className="animate-in fade-in slide-in-from-bottom-10 duration-500">
                         <button 
                             onClick={() => setAuthMode('student-login')}
-                            className="group relative bg-black/60 backdrop-blur border border-cyber-neonBlue/40 hover:border-cyber-neonBlue p-6 sm:p-8 transition-all duration-300 hover:shadow-[0_0_40px_rgba(0,243,255,0.35)] md:hover:-translate-y-2 text-left overflow-hidden rounded-xl sm:rounded-2xl"
+                            className="group relative w-full bg-black/60 backdrop-blur border border-cyber-neonBlue/40 hover:border-cyber-neonBlue transition-all duration-300 hover:shadow-[0_0_40px_rgba(0,243,255,0.35)] md:hover:-translate-y-1 text-left overflow-hidden rounded-xl sm:rounded-2xl"
                         >
                             <div className="absolute inset-0 bg-gradient-to-br from-cyber-neonBlue/10 via-transparent to-cyber-neonGreen/5 opacity-0 group-hover:opacity-100 transition-opacity"></div>
                             <div className="absolute -left-12 top-10 w-24 h-24 bg-cyber-neonBlue/20 blur-2xl group-hover:animate-pulse"></div>
                             <div className="absolute top-4 right-4 text-cyber-neonBlue/30 group-hover:text-cyber-neonBlue transition-colors hidden sm:block">
                                 <ArrowRight size={24} />
                             </div>
-                            <Terminal className="w-8 h-8 sm:w-12 sm:h-12 text-cyber-neonBlue mb-4 sm:mb-6 group-hover:scale-110 transition-transform" />
-                            <h2 className="text-xl sm:text-2xl font-bold text-white mb-2">НЕТРАННЕР</h2>
-                            <p className="text-gray-400 font-mono text-[10px] sm:text-xs mb-4 sm:mb-6 sm:h-10">Подключение к учебному сектору через код доступа.</p>
-                            <div className="inline-block bg-cyber-neonBlue text-black font-bold px-4 py-2 sm:px-6 sm:py-2 text-[10px] sm:text-sm skew-x-[-15deg] transition-transform group-hover:skew-x-[-5deg]">
-                                <span className="inline-block skew-x-[15deg] group-hover:skew-x-[5deg]">НАЧАТЬ_СЕССИЮ</span>
+
+                            <div className="relative flex flex-col sm:flex-row items-center gap-4 sm:gap-6 p-6 sm:p-8">
+                                <img
+                                    src="/ava.png"
+                                    alt="Ученики за ноутбуками"
+                                    className="w-full max-w-xs sm:w-64 md:w-80 sm:max-w-none shrink-0 object-contain drop-shadow-[0_8px_24px_rgba(0,243,255,0.35)] group-hover:scale-[1.03] transition-transform"
+                                />
+                                <div className="min-w-0 text-center sm:text-left">
+                                    <Terminal className="w-8 h-8 sm:w-10 sm:h-10 text-cyber-neonBlue mb-3 mx-auto sm:mx-0 group-hover:scale-110 transition-transform" />
+                                    <h2 className="text-xl sm:text-3xl font-bold text-white mb-2">НЕТРАННЕР</h2>
+                                    <p className="text-gray-400 font-mono text-[10px] sm:text-xs mb-4 sm:mb-6">Подключение к учебному сектору через код доступа.</p>
+                                    <div className="inline-block bg-cyber-neonBlue text-black font-bold px-4 py-2 sm:px-6 sm:py-2 text-[10px] sm:text-sm skew-x-[-15deg] transition-transform group-hover:skew-x-[-5deg]">
+                                        <span className="inline-block skew-x-[15deg] group-hover:skew-x-[5deg]">НАЧАТЬ_СЕССИЮ</span>
+                                    </div>
+                                </div>
                             </div>
                         </button>
 
-                        <button 
-                            onClick={() => setAuthMode('teacher-login')}
-                            className="group relative bg-black/60 backdrop-blur border border-cyber-neonPink/40 hover:border-cyber-neonPink p-6 sm:p-8 transition-all duration-300 hover:shadow-[0_0_40px_rgba(255,0,255,0.35)] md:hover:-translate-y-2 text-left overflow-hidden rounded-xl sm:rounded-2xl"
-                        >
-                            <div className="absolute inset-0 bg-gradient-to-br from-cyber-neonPink/10 via-transparent to-cyber-neonBlue/5 opacity-0 group-hover:opacity-100 transition-opacity"></div>
-                            <div className="absolute -right-12 bottom-8 w-24 h-24 bg-cyber-neonPink/20 blur-2xl group-hover:animate-pulse"></div>
-                            <div className="absolute top-4 right-4 text-cyber-neonPink/30 group-hover:text-cyber-neonPink transition-colors hidden sm:block">
-                                <ArrowRight size={24} />
-                            </div>
-                            <Shield className="w-8 h-8 sm:w-12 sm:h-12 text-cyber-neonPink mb-4 sm:mb-6 group-hover:scale-110 transition-transform" />
-                            <h2 className="text-xl sm:text-2xl font-bold text-white mb-2">КУРАТОР</h2>
-                            <p className="text-gray-400 font-mono text-[10px] sm:text-xs mb-4 sm:mb-6 sm:h-10">Управление классом и отслеживание прогресса.</p>
-                            <div className="inline-block bg-cyber-neonPink text-black font-bold px-4 py-2 sm:px-6 sm:py-2 text-[10px] sm:text-sm skew-x-[-15deg] transition-transform group-hover:skew-x-[-5deg]">
-                                <span className="inline-block skew-x-[15deg] group-hover:skew-x-[5deg]">АВТОРИЗАЦИЯ</span>
-                            </div>
-                        </button>
+                        <div className="mt-5 sm:mt-6 text-center">
+                            <button 
+                                onClick={() => setAuthMode('teacher-login')}
+                                className="inline-flex items-center gap-2 px-3 py-1.5 rounded-lg border border-cyber-neonPink/30 text-cyber-neonPink/80 hover:text-cyber-neonPink hover:border-cyber-neonPink/70 hover:bg-cyber-neonPink/10 transition-all font-mono text-[10px] sm:text-xs uppercase tracking-wider"
+                            >
+                                <Shield size={12} /> Кабинет куратора
+                            </button>
+                        </div>
                     </div>
                 </div>
             )}

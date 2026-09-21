@@ -1,12 +1,227 @@
 
-import { Task, ExecutionResult } from "../types";
+import { Task, ExecutionResult, GridEvent } from "../types";
+
+const GRID_MAX_COMMANDS = 500;
+type Heading = 'E' | 'S' | 'W' | 'N';
+const HEADING_VEC: Record<Heading, [number, number]> = { E: [1, 0], S: [0, 1], W: [-1, 0], N: [0, -1] };
+const TURN_RIGHT: Record<Heading, Heading> = { E: 'S', S: 'W', W: 'N', N: 'E' };
+const TURN_LEFT: Record<Heading, Heading> = { E: 'N', N: 'W', W: 'S', S: 'E' };
+
+const normalizeGridCommand = (s: string): string =>
+    s.replace(/^(robot|drone|player)\s*\./i, '')
+        .replace(/[()\s;]/g, '')
+        .replace(/_/g, '')
+        .toLowerCase();
+
+// Раскрывает циклы (Python `for ... in range(N):` по отступам, Lua `for i=1,N do ... end`)
+// в плоский список нормализованных команд. Бросает 'LIMIT' при превышении GRID_MAX_COMMANDS.
+const expandGridProgram = (code: string): { cmd: string; orig: string }[] => {
+    const lines = code.split('\n').map(raw => {
+        // Комментарии: '#', '--', '//' до конца строки
+        const cut = Math.min(...['#', '--', '//'].map(m => {
+            const idx = raw.indexOf(m);
+            return idx === -1 ? raw.length : idx;
+        }));
+        const text = raw.slice(0, cut);
+        const indent = text.length - text.trimStart().length;
+        return { indent, text: text.trim() };
+    }).filter(l => l.text.length > 0);
+
+    const out: { cmd: string; orig: string }[] = [];
+
+    const pushCmd = (orig: string) => {
+        const cmd = normalizeGridCommand(orig);
+        if (cmd) {
+            out.push({ cmd, orig });
+            if (out.length > GRID_MAX_COMMANDS) throw new Error('LIMIT');
+        }
+    };
+
+    const expandBlock = (start: number, indent: number): number => {
+        let i = start;
+        while (i < lines.length) {
+            const l = lines[i];
+            if (i > start && l.indent <= indent) break;
+            if (l.text === 'end') { i++; continue; }
+
+            const pyFor = l.text.match(/^for\b.*\bin\s+range\s*\(\s*(\d+)\s*\)\s*:\s*$/i);
+            const luaFor = l.text.match(/^for\s+\w+\s*=\s*\d+\s*,\s*(\d+)\s+do\b([\s\S]*)$/i);
+
+            if (pyFor) {
+                const n = parseInt(pyFor[1]);
+                const innerStart = out.length;
+                i = expandBlock(i + 1, l.indent);
+                const body = out.splice(innerStart);
+                for (let k = 0; k < n; k++) {
+                    out.push(...body);
+                    if (out.length > GRID_MAX_COMMANDS) throw new Error('LIMIT');
+                }
+                continue;
+            }
+            if (luaFor) {
+                const n = parseInt(luaFor[1]);
+                const rest = luaFor[2].trim();
+                const innerStart = out.length;
+                if (rest) {
+                    // Однострочный цикл: for i=1,N do cmd() end
+                    const innerText = rest.replace(/\bend\s*$/, '').trim();
+                    for (const m of innerText.matchAll(/[a-zA-Z_.]+\s*\([^)]*\)/g)) pushCmd(m[0]);
+                    i++;
+                } else {
+                    // Многострочный: собираем тело до парного 'end' (с учётом вложенных циклов)
+                    const bodyLines: typeof lines = [];
+                    let depth = 1;
+                    i++;
+                    while (i < lines.length) {
+                        const t = lines[i].text;
+                        if (/^for\s+\w+\s*=\s*\d+\s*,\s*\d+\s+do\b/i.test(t)) depth++;
+                        if (t === 'end') { depth--; if (depth === 0) { i++; break; } }
+                        bodyLines.push(lines[i]);
+                        i++;
+                    }
+                    // Тело обрабатываем тем же expandBlock: подменяем lines временно
+                    const saved = lines.splice(0, lines.length, ...bodyLines);
+                    expandBlock(0, -1);
+                    lines.splice(0, lines.length, ...saved);
+                }
+                const body = out.splice(innerStart);
+                for (let k = 0; k < n; k++) {
+                    out.push(...body);
+                    if (out.length > GRID_MAX_COMMANDS) throw new Error('LIMIT');
+                }
+                continue;
+            }
+
+            pushCmd(l.text);
+            i++;
+        }
+        return i;
+    };
+
+    expandBlock(0, -1);
+    return out;
+};
+
+export function runGridProgram(code: string, map: NonNullable<Task['mapConfig']>): {
+    success: boolean;
+    steps: [number, number][];
+    gridEvents: GridEvent[];
+    logs: string[];
+    error?: string;
+} {
+    const { gridSize, start, end, obstacles } = map;
+    const activeObstacles = new Set(obstacles.map(o => `${o[0]},${o[1]}`));
+    const logs: string[] = [];
+    const steps: [number, number][] = [[...start]];
+    const gridEvents: GridEvent[] = [];
+    const pos: [number, number] = [...start];
+    let heading: Heading = 'E';
+    let error: string | undefined;
+
+    let commands: { cmd: string; orig: string }[];
+    try {
+        commands = expandGridProgram(code);
+    } catch (e) {
+        return { success: false, steps, gridEvents, logs, error: `Превышен лимит команд (${GRID_MAX_COMMANDS}).` };
+    }
+
+    const FWD = new Set(['forward', 'moveforward', 'move', 'step']);
+    const BACK = new Set(['backward', 'moveback', 'back']);
+    const TURN_R = new Set(['right', 'turnright']);
+    const TURN_L = new Set(['left', 'turnleft']);
+    const MOVE_ABS: Record<string, Heading> = { moveright: 'E', moveleft: 'W', moveup: 'N', movedown: 'S' };
+    const JUMP = new Set(['jump', 'leap']);
+    const JUMP_ABS: Record<string, Heading> = { jumpright: 'E', jumpleft: 'W', jumpup: 'N', jumpdown: 'S' };
+    const ATTACK = new Set(['attack', 'hack', 'laser', 'zap', 'destroy']);
+    const ATTACK_ABS: Record<string, Heading> = { attackright: 'E', attackleft: 'W', attackup: 'N', attackdown: 'S' };
+
+    const tryLand = (nx: number, ny: number): boolean => {
+        if (nx < 0 || nx >= gridSize || ny < 0 || ny >= gridSize) {
+            error = 'CRASH: выход за пределы сетки!';
+            return false;
+        }
+        if (activeObstacles.has(`${nx},${ny}`)) {
+            error = 'CRASH: столкновение с файрволом!';
+            return false;
+        }
+        return true;
+    };
+
+    const doMove = (dir: Heading) => {
+        const [dx, dy] = HEADING_VEC[dir];
+        const nx = pos[0] + dx, ny = pos[1] + dy;
+        if (!tryLand(nx, ny)) return false;
+        pos[0] = nx; pos[1] = ny;
+        steps.push([nx, ny]);
+        gridEvents.push({ type: 'move', x: nx, y: ny });
+        return true;
+    };
+
+    const doJump = (dir: Heading) => {
+        const [dx, dy] = HEADING_VEC[dir];
+        const nx = pos[0] + dx * 2, ny = pos[1] + dy * 2;
+        // Промежуточная клетка при прыжке не проверяется
+        if (!tryLand(nx, ny)) return false;
+        pos[0] = nx; pos[1] = ny;
+        steps.push([nx, ny]);
+        gridEvents.push({ type: 'jump', x: nx, y: ny, targetX: nx, targetY: ny });
+        return true;
+    };
+
+    const doAttack = (dir: Heading) => {
+        const [dx, dy] = HEADING_VEC[dir];
+        const tx = pos[0] + dx, ty = pos[1] + dy;
+        if (activeObstacles.delete(`${tx},${ty}`)) {
+            logs.push(`Файрвол уничтожен на [${tx}, ${ty}]`);
+        }
+        gridEvents.push({ type: 'attack', x: pos[0], y: pos[1], targetX: tx, targetY: ty });
+        return true;
+    };
+
+    for (const { cmd, orig } of commands) {
+        if (FWD.has(cmd)) { if (!doMove(heading)) break; }
+        else if (BACK.has(cmd)) { if (!doMove(TURN_LEFT[TURN_LEFT[heading]])) break; }
+        else if (TURN_R.has(cmd)) { heading = TURN_RIGHT[heading]; }
+        else if (TURN_L.has(cmd)) { heading = TURN_LEFT[heading]; }
+        else if (cmd in MOVE_ABS) { heading = MOVE_ABS[cmd]; if (!doMove(heading)) break; }
+        else if (JUMP.has(cmd)) { if (!doJump(heading)) break; }
+        else if (cmd in JUMP_ABS) { heading = JUMP_ABS[cmd]; if (!doJump(heading)) break; }
+        else if (ATTACK.has(cmd)) { doAttack(heading); }
+        else if (cmd in ATTACK_ABS) { doAttack(ATTACK_ABS[cmd]); }
+        else { error = `Неизвестная команда: ${orig}`; break; }
+    }
+
+    const success = !error && pos[0] === end[0] && pos[1] === end[1];
+    if (!error && !success) error = 'Цель не достигнута.';
+    return { success, steps, gridEvents, logs, error };
+}
+
+// Детерминированное перемешивание ответов квиза: один taskId -> одна перестановка.
+export function shuffledQuiz(taskId: string, quiz: NonNullable<Task['quizData']>): { options: string[]; correctIndex: number } {
+    let seed = 0x811c9dc5; // FNV-1a 32-bit
+    for (let i = 0; i < taskId.length; i++) {
+        seed ^= taskId.charCodeAt(i);
+        seed = Math.imul(seed, 0x01000193);
+    }
+    let state = seed >>> 0 || 1;
+    const rand = () => (state = (Math.imul(state, 1664525) + 1013904223) >>> 0) / 0x100000000;
+
+    const order = quiz.options.map((_, i) => i);
+    for (let i = order.length - 1; i > 0; i--) {
+        const j = Math.floor(rand() * (i + 1));
+        [order[i], order[j]] = [order[j], order[i]];
+    }
+    return {
+        options: order.map(i => quiz.options[i]),
+        correctIndex: order.indexOf(quiz.correctIndex),
+    };
+}
 
 export const evaluateCodeLocally = async (code: string, task: Task): Promise<ExecutionResult> => {
     // 1. Normalize Code
     const rawCode = code.trim();
     // Helper to cleanup code for regex but keep structure
-    const cleanCode = rawCode.replace(/'/g, '"').replace(/\s+/g, ' '); 
-    const lowerCode = cleanCode.toLowerCase();
+    const cleanCode = rawCode.replace(/'/g, '"').replace(/\s+/g, ' ');
 
     const logs: string[] = [];
     const steps: [number, number][] = [];
@@ -146,163 +361,43 @@ export const evaluateCodeLocally = async (code: string, task: Task): Promise<Exe
         return { success, logs, steps: [], error, feedback };
     }
 
-    // --- LUA / PYTHON TERMINAL LOGIC ---
+    // --- TERMINAL LOGIC (print-based Python tasks) ---
     if (task.type === 'terminal') {
-        
-        // 2. Extract non-comment user content (for cs101 tasks)
-        const nonCommentCode = rawCode
-            .split('\n')
-            .filter(l => {
-                const t = l.trim();
-                return t && !t.startsWith('--');
-            })
-            .join(' ');
-
-        // 3. Mock Print Output
-        const printMatches = rawCode.matchAll(/print\s*\((.*?)\)/g);
-        for (const match of printMatches) {
-            let content = match[1].trim();
-            content = content.replace(/"\s*\.\.\s*"/g, ''); 
-            content = content.replace(/^"|"$/g, '');
-            
-            // Simulation hacks
-            if (task.id === 'lua_014' && content.includes('target')) content = "Атака: ogre";
-            if (task.id === 'lua_016' && content.includes('calc')) content = "20"; 
-            if (task.id === 'lua_020' && content.includes('#')) content = "4"; 
-            if (task.id === 'lua_022' && content.includes('item')) content = "potion\ncoin\nkey";
-            if (task.id === 'lua_032' && content.includes('max')) content = "9";
-            if (task.id === 'lua_034' && content.includes('Victory')) content = "Victory!";
-            if (task.id === 'lua_041' && content.includes('reverse')) content = "rennurteN";
-            if (task.id === 'lua_042' && content.includes('upper')) content = "NET-9";
-            if (task.id === 'lua_051' && content.includes('gen')) content = "ID-1\nID-2\nID-3";
-            if (task.id === 'lua_052' && content.includes('hero')) content = "Ava: 140 hp, 20 power";
-
-            content = content.replace(/"/g, ''); 
-            output += content + '\n';
-            logs.push(`> ${content}`);
-        }
-
-        // 4. Task Specific Validation
-        switch (task.id) {
-            // ... Lua cases (Keep existing) ...
-            case 'lua_002': if (/print\s*\(\s*"Hello, Hero!"\s*\)/.test(cleanCode)) success = true; else error = "Выведи точную фразу: Hello, Hero!"; break;
-            case 'lua_003': if ((/total\s*=\s*coins\s*\+\s*found/.test(cleanCode) || /total\s*=\s*7\s*\+\s*5/.test(cleanCode)) && /print\s*\(\s*total\s*\)/.test(cleanCode)) success = true; else error = "Создай total = coins + found и выведи."; break;
-            case 'lua_008': if (/if\s+hasKey/.test(cleanCode) && /print/.test(cleanCode) && (/OPEN|ДОСТУП|ОТКРЫТ/i.test(cleanCode))) success = true; else error = "Напиши условие: if hasKey then print(\"ДОСТУП ОТКРЫТ\") ..."; break;
-            case 'lua_009': if (/for\s+i\s*=\s*1\s*,\s*5\s+do/.test(cleanCode) && /print\s*\(\s*i\s*\)/.test(cleanCode)) success = true; else error = "Напиши for i = 1, 5 do и print(i)."; break;
-            case 'lua_014': if (/function\s+attack\s*\(\s*target\s*\)/.test(cleanCode) && /attack\s*\(\s*"ogre"\s*\)/.test(cleanCode)) success = true; else error = "Функция attack(target) и вызов."; break;
-            case 'lua_016': if (/return\s+(power\s*\*\s*2|2\s*\*\s*power)/.test(cleanCode)) success = true; else error = "Функция должна возвращать power * 2."; break;
-            case 'lua_020': if (/print\s*\(\s*#\s*items\s*\)/.test(cleanCode)) success = true; else error = "Используй #items."; break;
-            case 'lua_022': if (/(pairs|ipairs)\s*\(\s*items\s*\)/.test(cleanCode)) success = true; else error = "Используй pairs(items) или ipairs(items)."; break;
-            case 'lua_032': if ((/>\ *max/.test(cleanCode) || /max\ *</.test(cleanCode)) && /for/.test(cleanCode)) success = true; else error = "Пройдись циклом и сравнивай с max."; break;
-            case 'lua_034': 
-                if (
-                    /enemyHp\s*=\s*enemyHp\s*-\s*heroPower/.test(cleanCode) && 
-                    /if\s+enemyHp\s*<=\s*0/.test(cleanCode) && 
-                    /print\s*\(\s*["']Victory!["']\s*\)/.test(cleanCode) &&
-                    (/else/.test(cleanCode) && /print\s*\(\s*["']Enemy survived!["']\s*\)/.test(cleanCode))
-                ) {
-                    success = true;
-                } else {
-                    error = "Вычти heroPower из enemyHp, проверь if enemyHp <= 0, выведи 'Victory!' или 'Enemy survived!'.";
-                }
-                break;
-            case 'lua_041': if (/string\.reverse\s*\(\s*name\s*\)/.test(cleanCode) && /print/.test(cleanCode)) success = true; else error = "Используй string.reverse(name) и print."; break;
-            case 'lua_042': if (/string\.upper/.test(cleanCode) && /string\.sub/.test(cleanCode) && /\.\./.test(cleanCode) && /print/.test(cleanCode)) success = true; else error = "Используй string.upper, string.sub и конкатенацию (..)."; break;
-            case 'lua_051': if (/function/.test(cleanCode) && /count\s*=\s*count\s*\+\s*1/.test(cleanCode) && /return/.test(cleanCode)) success = true; else error = "Создай замыкание с count = count + 1 и return."; break;
-            case 'lua_052': if (/function\s+levelup/i.test(cleanCode) && /hero\.power/.test(cleanCode) && /hero\.hp/.test(cleanCode) && /print/.test(cleanCode)) success = true; else error = "Создай функцию levelUp(hero), увеличь power и hp, выведи результат."; break;
-            
-            // Python Cases
-            case 'py_001':
-                if (/print\s*\(\s*".*"\s*\)/.test(cleanCode)) success = true;
-                else error = "Используй print(\"Текст\")";
-                break;
-            case 'py_002': if (/print\s*\(\s*"Hello,?\s*Netrunner!?"\s*\)/.test(cleanCode)) success = true; else error = "Выведи \"Hello, Netrunner!\""; break;
-            case 'py_003': if (/coins\s*=\s*7/.test(cleanCode) && /found\s*=\s*5/.test(cleanCode) && /print\s*\(\s*coins\s*\+\s*found\s*\)/.test(cleanCode)) success = true; else error = "Создай переменные и выведи их сумму"; break;
-            case 'py_011': if (/if\s+access\s*==/.test(cleanCode) && /print/.test(cleanCode)) success = true; else error = "Проверь access == \"alpha\""; break;
-            case 'py_012': if (/n\s*%\s*2/.test(cleanCode) && /if/.test(cleanCode) && /print/.test(cleanCode)) success = true; else error = "Используй n % 2 == 0 и if/else"; break;
-            case 'py_021': if (/for\s+i\s+in\s+range/.test(cleanCode) && /print\s*\(\s*i\s*\)/.test(cleanCode)) success = true; else error = "Используй for i in range(5, 0, -1)"; break;
-            case 'py_022': if (/for\s+/.test(cleanCode) && /total\s*(\+\=|=\s*total\s*\+)/.test(cleanCode) && /print\s*\(\s*total\s*\)/.test(cleanCode)) success = true; else error = "Используй цикл, total += i и print(total)"; break;
-            case 'py_031': if (/def\s+boost/.test(cleanCode) && /return\s+power\s*\*\s*3/.test(cleanCode)) success = true; else error = "Определи функцию boost с return power * 3"; break;
-            case 'py_032': if (/def\s+double/.test(cleanCode) && /return\s+x\s*\*\s*2/.test(cleanCode)) success = true; else error = "Определи функцию double(x) с return x * 2"; break;
-            case 'py_041': if (/max\s*\(/.test(cleanCode) || (/for\s+/.test(cleanCode) && />\s*m/.test(cleanCode))) success = true; else error = "Найди максимум через max() или цикл"; break;
-            case 'py_042': if (/def\s+attack/.test(cleanCode) && /min/.test(lowerCode)) success = true; else error = "Определи функцию attack и найди врага с минимальным hp"; break;
-            case 'py_051': if (/agent\s*\[.*level.*\]\s*\+\=\s*1/.test(cleanCode) && /print/.test(cleanCode) && /f"/.test(rawCode)) success = true; else error = "Увеличь agent[\"level\"] на 1 и выведи f-строку."; break;
-            case 'py_052': if (/\.items\s*\(\s*\)/.test(cleanCode) && /for\s+/.test(cleanCode) && /print/.test(cleanCode)) success = true; else error = "Перебери inventory.items() циклом for и выведи каждый предмет."; break;
-            case 'py_061': if (/\[\s*:\s*:\s*-1\s*\]/.test(cleanCode) && /print/.test(cleanCode)) success = true; else error = "Используй срез [::-1] и print."; break;
-            case 'py_062': if (/def\s+battle_report/.test(cleanCode) && /max/.test(cleanCode) && /print/.test(cleanCode)) success = true; else error = "Создай функцию battle_report, найди max hp и выведи результат."; break;
-
-            // ALG404
-            case 'alg_m3_p1': if (/function\s+factorial/.test(cleanCode) && /return/.test(cleanCode) && /factorial\s*\(\s*n\s*-\s*1\s*\)/.test(cleanCode)) success = true; else error = "Напиши рекурсивную функцию с return n * factorial(n-1)"; break;
-            case 'alg_m5_p1': if (/function\s+binarySearch/.test(cleanCode) && /mid/.test(cleanCode) && /return\s+mid/.test(cleanCode)) success = true; else error = "Напиши бинарный поиск с lo, hi, mid и return mid."; break;
-
-            default:
-                if (cleanCode.length > 15) success = true;
-                else error = error || "Добавь содержательный ответ по заданию.";
-                break;
+        if (task.terminalOutput !== undefined) {
+            const printMatches = [...rawCode.matchAll(/print\s*\(([\s\S]*?)\)/g)];
+            if (!rawCode || printMatches.length === 0) {
+                error = 'Используй print(...) для вывода результата.';
+            } else {
+                success = true;
+                const expected = task.terminalOutput.split('\n').filter(l => l.trim().length > 0);
+                // ponytail: не интерпретатор Python — если число print() совпадает
+                // с эталоном, показываем ожидаемый вывод; иначе содержимое строковых литералов
+                const useExpected = expected.length === printMatches.length;
+                const outLines = printMatches.map((m, idx) => {
+                    const arg = m[1].trim();
+                    const lit = arg.match(/^(?:f|F)?(['"])([\s\S]*)\1$/);
+                    if (lit && !arg.toLowerCase().startsWith('f')) return lit[2];
+                    return useExpected ? expected[idx] : arg.replace(/^["']|["']$/g, '');
+                });
+                output = outLines.join('\n');
+                outLines.forEach(l => logs.push(`> ${l}`));
+            }
+        } else {
+            if (cleanCode.length > 15) success = true;
+            else error = "Добавь содержательный ответ по заданию.";
         }
 
         return { success, logs, steps: [], terminalOutput: output || "> Script executed.", error, feedback };
     }
-    
-    // --- GRID LOGIC (Improved) ---
-    else if (task.type === 'grid' && task.mapConfig) {
-         const { start, end, obstacles, gridSize } = task.mapConfig;
-         let currentPos = [...start] as [number, number];
-         steps.push([...currentPos]);
-         
-         const lines = code.split('\n'); 
-         const commands: string[] = [];
-         
-         // Improved Parser: Allows loops block
-         for (let i = 0; i < lines.length; i++) {
-            const line = lines[i].trim();
-            // Match loop: for i=1,3 do
-            const loopMatch = line.match(/for\s+.*=\s*\d+\s*,\s*(\d+)\s*do/);
 
-            if (loopMatch) {
-                 const iter = parseInt(loopMatch[1]);
-                 // Gather lines until 'end' or just next few lines if simple
-                 const block: string[] = [];
-                 let j = i + 1;
-                 while(j < lines.length && !lines[j].trim().startsWith('end')) {
-                     const inner = lines[j].trim();
-                     if (inner && !inner.startsWith('--')) block.push(inner);
-                     j++;
-                 }
-                 // Repeat block
-                 for(let k=0; k<iter; k++) {
-                    commands.push(...block);
-                 }
-                 i = j; // Skip to end
-            } else {
-                if (line.includes('move')) commands.push(line);
-            }
-         }
-
-         for (const cmd of commands) {
-            let next = [...currentPos] as [number, number];
-            if (cmd.toLowerCase().includes('right')) next[0]++;
-            else if (cmd.toLowerCase().includes('left')) next[0]--;
-            else if (cmd.toLowerCase().includes('down')) next[1]++;
-            else if (cmd.toLowerCase().includes('up')) next[1]--;
-            else continue; 
-
-            if (next[0] < 0 || next[0] >= gridSize || next[1] < 0 || next[1] >= gridSize) {
-                error = "Столкновение с границей!"; break;
-            }
-            if (obstacles.some(o => o[0] === next[0] && o[1] === next[1])) {
-                error = "Файрвол!"; break;
-            }
-            currentPos = next;
-            steps.push([...currentPos]);
-         }
-
-         if (!error && currentPos[0] === end[0] && currentPos[1] === end[1]) {
-             success = true;
-         } else if (!error) {
-             error = "Цель не достигнута.";
-         }
+    // --- GRID LOGIC ---
+    else if (task.type === 'grid') {
+        if (!task.mapConfig) {
+            return { success: false, logs, steps, error: 'Нет конфигурации карты.', feedback };
+        }
+        const r = runGridProgram(code, task.mapConfig);
+        return { success: r.success, logs: r.logs, steps: r.steps, gridEvents: r.gridEvents, error: r.error, feedback };
     }
 
-    return { success, logs, steps: steps.length ? steps : [], error, feedback, terminalOutput: output };
+    return { success, logs, steps, error, feedback, terminalOutput: output };
 };

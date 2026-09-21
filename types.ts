@@ -75,7 +75,15 @@ export interface Course {
   color: string; 
 }
 
-export type TaskType = 'grid' | 'quiz' | 'theory' | 'html' | 'terminal' | 'hanoi' | 'blocks';
+export type TaskType =
+  | 'grid' | 'quiz' | 'theory' | 'html' | 'terminal' | 'hanoi' | 'blocks'
+  // Интерактивные тренажёры школьного курса (3-7 класс)
+  | 'typing' | 'process_manager' | 'spreadsheet' | 'sorting' | 'tree_search'
+  | 'phishing_detect' | 'ai_neuron' | 'network_route' | 'file_organizer'
+  | 'binary_switches' | 'binary_bulbs' | 'wireframe_builder' | 'circuit_builder' | 'fake_detector'
+  | 'ai_kids_trainer'
+  // Алиасы совместимости со старыми данными
+  | 'circuit' | 'ai_trainer';
 
 export interface Task {
   id: string;
@@ -118,6 +126,13 @@ export interface Task {
       fileSystem: string; // JSON structure description for AI context
       goalCommand: string; // e.g., "cat secret.txt"
   };
+  terminalOutput?: string; // expected output for print-based terminal tasks
+
+  // For 'typing' (variant used in grades 3-5)
+  typingData?: {
+      text: string;
+      targetWPM?: number;
+  };
 
   // For 'hanoi' only
   hanoiConfig?: {
@@ -141,16 +156,130 @@ export interface Task {
       };
   };
 
+  // Интерактивные тренажёры школьного курса
+  typingConfig?: {
+      targetText: string;
+      allowedMistakes?: number;
+      targetWPM?: number;
+  };
+
+  processConfig?: {
+      targetKillNames: string[];
+  };
+
+  spreadsheetConfig?: {
+      tableData: { id: string; name: string; val1: number; val2: number; formulaResult?: string | number }[];
+      targetFormula: string;
+      formulaType: 'sum' | 'if' | 'vlookup';
+  };
+
+  sortingConfig?: {
+      numbers: number[];
+      algorithm: 'bubble' | 'merge';
+  };
+
+  treeConfig?: {
+      target: number;
+      tree: { value: number; left?: any; right?: any };
+  };
+
+  phishingConfig?: {
+      sender?: string;         // отображаемый адрес отправителя (подозрительный)
+      senderName?: string;     // имя отправителя
+      subject?: string;
+      body?: string;           // параграфы текста письма через \n
+      urgencyText?: string;    // текст блока психологического давления
+      linkText?: string;       // отображаемый URL ссылки
+      linkReal?: string;       // реальный URL, куда ведёт ссылка
+      attachmentName?: string; // имя опасного вложения
+      threatCount?: number;
+      // id привязан к кликабельной зоне письма: sender | urgency | hidden_link | attachment
+      threats?: { id: string; label: string; explanation: string }[];
+  };
+
+  neuronConfig?: {
+      targetWeight1: number;
+      targetWeight2: number;
+      threshold: number;
+      featureNames?: { x1: string; x2: string };  // подписи входных признаков
+      samples?: { id: number; label: string; x1: number; x2: number; target: number }[];
+  };
+
+  networkConfig?: {
+      startNode: string;       // id стартового узла (напр. 'client')
+      endNode: string;         // id конечного узла (напр. 'server')
+      maxLatencyMs?: number;   // порог задержки для победы (default 50)
+      nodes?: { id: string; label: string; x: number; y: number; status: 'online' | 'overloaded' }[];
+      edges?: { from: string; to: string; latencyMs: number }[];
+  };
+
+  fileConfig?: any;
+  binaryConfig?: any;
+
+  // wireframe_builder: виджеты, доступные для перетаскивания на слоты экрана
+  wireframeConfig?: {
+      widgets?: { id: string; name: string; slot: 'header' | 'hero' | 'action' | 'footer'; icon: string; desc: string }[];
+      // Краткая запись: какие слоты экрана нужно заполнить ('canvas' -> hero, 'controls' -> action)
+      requiredElements?: string[];
+  };
+
+  // circuit_builder: последовательность уровней-вентилей
+  circuitConfig?: {
+      gates?: ('and' | 'or' | 'xor' | 'nand')[];
+      // Краткая запись одного уровня (регистр любой): gate / targetGate
+      gate?: string;
+      targetGate?: string;
+      targetOutput?: boolean;
+      expectedOutput?: boolean;
+  };
+
+  // fake_detector: карточки-кейсы «правда или фейк/опасно»
+  fakeDetectorConfig?: {
+      cases?: {
+          id: string;
+          icon: string;
+          title: string;
+          text: string;
+          isDangerOrFake: boolean;
+          teacherHint: string;
+          explanation: string;
+      }[];
+      // Краткая запись одного кейса
+      claim?: string;
+      isFake?: boolean;
+      explanation?: string;
+  };
+
+  // ai_kids_trainer: обучающие карточки для сортировки по двум категориям
+  aiTrainerConfig?: {
+      categoryNames?: { cat: string; dog: string }; // подписи двух корзин
+      cards?: { id: string; name: string; icon: string; category: 'cat' | 'dog' }[];
+      targetClass?: string;
+      samplesNeeded?: number;
+  };
+
+  hint?: string;
   difficulty: 'Новичок' | 'Хакер' | 'Элита' | 'Легенда';
   xpReward: number;
   currencyReward: number; // New reward
   status: 'locked' | 'open' | 'completed';
 }
 
+export type GridActionType = 'move' | 'attack' | 'jump';
+
+export interface GridEvent {
+    type: GridActionType;
+    x: number; // Actor position
+    y: number;
+    targetX?: number; // Target for attack/jump land
+    targetY?: number;
+}
+
 export interface ExecutionResult {
   success: boolean;
   logs: string[];
-  steps: [number, number][]; 
+  steps: [number, number][];
+  gridEvents?: GridEvent[];
   error?: string;
   feedback?: string;
   terminalOutput?: string; // For terminal tasks

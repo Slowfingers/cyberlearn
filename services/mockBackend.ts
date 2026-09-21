@@ -194,7 +194,7 @@ export const joinClassroom = async (studentName: string, inviteCode: string): Pr
 };
 
 export const createTaskForClass = (classId: string, task: Task) => {
-    const customTask = { ...task, courseId: 'course_cs101' }; 
+    const customTask = { ...task, courseId: 'course_grade3' }; 
     const tasks = getCustomTasks();
     tasks.push(customTask);
     saveCustomTasks(tasks);
