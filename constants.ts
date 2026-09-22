@@ -57,6 +57,12 @@ export const COSMETICS: CosmeticItem[] = [
   { id: 'av_9', type: 'avatar', name: 'Сенсей', value: '10', unlockLevel: 9, cost: 1100 },
   { id: 'av_10', type: 'avatar', name: 'Командир', value: '11', unlockLevel: 10, cost: 1300 },
   { id: 'av_11', type: 'avatar', name: 'Архитектор', value: '12', unlockLevel: 11, cost: 1600 },
+
+  // MASCOT SKINS (value = MascotSkin id in BigCharacter3D)
+  { id: 'skin_sparky', type: 'mascotSkin', name: 'Спарки', value: 'sparky', unlockLevel: 1, cost: 0 },
+  { id: 'skin_cat', type: 'mascotSkin', name: 'Кибер-Кот', value: 'cat', unlockLevel: 3, cost: 300 },
+  { id: 'skin_prof', type: 'mascotSkin', name: 'Профессор', value: 'prof', unlockLevel: 5, cost: 600 },
+  { id: 'skin_astro', type: 'mascotSkin', name: 'Астро', value: 'astro', unlockLevel: 7, cost: 900 },
 ];
 
 export const MOCK_STUDENTS: StudentProgress[] = [

@@ -283,31 +283,11 @@ export const BigCharacter3D: React.FC<BigCharacter3DProps> = ({
         }}
       >
         {/* =================================================================== */}
-        {/* HOLOGRAPHIC PEDESTAL + SOFT FLOOR SHADOW (связана с парением)      */}
+        {/* SOFT FLOOR SHADOW (связана с парением)                             */}
         {/* =================================================================== */}
         <div className="absolute bottom-2 left-1/2 -translate-x-1/2 w-52 h-16 pointer-events-none" style={{ transformStyle: 'preserve-3d' }}>
           {/* Contact shadow: сжимается, когда персонаж взлетает выше */}
           <div className="mascot-shadow absolute bottom-0 left-1/2 -translate-x-1/2 w-40 h-8 rounded-full bg-black/60 blur-md" />
-          {/* Cyber Floor Grid Disc */}
-          <div className="absolute inset-0 rounded-full bg-gradient-to-b from-cyan-500/20 to-transparent border border-cyber-neonBlue/40 blur-[1px] transform rotate-x-[70deg]" />
-          {/* Glowing Ring 1 */}
-          <div className="absolute inset-2 rounded-full border-2 border-dashed border-cyber-neonGreen/60 animate-[spin_8s_linear_infinite]" />
-          {/* Glowing Ring 2 */}
-          <div className="absolute inset-5 rounded-full border border-cyber-neonYellow/50 animate-[spin_12s_linear_infinite_reverse]" />
-          {/* Center Light Pillar Glow */}
-          <div className="absolute -top-12 left-1/2 -translate-x-1/2 w-32 h-24 bg-cyber-neonBlue/20 blur-xl rounded-full" />
-        </div>
-
-        {/* =================================================================== */}
-        {/* 3D FLOATING HOLOGRAPHIC ORBIT RING */}
-        {/* =================================================================== */}
-        <div className="absolute inset-0 pointer-events-none flex items-center justify-center" style={{ transformStyle: 'preserve-3d' }}>
-          <div
-            className="w-64 h-64 rounded-full border border-cyber-neonBlue/30 border-dashed animate-[spin_14s_linear_infinite]"
-            style={{ transform: 'rotateX(68deg) rotateY(15deg)' }}
-          >
-            <div className="w-3 h-3 rounded-full bg-cyber-neonYellow shadow-[0_0_10px_#fcee0a] absolute -top-1.5 left-1/2 -translate-x-1/2 animate-pulse" />
-          </div>
         </div>
 
         {/* =================================================================== */}
@@ -362,8 +342,6 @@ export const BigCharacter3D: React.FC<BigCharacter3DProps> = ({
                 <circle cx="100" cy="14" r="9" fill="#fcee0a" opacity="0.25" />
                 <circle cx="100" cy="14" r="6" fill="#fcee0a" />
                 <circle cx="98" cy="12" r="2.5" fill="#ffffff" />
-                <ellipse cx="100" cy="14" rx="22" ry="7" stroke="#00f3ff" strokeWidth="1.5" strokeDasharray="5 3" fill="none" opacity="0.7" />
-                <ellipse cx="100" cy="14" rx="33" ry="10" stroke="#00ff41" strokeWidth="1" strokeDasharray="3 4" fill="none" opacity="0.45" />
               </g>
 
               {/* Боковые модули-подвесы */}
@@ -708,7 +686,6 @@ export const BigCharacter3D: React.FC<BigCharacter3DProps> = ({
                 <line x1="100" y1="36" x2="100" y2="14" stroke="url(#asGold)" strokeWidth="4" strokeLinecap="round" />
                 <circle cx="100" cy="10" r="10" fill="#fcee0a" opacity="0.2" />
                 <polygon points="100,0 103,7 110,10 103,13 100,20 97,13 90,10 97,7" fill="url(#asGold)" />
-                <ellipse cx="100" cy="10" rx="20" ry="6" stroke="#00f3ff" strokeWidth="1.5" strokeDasharray="4 2" fill="none" opacity="0.7" />
               </g>
 
               {/* Боковые золотые модули */}

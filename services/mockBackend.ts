@@ -82,6 +82,10 @@ export const buyItem = async (userId: string, itemId: string): Promise<{ success
     // Auto equip
     if (item.type === 'avatar') user.equipped.avatar = itemId;
     if (item.type === 'droneColor') user.equipped.droneColor = itemId;
+    if (item.type === 'mascotSkin') {
+        user.equipped.mascotSkin = itemId;
+        localStorage.setItem('cyber_mascot_skin', item.value);
+    }
 
     await fbSaveUser(user);
     return { success: true, user };
@@ -97,6 +101,10 @@ export const equipItem = async (userId: string, itemId: string): Promise<{ succe
 
     if (item.type === 'avatar') user.equipped.avatar = itemId;
     if (item.type === 'droneColor') user.equipped.droneColor = itemId;
+    if (item.type === 'mascotSkin') {
+        user.equipped.mascotSkin = itemId;
+        localStorage.setItem('cyber_mascot_skin', item.value);
+    }
 
     await fbSaveUser(user);
     return { success: true, user };
@@ -177,9 +185,9 @@ export const joinClassroom = async (studentName: string, inviteCode: string): Pr
             xp: 0,
             currency: 0,
             level: 1,
-            inventory: ['col_default', 'av_1'],
+            inventory: ['col_default', 'av_1', 'skin_sparky'],
             achievements: [],
-            equipped: { avatar: 'av_1', droneColor: '#00f3ff' }
+            equipped: { avatar: 'av_1', droneColor: '#00f3ff', mascotSkin: 'skin_sparky' }
         };
         await fbSaveUser(user);
     }
@@ -211,6 +219,22 @@ export const getTaskProgress = (userId: string): Record<string, 'open' | 'comple
 export const saveTaskProgress = (userId: string, progress: Record<string, 'open' | 'completed' | 'locked'>): void => {
     const key = `${TASK_PROGRESS_PREFIX}${userId}`;
     localStorage.setItem(key, JSON.stringify(progress));
+};
+
+// --- FAILED-ATTEMPT COUNTERS (localStorage — per-device) ---
+// Живут, пока задача не сдана; не сбрасываются при перезаходе в урок.
+
+const TASK_ATTEMPTS_PREFIX = 'task_attempts_';
+
+export const getTaskAttempts = (userId: string): Record<string, number> => {
+    const key = `${TASK_ATTEMPTS_PREFIX}${userId}`;
+    const saved = localStorage.getItem(key);
+    return saved ? JSON.parse(saved) : {};
+};
+
+export const saveTaskAttempts = (userId: string, attempts: Record<string, number>): void => {
+    const key = `${TASK_ATTEMPTS_PREFIX}${userId}`;
+    localStorage.setItem(key, JSON.stringify(attempts));
 };
 
 // --- DATA FETCHING ---

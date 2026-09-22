@@ -3,7 +3,10 @@ import React, { useState, useEffect, useRef, useCallback, useMemo } from 'react'
 import { COSMETICS, ACHIEVEMENTS } from '../constants';
 import { Task, ExecutionResult, User, Course, GridEvent } from '../types';
 import { evaluateCodeLocally, shuffledQuiz } from '../services/localEvaluation';
-import { calculateLevel, getNextLevelThreshold, updateUserProfile, getAllTasks, getCoursesWithProgress, buyItem, equipItem, saveTaskProgress, getTaskProgress, getHiddenCoursesForStudent, getStreak, recordActivity, StreakData } from '../services/mockBackend';
+import { calculateLevel, getNextLevelThreshold, updateUserProfile, getAllTasks, getCoursesWithProgress, buyItem, equipItem, saveTaskProgress, getTaskProgress, getTaskAttempts, saveTaskAttempts, getHiddenCoursesForStudent, getStreak, recordActivity, StreakData } from '../services/mockBackend';
+import { rewardMultiplier } from '../services/scoring';
+import { stripStandardsPrefix } from '../utils/theoryText';
+import { BigCharacter3D } from './BigCharacter3D';
 import GameGrid from './GameGrid';
 import HanoiGame from './HanoiGame';
 import BlockCoding from './BlockCoding';
@@ -95,7 +98,7 @@ export const getTaskPracticeGoal = (task: Task) => {
   if (task.type === 'wireframe_builder') {
     return 'Спроектируй удобный мобильный интерфейс: перетащи блоки кнопок, картинок и текста на макет экрана смартфона!';
   }
-  return task.description;
+  return stripStandardsPrefix(task.description || '');
 };
 
 // Фолбэк для 3D-наставника: если BigMascotTheoryStory упал, показываем обычную теорию
@@ -118,7 +121,14 @@ const StudentDashboard: React.FC<StudentDashboardProps> = ({ currentUser: propUs
   const [activeTask, setActiveTask] = useState<Task | null>(null);
   const [taskTab, setTaskTab] = useState<'info' | 'code' | 'visual'>('info'); 
   const [showMobileSidebar, setShowMobileSidebar] = useState<boolean>(true);
-  const [attemptCount, setAttemptCount] = useState<Record<string, number>>({});
+  // Счётчики провальных попыток: персистентны в localStorage, живут пока задача не сдана.
+  // attemptUserId — кому принадлежит текущее состояние attemptCount (защита от записи
+  // чужих счётчиков в хранилище нового пользователя между сменой propUser.id и sync-эффектом).
+  const attemptUserId = useRef(propUser.id);
+  const [attemptCount, setAttemptCount] = useState<Record<string, number>>(() => getTaskAttempts(propUser.id));
+  const bumpAttempt = (taskId: string) => {
+      setAttemptCount(prev => ({ ...prev, [taskId]: (prev[taskId] || 0) + 1 }));
+  };
   const rewardedTaskIds = useRef<Set<string>>(new Set());
   
   // Profile State
@@ -179,6 +189,22 @@ const StudentDashboard: React.FC<StudentDashboardProps> = ({ currentUser: propUs
   const editorRef = useRef<HTMLTextAreaElement>(null);
   const terminalEndRef = useRef<HTMLDivElement>(null);
   const sidebarRef = useRef<HTMLDivElement>(null);
+
+  // Персист счётчиков попыток: пишем только если attemptCount принадлежит текущему
+  // пользователю (иначе sync-эффект ниже подгрузит чужие данные, а этот эффект
+  // молча пропустит запись — порядок эффектов важен: этот объявлен первым).
+  useEffect(() => {
+      if (attemptUserId.current !== propUser.id) return;
+      saveTaskAttempts(propUser.id, attemptCount);
+  }, [attemptCount, propUser.id]);
+
+  // Смена пользователя без перемонтирования: подгружаем его счётчики
+  useEffect(() => {
+      if (attemptUserId.current !== propUser.id) {
+          attemptUserId.current = propUser.id;
+          setAttemptCount(getTaskAttempts(propUser.id));
+      }
+  }, [propUser.id]);
 
   useEffect(() => {
       (async () => {
@@ -288,11 +314,6 @@ const StudentDashboard: React.FC<StudentDashboardProps> = ({ currentUser: propUs
     setDestroyedObstacles([]); 
     setShowHintModal(false);
     
-    // Reset attempt counter for new task (keep history for completed tasks)
-    if (activeTask.status !== 'completed') {
-        setAttemptCount(prev => ({ ...prev, [activeTask.id]: 0 }));
-    }
-
     // Specific Task Type Resets
     if (activeTask.type === 'grid' || activeTask.type === 'html') {
         setCode(activeTask.initialCode || '');
@@ -452,11 +473,8 @@ const StudentDashboard: React.FC<StudentDashboardProps> = ({ currentUser: propUs
             await endTaskAttempt(currentUser.id, false);
             startTaskAttempt(activeTask.id, currentUser.id);
         }
-        // Increment attempt counter on failure
-        setAttemptCount(prev => ({
-            ...prev,
-            [activeTask.id]: (prev[activeTask.id] || 0) + 1
-        }));
+        // Increment persistent attempt counter on failure
+        bumpAttempt(activeTask.id);
     }
 
     setIsRunning(false);
@@ -483,11 +501,8 @@ const StudentDashboard: React.FC<StudentDashboardProps> = ({ currentUser: propUs
               endTaskAttempt(currentUser.id, false);
               startTaskAttempt(activeTask.id, currentUser.id);
           }
-          // Increment attempt counter on wrong answer
-          setAttemptCount(prev => ({
-              ...prev,
-              [activeTask.id]: (prev[activeTask.id] || 0) + 1
-          }));
+          // Increment persistent attempt counter on wrong answer
+          bumpAttempt(activeTask.id);
       }
   };
 
@@ -566,11 +581,11 @@ const StudentDashboard: React.FC<StudentDashboardProps> = ({ currentUser: propUs
           // Record streak activity
           const updatedStreak = recordActivity(currentUser.id);
           setStreak(updatedStreak);
-          // Calculate penalty based on failed attempts
+          // Лестница награды по числу провальных попыток: 100/50/25/10 %
           const attempts = attemptCount[task.id] || 0;
-          const penaltyPercent = Math.min(attempts * 20, 80); // Max 80% penalty (min 20% reward)
-          const multiplier = (100 - penaltyPercent) / 100;
-          
+          const multiplier = rewardMultiplier(attempts);
+          const rewardPercent = Math.round(multiplier * 100);
+
           const actualXP = Math.max(1, Math.round(task.xpReward * multiplier));
           const actualCurrency = Math.max(1, Math.round((task.currencyReward || 0) * multiplier));
           
@@ -580,7 +595,7 @@ const StudentDashboard: React.FC<StudentDashboardProps> = ({ currentUser: propUs
           
           // Show penalty message if attempts > 0
           if (attempts > 0) {
-              setLogs(prev => [...prev, `⚠ Штраф за ${attempts} ошибок: -${penaltyPercent}% награды`]);
+              setLogs(prev => [...prev, `⚠ Ошибок: ${attempts}. Награда снижена до ${rewardPercent}%: +${actualXP} XP, +${actualCurrency} BITS`]);
           }
           
           const newAchievements = [...(currentUser.achievements || [])];
@@ -1036,7 +1051,7 @@ const StudentDashboard: React.FC<StudentDashboardProps> = ({ currentUser: propUs
                         <div className="flex-1 overflow-y-auto p-3 md:p-6 grid grid-cols-2 lg:grid-cols-3 gap-3 md:gap-6 auto-rows-max">
                             {COSMETICS.map(item => {
                                 const isOwned = currentUser.inventory.includes(item.id);
-                                const isEquipped = currentUser.equipped.avatar === item.id || currentUser.equipped.droneColor === item.id;
+                                const isEquipped = currentUser.equipped.avatar === item.id || currentUser.equipped.droneColor === item.id || currentUser.equipped.mascotSkin === item.id;
                                 const canAfford = currentUser.currency >= item.cost;
                                 const isLocked = currentUser.level < item.unlockLevel;
 
@@ -1052,13 +1067,17 @@ const StudentDashboard: React.FC<StudentDashboardProps> = ({ currentUser: propUs
                                         <div className="w-16 h-16 md:w-20 md:h-20 mb-3 md:mb-4 rounded-full border border-gray-700 flex items-center justify-center overflow-hidden bg-gray-900">
                                             {item.type === 'avatar' ? (
                                                 <AnimatedSprite avatarId={item.value} animation="Idle" scale={1.5} />
+                                            ) : item.type === 'mascotSkin' ? (
+                                                <div className="pointer-events-none origin-top scale-[0.22] -translate-y-2">
+                                                    <BigCharacter3D skin={item.value} mood="happy" gesture="idle" />
+                                                </div>
                                             ) : (
                                                 <div className="w-10 h-10 rounded-full shadow-[0_0_15px]" style={{backgroundColor: item.value, boxShadow: `0 0 15px ${item.value}`}}></div>
                                             )}
                                         </div>
                                         
                                         <h3 className="text-white font-bold text-xs md:text-sm mb-0.5 md:mb-1 leading-tight">{item.name}</h3>
-                                        <p className="text-gray-500 text-[9px] md:text-[10px] uppercase mb-2 md:mb-4">{item.type === 'avatar' ? 'Аватар' : 'Цвет Дрона'}</p>
+                                        <p className="text-gray-500 text-[9px] md:text-[10px] uppercase mb-2 md:mb-4">{item.type === 'avatar' ? 'Аватар' : item.type === 'mascotSkin' ? 'Скин Наставника' : 'Цвет Дрона'}</p>
                                         
                                         {isOwned ? (
                                             <button 
@@ -1276,9 +1295,15 @@ const StudentDashboard: React.FC<StudentDashboardProps> = ({ currentUser: propUs
                 </div>
                 <div className="flex-1 overflow-y-auto p-4 md:p-8">
                 <div className="max-w-4xl mx-auto w-full space-y-6">
-                    <MascotErrorBoundary fallback={null}>
+                    <MascotErrorBoundary fallback={activeTask.theory ? (
+                        <div className="bg-black/80 border border-gray-800 p-6 md:p-8 rounded-xl shadow-xl prose prose-invert max-w-none text-sm leading-relaxed">
+                            <div dangerouslySetInnerHTML={{ __html: activeTask.theory }} />
+                        </div>
+                    ) : null}>
                         <BigMascotTheoryStory
                             task={activeTask}
+                            mascotSkinItemId={currentUser?.equipped?.mascotSkin}
+                            practiceGoal={getTaskPracticeGoal(activeTask)}
                             onStartPractice={() => {
                                 playSound('click');
                                 if (activeTask.type !== 'theory') {
@@ -1287,21 +1312,8 @@ const StudentDashboard: React.FC<StudentDashboardProps> = ({ currentUser: propUs
                                     handleTheoryComplete();
                                 }
                             }}
-                            onAwardBonusXP={(xp) => {
-                                if (currentUser) {
-                                    const updated = { ...currentUser, xp: currentUser.xp + xp };
-                                    setCurrentUser(updated);
-                                    updateUserProfile(updated);
-                                }
-                            }}
                         />
                     </MascotErrorBoundary>
-
-                    {activeTask.theory && (
-                        <div className="bg-black/80 border border-gray-800 p-6 md:p-8 rounded-xl shadow-xl prose prose-invert max-w-none text-sm leading-relaxed">
-                            <div dangerouslySetInnerHTML={{ __html: activeTask.theory }} />
-                        </div>
-                    )}
 
                     <div className="p-5 rounded-xl bg-gradient-to-r from-emerald-950/40 via-black to-cyan-950/40 border border-cyber-neonGreen/40 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
                         <div className="max-w-xl">
@@ -1454,10 +1466,7 @@ const StudentDashboard: React.FC<StudentDashboardProps> = ({ currentUser: propUs
                 task={activeTask} 
                 onSuccess={() => { playSound('success'); setMissionSuccess(true); handleTaskCompletion(activeTask, false); }}
                 onFail={() => {
-                    setAttemptCount(prev => ({
-                        ...prev,
-                        [activeTask.id]: (prev[activeTask.id] || 0) + 1
-                    }));
+                    bumpAttempt(activeTask.id);
                 }}
               />
           </div>
@@ -1551,7 +1560,7 @@ const StudentDashboard: React.FC<StudentDashboardProps> = ({ currentUser: propUs
                 <div className="flex-1 overflow-y-auto p-4">
                     <div className="prose prose-invert prose-sm max-w-none">
                         <h3 className="text-cyber-neonGreen font-mono">БРИФИНГ</h3>
-                        <p className="text-gray-400">{activeTask.description}</p>
+                        <p className="text-gray-400">{stripStandardsPrefix(activeTask.description || '')}</p>
                         <div className="h-px bg-gray-800 my-4"></div>
                         <h3 className="text-cyber-neonBlue font-mono flex items-center gap-2"><BookOpen size={16}/> СПРАВОЧНИК</h3>
                         <div dangerouslySetInnerHTML={{ __html: activeTask.theory || '' }} />
@@ -1567,7 +1576,7 @@ const StudentDashboard: React.FC<StudentDashboardProps> = ({ currentUser: propUs
                          <div className="bg-cyber-neonPink/20 p-1.5 rounded text-cyber-neonPink border border-cyber-neonPink/50 shrink-0"><Code size={16} /></div>
                          <div className="min-w-0">
                              <h1 className="text-sm font-bold text-white uppercase leading-tight break-words flex-1">{activeTask.title}</h1>
-                             <div className="text-[10px] text-gray-500 font-mono leading-tight break-words">OBJ: {activeTask.description}</div>
+                             <div className="text-[10px] text-gray-500 font-mono leading-tight break-words">OBJ: {stripStandardsPrefix(activeTask.description || '')}</div>
                          </div>
                      </div>
                      <div className="flex gap-2">
@@ -1806,8 +1815,8 @@ const StudentDashboard: React.FC<StudentDashboardProps> = ({ currentUser: propUs
                        <div className="text-cyber-neonBlue font-mono text-xs mt-0.5">
                            {lastXpAwarded ? (() => {
                                const attempts = attemptCount[activeTask.id] || 0;
-                               const penaltyPercent = Math.min(attempts * 20, 80);
-                               const multiplier = (100 - penaltyPercent) / 100;
+                               const multiplier = rewardMultiplier(attempts);
+                               const rewardPercent = Math.round(multiplier * 100);
                                const actualXP = Math.max(1, Math.round(activeTask.xpReward * multiplier));
                                const actualCurrency = Math.max(1, Math.round((activeTask.currencyReward || 0) * multiplier));
                                const hasPenalty = attempts > 0;
@@ -1818,7 +1827,7 @@ const StudentDashboard: React.FC<StudentDashboardProps> = ({ currentUser: propUs
                                        </span>
                                        {hasPenalty && (
                                            <span className="text-red-400 ml-2">
-                                               → {actualXP} XP | {actualCurrency} BITS (-{penaltyPercent}%)
+                                               → {actualXP} XP | {actualCurrency} BITS ({rewardPercent}%)
                                            </span>
                                        )}
                                    </>
