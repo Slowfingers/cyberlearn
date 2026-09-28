@@ -81,6 +81,7 @@ export const buyItem = async (userId: string, itemId: string): Promise<{ success
     
     // Auto equip
     if (item.type === 'avatar') user.equipped.avatar = itemId;
+    if (item.type === 'avatarFrame') user.equipped.avatarFrame = itemId;
     if (item.type === 'droneColor') user.equipped.droneColor = itemId;
     if (item.type === 'mascotSkin') {
         user.equipped.mascotSkin = itemId;
@@ -97,9 +98,10 @@ export const equipItem = async (userId: string, itemId: string): Promise<{ succe
     if (!user) return { success: false };
 
     const item = COSMETICS.find(c => c.id === itemId);
-    if (!item) return { success: false };
+    if (!item || !user.inventory.includes(itemId)) return { success: false };
 
     if (item.type === 'avatar') user.equipped.avatar = itemId;
+    if (item.type === 'avatarFrame') user.equipped.avatarFrame = itemId;
     if (item.type === 'droneColor') user.equipped.droneColor = itemId;
     if (item.type === 'mascotSkin') {
         user.equipped.mascotSkin = itemId;

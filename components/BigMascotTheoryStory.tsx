@@ -203,9 +203,33 @@ export const BigMascotTheoryStory: React.FC<BigMascotTheoryStoryProps> = ({
   const mascotStatus = skin === 'sparky' ? 'Байтик онлайн' : skin === 'cat' ? 'Нео-Кот слушает' : skin === 'astro' ? 'Астро-Бот на связи' : 'Профессор на связи';
 
   const isLastTheoryStep = currentStepDef.kind === 'theory' && currentStep === story.theoryGroups.length;
+  // Единая восьмифазная дуга делает урок предсказуемым для ребёнка: история,
+  // понятие, разбор, короткая передышка, новый пример, лаборатория, вспоминание, награда.
+  // Этапы 6–8 продолжаются уже в практическом тренажёре и на экране победы.
+  const phaseLabels = ['Завязка', 'Аналогия', 'Механизм', 'Передышка', 'Поворот', 'Лаборатория', 'Синтез', 'Победа'];
+  const currentPhase = currentStepDef.kind === 'intro'
+    ? 0
+    : currentStepDef.kind === 'ready'
+      ? 5
+      : Math.min(4, 1 + Math.floor(((currentStep - 1) / Math.max(story.theoryGroups.length, 1)) * 4));
 
   return (
     <div className="w-full flex flex-col space-y-6">
+
+      <div className="rounded-2xl border border-cyber-neonBlue/25 bg-slate-950/80 px-3 py-3" aria-label={`Этап урока: ${phaseLabels[currentPhase]}`}>
+        <div className="mb-2 flex items-center justify-between font-mono text-[10px] uppercase tracking-wider">
+          <span className="text-cyber-neonBlue">Маршрут урока</span>
+          <span className="text-slate-400">Этап {currentPhase + 1} из 8: {phaseLabels[currentPhase]}</span>
+        </div>
+        <ol className="grid grid-cols-4 gap-1 sm:grid-cols-8" aria-label="Восемь этапов урока">
+          {phaseLabels.map((label, index) => (
+            <li key={label} className="min-w-0">
+              <div className={`h-1.5 rounded-full transition-colors ${index < currentPhase ? 'bg-cyber-neonGreen' : index === currentPhase ? 'bg-cyber-neonBlue animate-pulse' : 'bg-slate-800'}`} />
+              <span className={`mt-1 block truncate text-[9px] ${index === currentPhase ? 'font-bold text-cyan-200' : 'text-slate-500'}`} title={label}>{index + 1}. {label}</span>
+            </li>
+          ))}
+        </ol>
+      </div>
 
       {/* =================================================================== */}
       {/* TOP COMPACT CONTROL BAR (AUDIO + PRACTICE SHORTCUT)                 */}

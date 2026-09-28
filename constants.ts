@@ -6,6 +6,7 @@ import { GRADE5_COURSE, GRADE5_TASKS } from './curriculum/grade5';
 import { GRADE6_COURSE, GRADE6_TASKS } from './curriculum/grade6';
 import { GRADE7_COURSE, GRADE7_TASKS } from './curriculum/grade7';
 import { TRAINER_CONFIGS } from './curriculum/trainerConfigs';
+import { AVATAR_NAMES, FRAME_NAMES } from './components/ShopAvatar';
 
 export const LEVEL_THRESHOLDS = [0, 100, 300, 600, 1000, 1500, 2200, 3000, 4000, 5500, 7500, 10000];
 
@@ -46,17 +47,16 @@ export const COSMETICS: CosmeticItem[] = [
   { id: 'col_white', type: 'droneColor', name: 'Чистый Код', value: '#ffffff', unlockLevel: 10, cost: 2000 },
   
   // AVATARS (value = sprite folder ID in /public/avatars/)
-  { id: 'av_1', type: 'avatar', name: 'Новичок', value: '2', unlockLevel: 1, cost: 0 },
-  { id: 'av_2', type: 'avatar', name: 'Хакер', value: '3', unlockLevel: 2, cost: 150 },
-  { id: 'av_3', type: 'avatar', name: 'Призрак', value: '4', unlockLevel: 3, cost: 300 },
-  { id: 'av_4', type: 'avatar', name: 'Инженер', value: '5', unlockLevel: 4, cost: 400 },
-  { id: 'av_5', type: 'avatar', name: 'Скаут', value: '6', unlockLevel: 5, cost: 500 },
-  { id: 'av_6', type: 'avatar', name: 'Оперативник', value: '7', unlockLevel: 6, cost: 600 },
-  { id: 'av_7', type: 'avatar', name: 'Снайпер', value: '8', unlockLevel: 7, cost: 750 },
-  { id: 'av_8', type: 'avatar', name: 'Медик', value: '9', unlockLevel: 8, cost: 900 },
-  { id: 'av_9', type: 'avatar', name: 'Сенсей', value: '10', unlockLevel: 9, cost: 1100 },
-  { id: 'av_10', type: 'avatar', name: 'Командир', value: '11', unlockLevel: 10, cost: 1300 },
-  { id: 'av_11', type: 'avatar', name: 'Архитектор', value: '12', unlockLevel: 11, cost: 1600 },
+  ...AVATAR_NAMES.map((name, index): CosmeticItem => ({
+    id: `av_${index + 1}`, type: 'avatar', name, value: String(index + 2),
+    unlockLevel: Math.min(12, Math.floor(index / 2) + 1),
+    cost: index === 0 ? 0 : 100 + index * 75,
+  })),
+  ...FRAME_NAMES.map((name, index): CosmeticItem => ({
+    id: `frame_${index + 1}`, type: 'avatarFrame', name, value: String(index + 1),
+    unlockLevel: index + 1, cost: index === 0 ? 0 : 100 + index * 100,
+  })),
+  { id: 'frame_none', type: 'avatarFrame', name: 'Без рамки', value: '0', unlockLevel: 1, cost: 0 },
 
   // MASCOT SKINS (value = MascotSkin id in BigCharacter3D)
   { id: 'skin_sparky', type: 'mascotSkin', name: 'Спарки', value: 'sparky', unlockLevel: 1, cost: 0 },

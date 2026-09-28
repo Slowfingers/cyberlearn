@@ -21,7 +21,7 @@ export interface Achievement {
 
 export interface CosmeticItem {
   id: string;
-  type: 'avatar' | 'droneColor' | 'mascotSkin';
+  type: 'avatar' | 'droneColor' | 'mascotSkin' | 'avatarFrame';
   name: string;
   value: string; 
   unlockLevel: number;
@@ -57,6 +57,7 @@ export interface User {
     avatar: string;
     droneColor: string;
     mascotSkin?: string;
+    avatarFrame?: string;
   };
   taskAttempts?: TaskAttempt[]; // Detailed attempt history
   suspiciousActivity?: {

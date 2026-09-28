@@ -1,35 +1,45 @@
 
-import React, { useState, useEffect, useRef, useCallback, useMemo } from 'react';
+import React, { useState, useEffect, useRef, useCallback, useMemo, lazy, Suspense } from 'react';
 import { COSMETICS, ACHIEVEMENTS } from '../constants';
 import { Task, ExecutionResult, User, Course, GridEvent } from '../types';
 import { evaluateCodeLocally, shuffledQuiz } from '../services/localEvaluation';
 import { calculateLevel, getNextLevelThreshold, updateUserProfile, getAllTasks, getCoursesWithProgress, buyItem, equipItem, saveTaskProgress, getTaskProgress, getTaskAttempts, saveTaskAttempts, getHiddenCoursesForStudent, getStreak, recordActivity, StreakData } from '../services/mockBackend';
 import { rewardMultiplier } from '../services/scoring';
 import { stripStandardsPrefix } from '../utils/theoryText';
-import { BigCharacter3D } from './BigCharacter3D';
-import GameGrid from './GameGrid';
-import HanoiGame from './HanoiGame';
-import BlockCoding from './BlockCoding';
-import AnimatedSprite, { hasAnimation } from './AnimatedSprite';
+import ShopAvatar from './ShopAvatar';
 import CyberToast, { ToastMessage } from './CyberToast';
-import { TypingGame } from './interactives/TypingGame';
-import { ProcessManagerGame } from './interactives/ProcessManagerGame';
-import { SpreadsheetGame } from './interactives/SpreadsheetGame';
-import { SortingGame } from './interactives/SortingGame';
-import { BinaryTreeGame } from './interactives/BinaryTreeGame';
-import { PhishingInspectorGame } from './interactives/PhishingInspectorGame';
-import { NeuronLabGame } from './interactives/NeuronLabGame';
-import { NetworkRouteGame } from './interactives/NetworkRouteGame';
-import { FileOrganizerGame } from './interactives/FileOrganizerGame';
-import { BinaryBulbsGame } from './interactives/BinaryBulbsGame';
-import { WireframeBuilderGame } from './interactives/WireframeBuilderGame';
-import { FakeDetectorGame } from './interactives/FakeDetectorGame';
-import { CircuitBuilderGame } from './interactives/CircuitBuilderGame';
-import { AiKidsTrainerGame } from './interactives/AiKidsTrainerGame';
-import { BigMascotTheoryStory } from './BigMascotTheoryStory';
 import { Play, RotateCcw, CheckCircle, Lock, BookOpen, Zap, ArrowRight, ChevronLeft, Trophy, X, Bot, Code, Terminal as TerminalIcon, Cpu, Globe, Grid, LayoutList, Eye, Loader2, HelpCircle, ShoppingBag, Coins, BrainCircuit, Puzzle, Award, Flame, Activity, ArrowUpDown, GitBranch, ShieldAlert, Brain, Lightbulb, Folder, Smartphone, ShieldCheck } from 'lucide-react';
 import { playSound } from '../utils/sound';
 import { startTaskAttempt, recordError, endTaskAttempt, cleanupTracker, initActivityTracking } from '../utils/activityTracker';
+
+// Тренажёры занимают большую часть клиентского кода. Загружаем каждый только тогда,
+// когда ребёнок действительно открывает соответствующий урок: быстрее старт на
+// школьных ноутбуках и меньше трафика, при этом весь курс остаётся доступен офлайн после загрузки.
+const GameGrid = lazy(() => import('./GameGrid'));
+const HanoiGame = lazy(() => import('./HanoiGame'));
+const BlockCoding = lazy(() => import('./BlockCoding'));
+const BigCharacter3D = lazy(() => import('./BigCharacter3D').then(m => ({ default: m.BigCharacter3D })));
+const BigMascotTheoryStory = lazy(() => import('./BigMascotTheoryStory').then(m => ({ default: m.BigMascotTheoryStory })));
+const TypingGame = lazy(() => import('./interactives/TypingGame').then(m => ({ default: m.TypingGame })));
+const ProcessManagerGame = lazy(() => import('./interactives/ProcessManagerGame').then(m => ({ default: m.ProcessManagerGame })));
+const SpreadsheetGame = lazy(() => import('./interactives/SpreadsheetGame').then(m => ({ default: m.SpreadsheetGame })));
+const SortingGame = lazy(() => import('./interactives/SortingGame').then(m => ({ default: m.SortingGame })));
+const BinaryTreeGame = lazy(() => import('./interactives/BinaryTreeGame').then(m => ({ default: m.BinaryTreeGame })));
+const PhishingInspectorGame = lazy(() => import('./interactives/PhishingInspectorGame').then(m => ({ default: m.PhishingInspectorGame })));
+const NeuronLabGame = lazy(() => import('./interactives/NeuronLabGame').then(m => ({ default: m.NeuronLabGame })));
+const NetworkRouteGame = lazy(() => import('./interactives/NetworkRouteGame').then(m => ({ default: m.NetworkRouteGame })));
+const FileOrganizerGame = lazy(() => import('./interactives/FileOrganizerGame').then(m => ({ default: m.FileOrganizerGame })));
+const BinaryBulbsGame = lazy(() => import('./interactives/BinaryBulbsGame').then(m => ({ default: m.BinaryBulbsGame })));
+const WireframeBuilderGame = lazy(() => import('./interactives/WireframeBuilderGame').then(m => ({ default: m.WireframeBuilderGame })));
+const FakeDetectorGame = lazy(() => import('./interactives/FakeDetectorGame').then(m => ({ default: m.FakeDetectorGame })));
+const CircuitBuilderGame = lazy(() => import('./interactives/CircuitBuilderGame').then(m => ({ default: m.CircuitBuilderGame })));
+const AiKidsTrainerGame = lazy(() => import('./interactives/AiKidsTrainerGame').then(m => ({ default: m.AiKidsTrainerGame })));
+
+const LessonLoader: React.FC = () => (
+  <div className="flex flex-1 min-h-48 items-center justify-center bg-black text-cyber-neonBlue font-mono text-xs tracking-widest">
+    <Loader2 className="mr-3 animate-spin" size={20} /> ЗАГРУЖАЕМ_ЛАБОРАТОРИЮ…
+  </div>
+);
 
 type MobileTab = 'tasks' | 'code' | 'visual';
 
@@ -168,6 +178,7 @@ const StudentDashboard: React.FC<StudentDashboardProps> = ({ currentUser: propUs
   // Customization & Market
   const [showProfileModal, setShowProfileModal] = useState(false);
   const [showMarketModal, setShowMarketModal] = useState(false);
+  const [marketCategory, setMarketCategory] = useState('avatar');
 
   // Toast notifications
   const [toasts, setToasts] = useState<ToastMessage[]>([]);
@@ -809,9 +820,9 @@ const StudentDashboard: React.FC<StudentDashboardProps> = ({ currentUser: propUs
                                     <div className="text-white font-bold text-[10px] leading-none">{currentUser.name}</div>
                                     <div className="text-cyber-neonYellow font-mono text-[9px] mt-0.5">LVL {currentUser.level}</div>
                                 </div>
-                                 <div className="w-10 h-10 md:w-12 md:h-12 rounded bg-black border-2 border-cyber-neonBlue overflow-hidden shrink-0 flex items-center justify-center">
-                                     <div style={{ transform: 'scale(1.5)', transformOrigin: 'center center' }}>
-                                       <AnimatedSprite avatarId={COSMETICS.find(c => c.id === currentUser.equipped.avatar)?.value || '2'} animation="Idle" scale={1} />
+                                 <div className="w-10 h-10 md:w-12 md:h-12 shrink-0 flex items-center justify-center">
+                                     <div>
+                                       <ShopAvatar frameId={currentUser.equipped.avatarFrame} avatarId={COSMETICS.find(c => c.id === currentUser.equipped.avatar)?.value || '2'} animation="Idle" scale={1} />
                                      </div>
                                  </div>
                             </button>
@@ -919,8 +930,8 @@ const StudentDashboard: React.FC<StudentDashboardProps> = ({ currentUser: propUs
                         <div className="p-6 md:p-8 overflow-y-auto custom-scrollbar">
                             {/* Avatar + Name */}
                             <div className="text-center mb-6">
-                                <div className="w-28 h-28 mx-auto rounded-full border-4 border-cyber-neonBlue bg-black mb-4 flex items-center justify-center shadow-[0_0_30px_rgba(0,243,255,0.3)]">
-                                    <AnimatedSprite avatarId={COSMETICS.find(c => c.id === currentUser.equipped.avatar)?.value || '2'} animation="Idle" scale={2} />
+                                <div className="w-28 h-28 mx-auto mb-4 flex items-center justify-center">
+                                    <ShopAvatar frameId={currentUser.equipped.avatarFrame} avatarId={COSMETICS.find(c => c.id === currentUser.equipped.avatar)?.value || '2'} animation="Idle" scale={2} />
                                 </div>
                                 <h3 className="text-2xl font-bold text-white uppercase">{currentUser.name}</h3>
                                 <span className="text-cyber-neonYellow font-mono text-sm">УРОВЕНЬ {currentUser.level}</span>
@@ -1048,28 +1059,37 @@ const StudentDashboard: React.FC<StudentDashboardProps> = ({ currentUser: propUs
                              </div>
                         </div>
                         
-                        <div className="flex-1 overflow-y-auto p-3 md:p-6 grid grid-cols-2 lg:grid-cols-3 gap-3 md:gap-6 auto-rows-max">
-                            {COSMETICS.map(item => {
+                        <div className="flex gap-2 overflow-x-auto p-3 md:px-6 border-b border-gray-800 shrink-0" aria-label="Категории магазина">
+                            {([['avatar', 'Аватарки'], ['avatarFrame', 'Рамки'], ['mascotSkin', 'Наставники'], ['droneColor', 'Цвета дрона']] as const).map(([type, label]) => (
+                                <button key={type} onClick={() => setMarketCategory(type)} aria-pressed={marketCategory === type} className={`px-4 py-2 rounded-full text-xs font-semibold whitespace-nowrap transition-colors ${marketCategory === type ? 'bg-cyan-300 text-slate-950' : 'bg-gray-900 text-gray-400 hover:text-white'}`}>
+                                    {label} <span className="ml-1 opacity-60">{COSMETICS.filter(item => item.type === type && item.id !== 'frame_none').length}</span>
+                                </button>
+                            ))}
+                        </div>
+                        <div className="flex-1 overflow-y-auto p-3 md:p-6 grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-3 md:gap-4 auto-rows-max">
+                            {COSMETICS.filter(item => item.type === marketCategory).map(item => {
                                 const isOwned = currentUser.inventory.includes(item.id);
-                                const isEquipped = currentUser.equipped.avatar === item.id || currentUser.equipped.droneColor === item.id || currentUser.equipped.mascotSkin === item.id;
+                                const isEquipped = currentUser.equipped.avatar === item.id || currentUser.equipped.droneColor === item.id || currentUser.equipped.mascotSkin === item.id || currentUser.equipped.avatarFrame === item.id;
                                 const canAfford = currentUser.currency >= item.cost;
                                 const isLocked = currentUser.level < item.unlockLevel;
 
                                 return (
                                     <div key={item.id} className={`bg-black border rounded-lg ${isEquipped ? 'border-cyber-neonBlue' : 'border-gray-800'} p-3 md:p-4 flex flex-col items-center text-center relative group hover:border-gray-600 transition-colors`}>
                                         {isLocked && (
-                                            <div className="absolute inset-0 bg-black/80 flex items-center justify-center z-10 flex-col">
-                                                <Lock className="text-gray-500 mb-2" />
-                                                <span className="text-xs text-gray-500 font-mono">REQ: LVL {item.unlockLevel}</span>
+                                            <div className="absolute top-2 right-2 flex items-center gap-1 text-gray-400 bg-gray-950/90 px-2 py-1 rounded-full">
+                                                <Lock size={10} />
+                                                <span className="text-[10px] font-mono">Ур. {item.unlockLevel}</span>
                                             </div>
                                         )}
                                         
-                                        <div className="w-16 h-16 md:w-20 md:h-20 mb-3 md:mb-4 rounded-full border border-gray-700 flex items-center justify-center overflow-hidden bg-gray-900">
-                                            {item.type === 'avatar' ? (
-                                                <AnimatedSprite avatarId={item.value} animation="Idle" scale={1.5} />
+                                        <div className="w-28 h-28 md:w-32 md:h-32 my-3 flex items-center justify-center overflow-hidden rounded-2xl bg-gradient-to-b from-slate-900 to-black">
+                                            {item.type === 'avatar' || item.type === 'avatarFrame' ? (
+                                                <ShopAvatar avatarId={item.type === 'avatar' ? item.value : COSMETICS.find(c => c.id === currentUser.equipped.avatar)?.value || '2'} frameId={item.type === 'avatarFrame' ? item.id : currentUser.equipped.avatarFrame} scale={2.3} />
                                             ) : item.type === 'mascotSkin' ? (
                                                 <div className="pointer-events-none origin-top scale-[0.22] -translate-y-2">
-                                                    <BigCharacter3D skin={item.value} mood="happy" gesture="idle" />
+                                                    <Suspense fallback={<Bot className="text-cyber-neonBlue animate-pulse" size={28} />}>
+                                                        <BigCharacter3D skin={item.value} mood="happy" gesture="idle" />
+                                                    </Suspense>
                                                 </div>
                                             ) : (
                                                 <div className="w-10 h-10 rounded-full shadow-[0_0_15px]" style={{backgroundColor: item.value, boxShadow: `0 0 15px ${item.value}`}}></div>
@@ -1077,7 +1097,7 @@ const StudentDashboard: React.FC<StudentDashboardProps> = ({ currentUser: propUs
                                         </div>
                                         
                                         <h3 className="text-white font-bold text-xs md:text-sm mb-0.5 md:mb-1 leading-tight">{item.name}</h3>
-                                        <p className="text-gray-500 text-[9px] md:text-[10px] uppercase mb-2 md:mb-4">{item.type === 'avatar' ? 'Аватар' : item.type === 'mascotSkin' ? 'Скин Наставника' : 'Цвет Дрона'}</p>
+                                        <p className="text-gray-500 text-[9px] md:text-[10px] uppercase mb-2 md:mb-4">{item.type === 'avatar' ? 'Аватар' : item.type === 'avatarFrame' ? 'Рамка профиля' : item.type === 'mascotSkin' ? 'Скин Наставника' : 'Цвет Дрона'}</p>
                                         
                                         {isOwned ? (
                                             <button 
@@ -1300,19 +1320,21 @@ const StudentDashboard: React.FC<StudentDashboardProps> = ({ currentUser: propUs
                             <div dangerouslySetInnerHTML={{ __html: activeTask.theory }} />
                         </div>
                     ) : null}>
-                        <BigMascotTheoryStory
-                            task={activeTask}
-                            mascotSkinItemId={currentUser?.equipped?.mascotSkin}
-                            practiceGoal={getTaskPracticeGoal(activeTask)}
-                            onStartPractice={() => {
-                                playSound('click');
-                                if (activeTask.type !== 'theory') {
-                                    setLessonStage('practice');
-                                } else {
-                                    handleTheoryComplete();
-                                }
-                            }}
-                        />
+                        <Suspense fallback={<LessonLoader />}>
+                            <BigMascotTheoryStory
+                                task={activeTask}
+                                mascotSkinItemId={currentUser?.equipped?.mascotSkin}
+                                practiceGoal={getTaskPracticeGoal(activeTask)}
+                                onStartPractice={() => {
+                                    playSound('click');
+                                    if (activeTask.type !== 'theory') {
+                                        setLessonStage('practice');
+                                    } else {
+                                        handleTheoryComplete();
+                                    }
+                                }}
+                            />
+                        </Suspense>
                     </MascotErrorBoundary>
 
                     <div className="p-5 rounded-xl bg-gradient-to-r from-emerald-950/40 via-black to-cyan-950/40 border border-cyber-neonGreen/40 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
@@ -1461,14 +1483,16 @@ const StudentDashboard: React.FC<StudentDashboardProps> = ({ currentUser: propUs
                   </button>
                   <span className="text-xs font-bold uppercase text-gray-300 tracking-widest leading-tight break-words flex-1">{activeTask.title}</span>
               </div>
-              <BlockCoding 
-                key={activeTask.id}
-                task={activeTask} 
-                onSuccess={() => { playSound('success'); setMissionSuccess(true); handleTaskCompletion(activeTask, false); }}
-                onFail={() => {
-                    bumpAttempt(activeTask.id);
-                }}
-              />
+              <Suspense fallback={<LessonLoader />}>
+                  <BlockCoding
+                    key={activeTask.id}
+                    task={activeTask}
+                    onSuccess={() => { playSound('success'); setMissionSuccess(true); handleTaskCompletion(activeTask, false); }}
+                    onFail={() => {
+                        bumpAttempt(activeTask.id);
+                    }}
+                  />
+              </Suspense>
           </div>
       )}
 
@@ -1485,7 +1509,9 @@ const StudentDashboard: React.FC<StudentDashboardProps> = ({ currentUser: propUs
                 <span className="text-xs font-bold uppercase text-gray-300 tracking-widest leading-tight break-words flex-1">{activeTask?.title}</span>
             </div>
             <div className="flex-1 overflow-hidden">
-                <HanoiGame task={activeTask!} onComplete={() => handleTaskCompletion(activeTask!)} />
+                <Suspense fallback={<LessonLoader />}>
+                    <HanoiGame task={activeTask!} onComplete={() => handleTaskCompletion(activeTask!)} />
+                </Suspense>
             </div>
         </div>
       )}
@@ -1509,7 +1535,7 @@ const StudentDashboard: React.FC<StudentDashboardProps> = ({ currentUser: propUs
           const wrap = (game: React.ReactNode) => (
               <div className={`${!showMobileSidebar ? 'flex' : 'hidden'} md:flex flex-1 flex-col bg-black relative overflow-hidden`}>
                   {header}
-                  <div className="flex-1 overflow-hidden">{game}</div>
+                  <div className="flex-1 overflow-hidden"><Suspense fallback={<LessonLoader />}>{game}</Suspense></div>
               </div>
           );
 
@@ -1719,7 +1745,9 @@ const StudentDashboard: React.FC<StudentDashboardProps> = ({ currentUser: propUs
                          <div className="w-full relative bg-black flex items-center justify-center overflow-hidden border-b border-cyber-neonBlue/20 shrink-0 aspect-square md:max-h-[50vh]">
                              
                              {activeTask.type === 'grid' && activeTask.mapConfig && (
-                                <GameGrid task={activeTask} playerPos={playerPos} pathHistory={pathHistory} droneColor={equippedDroneColorValue} activeAction={activeGridAction} destroyedObstacles={destroyedObstacles} />
+                                <Suspense fallback={<LessonLoader />}>
+                                    <GameGrid task={activeTask} playerPos={playerPos} pathHistory={pathHistory} droneColor={equippedDroneColorValue} activeAction={activeGridAction} destroyedObstacles={destroyedObstacles} />
+                                </Suspense>
                              )}
 
                              {activeTask.type === 'terminal' && (
@@ -1727,9 +1755,10 @@ const StudentDashboard: React.FC<StudentDashboardProps> = ({ currentUser: propUs
                                      {/* Animated avatar */}
                                      <div className="flex items-end justify-center py-3 bg-gradient-to-b from-gray-900 to-black border-b border-gray-800/50 shrink-0">
                                          <div className="relative">
-                                             <AnimatedSprite
+                                             <ShopAvatar
                                                  avatarId={equippedAvatarId}
-                                                 animation={isRunning ? (hasAnimation(equippedAvatarId, 'Special') ? 'Special' : 'Walk') : 'Idle'}
+                                                 animation={isRunning ? 'Special' : 'Idle'}
+                                                 frameId={currentUser?.equipped.avatarFrame}
                                                  scale={3}
                                                  fps={isRunning ? 12 : 6}
                                              />
