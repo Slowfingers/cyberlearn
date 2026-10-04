@@ -128,9 +128,9 @@ export const SortingGame: React.FC<SortingGameProps> = ({ task, onComplete }) =>
   const maxVal = Math.max(...array, 100);
 
   return (
-    <div className="flex flex-col h-full bg-gray-950 p-4 md:p-6 overflow-y-auto select-none">
+    <div className="workshop-legacy flex flex-col h-full bg-gray-950 p-4 md:p-6 overflow-y-auto select-none">
       {/* Header */}
-      <div className="flex flex-wrap items-center justify-between gap-4 p-4 bg-black/70 border border-cyber-neonBlue/30 rounded-2xl mb-4 shadow-lg">
+      <div className="workshop-banner flex flex-wrap items-center justify-between gap-4 p-4 bg-black/70 border border-cyber-neonBlue/30 rounded-2xl mb-4 shadow-lg">
         <div className="flex items-center gap-3">
           <div className="p-2.5 rounded-xl bg-cyber-neonGreen/20 text-cyber-neonGreen border border-cyber-neonGreen/40 text-xl">
             <ArrowUpDown size={22} />
@@ -235,7 +235,7 @@ export const SortingGame: React.FC<SortingGameProps> = ({ task, onComplete }) =>
 
       {/* Visual Bars & Cards */}
       <div className="flex-1 bg-black border border-gray-800 rounded-2xl p-6 flex flex-col justify-end items-center mb-4 min-h-[260px] relative overflow-hidden">
-        <div className="w-full flex items-end justify-center gap-3 md:gap-6 h-52 pb-4">
+        <div className="sorting-bars w-full flex items-end justify-center gap-3 md:gap-6 h-52 pb-4">
           {array.map((num, idx) => {
             const isComparingLeft = idx === currentIndex;
             const isComparingRight = idx === currentIndex + 1;

@@ -13,8 +13,8 @@ import { MODULE11_TASKS } from './grade7/module11';
 
 export const GRADE7_COURSE: Course = {
   id: 'course_grade7',
-  title: 'ИНФОРМАТИКА 7 КЛАСС: КУРС ЮНОГО ИНЖЕНЕРА',
-  description: 'Полная интерактивная программа 7 класса по международным стандартам CSTA Level 2, UK Key Stage 3, ACARA и РК: 11 тематических блоков, ровно 70 уроков (Python, циклы и коллекции, функции и модули, терминал UNIX, JavaScript & DOM, SQL и реляционные базы данных, TCP/IP сети, ML и физические вычисления, цифровая безопасность).',
+  title: '7 класс · Пишем и проверяем программы',
+  description: 'Начинаем с Python, затем работаем с таблицами, SQL и страницами. Дополняем программы, проверяем результат и обсуждаем безопасное использование технологий.',
   icon: 'Terminal',
   difficulty: 'Intermediate',
   status: 'active',

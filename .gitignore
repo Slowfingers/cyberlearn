@@ -26,3 +26,10 @@ dist-ssr
 # Неиспользуемые 3D-модели наставника (наставник отрисован на SVG).
 # Лежат локально: если понадобится настоящий 3D — убрать эту строку.
 public/models/
+
+functions/node_modules/
+functions/catalog.json
+functions/.catalog.mjs
+
+# Private local school database and teacher credentials
+.cyberlearn/

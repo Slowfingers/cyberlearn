@@ -8,6 +8,7 @@ export interface Classroom {
   inviteCode: string;
   studentIds: string[];
   hiddenCourses?: string[];
+  folder?: string;
 }
 
 export interface Achievement {
@@ -40,9 +41,10 @@ export interface TaskAttempt {
 export interface User {
   id: string;
   name: string;
-  password?: string;
   role: Role;
-  classId?: string; 
+  classId?: string;
+  helpRequestedAt?: string;
+  helpTaskId?: string;
   xp: number;
   currency: number; // New: Bits balance
   level: number;
@@ -78,7 +80,7 @@ export interface Course {
 }
 
 export type TaskType =
-  | 'grid' | 'quiz' | 'theory' | 'html' | 'terminal' | 'hanoi' | 'blocks'
+  | 'assessment' | 'grid' | 'quiz' | 'theory' | 'html' | 'terminal' | 'hanoi' | 'blocks'
   // Интерактивные тренажёры школьного курса (3-7 класс)
   | 'typing' | 'process_manager' | 'spreadsheet' | 'sorting' | 'tree_search'
   | 'phishing_detect' | 'ai_neuron' | 'network_route' | 'file_organizer'
@@ -87,7 +89,22 @@ export type TaskType =
   // Алиасы совместимости со старыми данными
   | 'circuit' | 'ai_trainer';
 
+export interface LessonGuide {
+  topic?: string;
+  concept: string;
+  explanation: string;
+  example: string;
+  goal: string;
+  steps: string[];
+  success: string;
+  reflection: string;
+  starterCode?: string;
+  commands?: { code: string; meaning: string }[];
+}
+
 export interface Task {
+  assessment?: {published:boolean;questions:AssessmentQuestion[]};
+  lesson?: LessonGuide;
   id: string;
   courseId: string; 
   module: string; 
@@ -172,7 +189,7 @@ export interface Task {
   spreadsheetConfig?: {
       tableData: { id: string; name: string; val1: number; val2: number; formulaResult?: string | number }[];
       targetFormula: string;
-      formulaType: 'sum' | 'if' | 'vlookup';
+      formulaType: 'sum' | 'if' | 'vlookup' | 'multiply';
   };
 
   sortingConfig?: {
@@ -336,4 +353,18 @@ export interface FantasyProgress {
     ink: number;
     feathers: number;
     chaptersCompleted: string[];
+}
+export interface AssessmentQuestion {
+ id:string;
+ type:'choice'|'open'|'short';
+ prompt:string;
+ points:number;
+ options?:string[];
+ correctIndex?:number;
+ expectedAnswer?:string;
+}
+export interface AssessmentSubmission {
+ id:string;taskId:string;studentId:string;studentName:string;classId:string;
+ answers:Record<string,string>;submittedAt:string;
+ grades:Record<string,{points:number|null;comment:string}>;
 }

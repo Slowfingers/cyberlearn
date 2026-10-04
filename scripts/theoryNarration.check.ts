@@ -1,6 +1,6 @@
 // Self-check: наставник рассказывает теорию ЭТОГО урока.
 // (a) у каждой задачи непустой рассказ; (b) в рассказе нет остатков HTML-тегов
-// и неразвёрнутых html-сущностей; (c) различных первых блоков рассказа >= 250.
+// и неразвёрнутых html-сущностей; (c) полный учебный цикл и короткие основные блоки.
 import { MOCK_TASKS } from '../constants';
 import { getStoryContent } from '../components/BigMascotTheoryStory';
 import { stripStandardsPrefix } from '../utils/theoryText';
@@ -48,8 +48,13 @@ for (const task of MOCK_TASKS) {
 }
 
 console.log(`Задач: ${MOCK_TASKS.length}, с блоками теории: ${withTheory}`);
-console.log(`Различных первых блоков рассказа: ${firstBlocks.size} (минимум 250)`);
-if (firstBlocks.size < 250) fail(`мало различных объяснений: ${firstBlocks.size}`);
+console.log(`Различных первых блоков рассказа: ${firstBlocks.size} (карточки понятий)`);
+if (firstBlocks.size < 60) fail(`мало различных объяснений: ${firstBlocks.size}`);
+for (const task of MOCK_TASKS) {
+  const lesson = task.lesson;
+  if (!lesson || !lesson.goal || !lesson.example || !lesson.success || !lesson.reflection) fail(`[${task.id}] неполный учебный цикл`);
+  if (lesson && (lesson.steps.length > 3 || lesson.explanation.length > 650 || lesson.example.length > 500)) fail(`[${task.id}] перегруженный основной материал`);
+}
 
 // Дополнительно: коды стандартов вырезаются из description
 const dirty = MOCK_TASKS.filter(t => /(?<![\w.])(CSTA|ACARA|ISTE|MIL|KZ|UK|KS\d|NGSS|ABEGS)(?![\w.])/i.test(stripStandardsPrefix(t.description || '')));

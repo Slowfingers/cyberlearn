@@ -1,0 +1,25 @@
+import React, { useState } from 'react';
+import { createRoot } from 'react-dom/client';
+import '../index.css';
+import { MOCK_TASKS } from '../constants';
+import { BigMascotTheoryStory } from '../components/BigMascotTheoryStory';
+import { PracticeSurface } from '../components/PracticeSurface';
+import { TypingGame } from '../components/interactives/TypingGame';
+import { ProcessManagerGame } from '../components/interactives/ProcessManagerGame';
+import { SpreadsheetGame } from '../components/interactives/SpreadsheetGame';
+import { SortingGame } from '../components/interactives/SortingGame';
+import { BinaryTreeGame } from '../components/interactives/BinaryTreeGame';
+import { PhishingInspectorGame } from '../components/interactives/PhishingInspectorGame';
+import { NeuronLabGame } from '../components/interactives/NeuronLabGame';
+import { NetworkRouteGame } from '../components/interactives/NetworkRouteGame';
+import { FileOrganizerGame } from '../components/interactives/FileOrganizerGame';
+import { BinaryBulbsGame } from '../components/interactives/BinaryBulbsGame';
+import { WireframeBuilderGame } from '../components/interactives/WireframeBuilderGame';
+import { CircuitBuilderGame } from '../components/interactives/CircuitBuilderGame';
+import { FakeDetectorGame } from '../components/interactives/FakeDetectorGame';
+import { AiKidsTrainerGame } from '../components/interactives/AiKidsTrainerGame';
+import HanoiGame from '../components/HanoiGame';
+const components: Record<string, React.ComponentType<any>> = {typing:TypingGame, process_manager:ProcessManagerGame, spreadsheet:SpreadsheetGame, sorting:SortingGame, tree_search:BinaryTreeGame, phishing_detect:PhishingInspectorGame, ai_neuron:NeuronLabGame, network_route:NetworkRouteGame, file_organizer:FileOrganizerGame, binary_bulbs:BinaryBulbsGame, binary_switches:BinaryBulbsGame, wireframe_builder:WireframeBuilderGame, circuit_builder:CircuitBuilderGame, circuit:CircuitBuilderGame, fake_detector:FakeDetectorGame, ai_kids_trainer:AiKidsTrainerGame, ai_trainer:AiKidsTrainerGame, hanoi:HanoiGame};
+const tasks=MOCK_TASKS.filter(t=>components[t.type]);
+function Audit(){const [mode,setMode]=useState('practice');const [skin,setSkin]=useState('skin_sparky');const [id,setId]=useState(tasks[0].id);const list=mode==='theory'?MOCK_TASKS:tasks;const task=list.find(t=>t.id===id)??list[0];const Game=components[task.type];return <div className="academy-app"><header style={{padding:12,flexShrink:0}}><label>Проверка экрана <select aria-label="Проверка экрана" value={mode} onChange={e=>{setMode(e.target.value);setId(tasks[0].id);}} style={{background:'#18283c'}}><option value="practice">Практика</option><option value="theory">Объяснение</option></select></label><label>Наставник <select aria-label="Наставник" value={skin} onChange={e=>setSkin(e.target.value)}><option value="skin_sparky">Спарки</option><option value="skin_cat">Кибер-Кот</option><option value="skin_astro">Астро</option><option value="skin_prof">Профессор</option></select></label><label>Проверка задания <select aria-label="Проверка задания" value={task.id} onChange={e=>setId(e.target.value)} style={{width:'100%',background:'#18283c'}}>{list.map(t=><option key={t.id} value={t.id}>{t.id} · {t.type} · {t.title}</option>)}</select></label></header><main className="academy-main">{mode==='theory'?<div style={{overflow:'auto',padding:12}}><BigMascotTheoryStory mascotSkinItemId={skin} task={task} onStartPractice={()=>{}}/></div>:<PracticeSurface goal={task.lesson?.goal??task.description}><Game key={id} task={task} onComplete={()=>{}}/></PracticeSurface>}</main></div>}
+createRoot(document.getElementById('root')!).render(<Audit/>);

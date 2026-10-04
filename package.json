@@ -7,7 +7,17 @@
     "dev": "vite",
     "build": "vite build",
     "preview": "vite preview",
-    "validate:curriculum": "npx --yes tsx scripts/validateCurriculum.ts"
+    "validate:curriculum": "node --import tsx scripts/validateCurriculum.ts",
+    "typecheck": "tsc --noEmit -p .",
+    "check": "npm run typecheck && npm run validate:curriculum && node --import tsx scripts/cosmetics.check.ts && node --import tsx scripts/scoring.check.ts && node --import tsx scripts/gridInterpreter.check.ts && node --import tsx scripts/trainerConfig.check.ts && node --import tsx scripts/theoryNarration.check.ts && node --import tsx scripts/pedagogy.check.ts && node --import tsx scripts/mentorActivities.check.ts && node --import tsx scripts/regressions.check.ts && node scripts/activityTracker.check.mjs && npm run build:functions && node --test functions/domain.test.mjs functions/api.test.mjs",
+    "build:functions": "node scripts/buildFunctions.mjs",
+    "check:browser": "node scripts/browser.check.mjs",
+    "check:local": "node scripts/localDemo.browser.check.mjs",
+    "check:workshop": "node scripts/workshop.browser.check.mjs",
+    "check:layout": "node scripts/layout.browser.check.mjs",
+    "setup:teacher": "node --import tsx scripts/setupTeacher.ts",
+    "check:school": "node --import tsx scripts/localServer.check.ts",
+    "start": "vite preview --host 0.0.0.0 --port 3000 --strictPort"
   },
   "dependencies": {
     "firebase": "^12.11.0",
@@ -17,15 +27,21 @@
     "recharts": "^3.7.0"
   },
   "devDependencies": {
+    "@playwright/test": "^1.63.0",
     "@tailwindcss/postcss": "^4.2.2",
     "@types/node": "^22.14.0",
     "@types/react": "^19.3.0",
     "@types/react-dom": "^19.3.0",
     "@vitejs/plugin-react": "^5.0.0",
     "autoprefixer": "^10.4.27",
+    "esbuild": "^0.28.2",
     "postcss": "^8.5.8",
     "tailwindcss": "^4.2.2",
+    "tsx": "^4.23.15",
     "typescript": "~5.8.2",
     "vite": "^6.2.0"
+  },
+  "overrides": {
+    "@grpc/grpc-js": "^1.13.6"
   }
 }

@@ -108,9 +108,9 @@ export const BinaryTreeGame: React.FC<BinaryTreeGameProps> = ({ task, onComplete
   };
 
   return (
-    <div className="flex flex-col h-full bg-gray-950 p-4 md:p-6 overflow-y-auto">
+    <div className="workshop-legacy flex flex-col h-full bg-gray-950 p-4 md:p-6 overflow-y-auto">
       {/* Header */}
-      <div className="flex flex-wrap items-center justify-between gap-4 p-4 bg-black/70 border border-cyber-neonBlue/30 rounded-xl mb-4">
+      <div className="workshop-banner flex flex-wrap items-center justify-between gap-4 p-4 bg-black/70 border border-cyber-neonBlue/30 rounded-xl mb-4">
         <div className="flex items-center gap-3">
           <div className="p-2 rounded bg-cyber-neonGreen/20 text-cyber-neonGreen border border-cyber-neonGreen/40">
             <GitBranch size={22} />

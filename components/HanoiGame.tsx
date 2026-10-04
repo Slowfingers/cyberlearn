@@ -101,7 +101,7 @@ const HanoiGame: React.FC<HanoiGameProps> = ({ task, onComplete }) => {
     };
 
     return (
-        <div className="w-full h-full flex flex-col items-center justify-center bg-[#050508] relative overflow-hidden p-4">
+        <div className="workshop-legacy w-full min-h-[460px] flex flex-col items-center justify-start bg-[#050508] relative p-4">
             {/* Background Grid */}
             <div className="absolute inset-0 z-0 opacity-20 pointer-events-none" 
                  style={{backgroundImage: 'linear-gradient(rgba(0, 243, 255, 0.1) 1px, transparent 1px), linear-gradient(90deg, rgba(0, 243, 255, 0.1) 1px, transparent 1px)', backgroundSize: '20px 20px'}}>
@@ -125,19 +125,19 @@ const HanoiGame: React.FC<HanoiGameProps> = ({ task, onComplete }) => {
 
             {/* ERROR MESSAGE */}
             {errorMsg && (
-                <div className="absolute top-16 bg-red-900/80 text-white px-4 py-2 rounded font-mono text-xs border border-red-500 animate-pulse z-20">
+                <div className="relative w-full mt-12 bg-red-900/80 text-white px-4 py-2 rounded font-mono text-xs border border-red-500 animate-pulse z-20">
                     {errorMsg}
                 </div>
             )}
 
             {/* Game Area */}
-            <div className="flex items-end justify-center gap-4 md:gap-12 w-full max-w-2xl h-64 md:h-80 relative z-10 mt-8">
+            <div className="flex items-end justify-center gap-2 md:gap-12 w-full max-w-2xl h-64 md:h-80 relative z-10 mt-16">
                 {pegs.map((peg, pegIndex) => (
                     <div 
                         key={pegIndex}
                         onClick={() => handlePegClick(pegIndex)}
                         className={`
-                            relative flex flex-col-reverse items-center justify-start w-1/3 h-full cursor-pointer group transition-all duration-300
+                            relative flex flex-col-reverse items-center justify-start flex-1 min-w-0 h-full cursor-pointer group transition-all duration-300
                             ${selectedPeg === pegIndex ? 'bg-cyber-neonBlue/10 shadow-[0_0_20px_rgba(0,243,255,0.2)]' : 'hover:bg-white/5'}
                             rounded-lg border-b-4 ${selectedPeg === pegIndex ? 'border-cyber-neonBlue' : 'border-gray-700'}
                         `}

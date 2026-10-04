@@ -1,20 +1,20 @@
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, lazy, Suspense } from 'react';
 import CyberLayout from './components/CyberLayout';
-import TeacherDashboard from './components/TeacherDashboard';
-import StudentDashboard from './components/StudentDashboard';
+import { AcademyArt } from './components/AcademyArt';
+import { BookOpen, Sparkles } from 'lucide-react';
+const TeacherDashboard = lazy(() => import('./components/TeacherDashboard'));
+const StudentDashboard = lazy(() => import('./components/StudentDashboard'));
+import { LOCAL_DEMO, observeSession, logout, fbLogin, fbGetClassrooms } from './services/firebase';
 import { User, Classroom } from './types';
-import { loginOrRegisterTeacher, joinClassroom } from './services/mockBackend';
 import { Shield, Terminal, ArrowLeft, ArrowRight, Loader2, KeyRound, User as UserIcon } from 'lucide-react';
 
 type AuthMode = 'select' | 'teacher-login' | 'student-login';
 
 const App: React.FC = () => {
   const [user, setUser] = useState<User | null>(null);
-  const [sessionLoading, setSessionLoading] = useState<boolean>(() => {
-    return !!(localStorage.getItem('cyberlearn_session_id'));
-  });
-  
+  const [sessionLoading, setSessionLoading] = useState(true);
+
   const [classrooms, setClassrooms] = useState<Classroom[]>([]);
   const [activeClassId, setActiveClassId] = useState<string | null>(null);
 
@@ -27,36 +27,21 @@ const App: React.FC = () => {
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
 
-  // Session Persistence (Firebase)
-  useEffect(() => {
-      const savedUserId = localStorage.getItem('cyberlearn_session_id');
-      const savedUserRole = localStorage.getItem('cyberlearn_session_role');
-      if (savedUserId && savedUserRole) {
-          (async () => {
-              try {
-                  const { getUsers, getTeacherClasses } = await import('./services/mockBackend');
-                  const users = await getUsers();
-                  const found = users.find(u => u.id === savedUserId);
-                  if (found) {
-                      setUser(found);
-                      if (found.role === 'teacher') {
-                          const teacherClasses = await getTeacherClasses(found.id);
-                          setClassrooms(teacherClasses);
-                          if (teacherClasses.length > 0) setActiveClassId(teacherClasses[0].id);
-                      }
-                  }
-              } catch (e) {
-                  console.error('Session restore error:', e);
-              } finally {
-                  setSessionLoading(false);
-              }
-          })();
-      } else {
-          setSessionLoading(false);
+  useEffect(() => observeSession(async (restored, restoreError) => {
+    if (restoreError) setError('Не удалось восстановить сессию. Повторите вход.');
+    setUser(restored);
+    try {
+      if (restored?.role === 'teacher') {
+        const classes = await fbGetClassrooms();
+        setClassrooms(classes);
+        setActiveClassId(classes[0]?.id || null);
       }
-  }, []);
+    } catch { setError('Не удалось загрузить классы'); }
+    finally { setSessionLoading(false); }
+  }), []);
 
-  const handleLogout = () => {
+  const handleLogout = async () => {
+    try { await logout(); } catch { setError("Не удалось выйти. Повторите попытку."); return; }
     setUser(null);
     setClassrooms([]);
     setActiveClassId(null);
@@ -79,22 +64,13 @@ const App: React.FC = () => {
       setError('');
 
       try {
-        const result = await loginOrRegisterTeacher(name, password);
-        if (result.success && result.user) {
-            setUser(result.user);
-            setClassrooms(result.classrooms || []);
-            if (result.classrooms && result.classrooms.length > 0) {
-                setActiveClassId(result.classrooms[0].id);
-            } else {
-                setActiveClassId(null);
-            }
-            localStorage.setItem('cyberlearn_session_id', result.user.id);
-            localStorage.setItem('cyberlearn_session_role', result.user.role || '');
-        } else {
-            setError(result.error || "Ошибка авторизации");
-        }
+        const authenticated = await fbLogin('teacher',name,password);
+        const classes = await fbGetClassrooms();
+        setUser(authenticated);
+        setClassrooms(classes);
+        setActiveClassId(classes[0]?.id || null);
       } catch (err) {
-        setError("Ошибка подключения к серверу");
+        setError(err instanceof Error ? err.message : "Ошибка подключения к серверу");
         console.error(err);
       }
       setLoading(false);
@@ -102,7 +78,7 @@ const App: React.FC = () => {
 
   const handleStudentLogin = async (e: React.FormEvent) => {
       e.preventDefault();
-      if (!name.trim() || !inviteCode.trim()) {
+      if (!name.trim() || !inviteCode.trim() ) {
           setError("Заполните все поля");
           return;
       }
@@ -110,19 +86,22 @@ const App: React.FC = () => {
       setError('');
 
       try {
-        const result = await joinClassroom(name, inviteCode);
-        if (result.success && result.user) {
-            setUser(result.user);
-            localStorage.setItem('cyberlearn_session_id', result.user.id);
-            localStorage.setItem('cyberlearn_session_role', result.user.role || '');
-        } else {
-            setError(result.error || "Ошибка авторизации");
-        }
+        setUser(await fbLogin('student',name,password,inviteCode.trim().toUpperCase()));
       } catch (err) {
-        setError("Ошибка подключения к серверу");
+        setError(err instanceof Error ? err.message : "Ошибка подключения к серверу");
         console.error(err);
       }
       setLoading(false);
+  };
+
+  const handleDemoLogin = async (role: 'student' | 'teacher') => {
+    setLoading(true); setError('');
+    try {
+      const authenticated = await fbLogin(role, role === 'student' ? 'Тестовый ученик' : 'Тестовый учитель', 'Test12345', 'TEST01');
+      setUser(authenticated);
+      if (role === 'teacher') { const classes = await fbGetClassrooms(); setClassrooms(classes); setActiveClassId(classes[0]?.id ?? null); }
+    } catch (error) { setError(error instanceof Error ? error.message : 'Не удалось открыть тестовый аккаунт.'); }
+    finally { setLoading(false); }
   };
 
   const onClassCreated = (newClass: Classroom) => {
@@ -141,217 +120,42 @@ const App: React.FC = () => {
       <div className="min-h-[100dvh] bg-black flex items-center justify-center">
         <div className="text-center">
           <Loader2 className="animate-spin text-cyber-neonBlue mx-auto mb-4" size={40} />
-          <p className="text-cyber-neonBlue font-mono text-sm tracking-widest animate-pulse">{'>> ВОССТАНОВЛЕНИЕ_СЕССИИ...'}</p>
+          <p className="text-cyber-neonBlue font-mono text-sm tracking-widest animate-pulse">{'Открываем академию…'}</p>
         </div>
       </div>
     );
   }
 
   if (!user) {
-    return (
-      <div className="min-h-[100dvh] bg-black flex items-center justify-center font-sans relative overflow-x-hidden overflow-y-auto p-4 md:p-8 w-full">
-        {/* Background Effects */}
-        <div className="fixed inset-0 bg-[linear-gradient(rgba(0,243,255,0.05)_1px,transparent_1px),linear-gradient(90deg,rgba(0,243,255,0.05)_1px,transparent_1px)] bg-[size:40px_40px]"></div>
-        <div className="fixed inset-0 bg-gradient-to-t from-black via-transparent to-black pointer-events-none"></div>
-        {/* Animated glow orbs */}
-        <div className="fixed -left-10 top-10 w-40 h-40 bg-cyber-neonBlue/20 blur-3xl animate-pulse"></div>
-        <div className="fixed right-0 bottom-10 w-48 h-48 bg-cyber-neonPink/20 blur-3xl animate-ping"></div>
-        {/* Scanline sheen */}
-        <div className="fixed inset-0 bg-[linear-gradient(180deg,rgba(255,255,255,0.03)_0%,rgba(0,0,0,0)_40%)] mix-blend-screen animate-pulse pointer-events-none"></div>
-        {/* Moving neon sweep */}
-        <div className="fixed inset-x-0 top-1/3 h-24 bg-gradient-to-r from-transparent via-cyber-neonBlue/10 to-transparent blur-2xl animate-[pulse_6s_ease-in-out_infinite]"></div>
-        {/* Floating particles */}
-        <div className="fixed inset-0 pointer-events-none">
-          <div className="absolute left-10 top-1/4 w-1 h-1 bg-cyber-neonBlue/80 animate-ping"></div>
-          <div className="absolute right-16 top-1/3 w-1.5 h-1.5 bg-cyber-neonPink/80 animate-bounce"></div>
-          <div className="absolute left-1/2 bottom-10 w-1 h-1 bg-cyber-neonGreen/80 animate-ping"></div>
-          <div className="absolute right-1/3 bottom-1/4 w-1 h-1 bg-white/70 animate-bounce"></div>
-        </div>
+    const student = authMode === 'student-login';
+    return <div className="academy-welcome">
+      <header className="academy-welcome-brand academy-brand"><span className="academy-brand-mark"><BookOpen size={23}/></span><span>Cyber<span>Learn</span><small>Академия будущего</small></span></header>
+      <main className="academy-welcome-grid"><section className="academy-welcome-story"><span className="academy-pill"><Sparkles size={15}/> Для любопытных умов</span><h1>Маленькие шаги.<br/><em>Большие открытия.</em></h1><p>Преврати интерес к компьютерам в настоящие навыки. Учись через игру, решай задачи и создавай своё.</p><AcademyArt variant={0} hero/><div className="academy-welcome-features"><span>3–7 классы</span><span>Понятные объяснения</span><span>Практика в каждом курсе</span></div></section>
+        <section className="academy-auth-card">
+          {authMode === 'select' ? <><span className="academy-eyebrow">ТВОЁ ПРИКЛЮЧЕНИЕ ЖДЁТ</span><h2>Рады тебя видеть!</h2><p>Выбери, как войти в академию.</p><button className="academy-primary academy-auth-action" onClick={()=>{setPassword('');setError('');setAuthMode('student-login');}}>Я ученик <ArrowRight size={19}/></button><button className="academy-secondary academy-auth-action" onClick={()=>{setPassword('');setError('');setAuthMode('teacher-login');}}><Shield size={18}/> Кабинет учителя</button><div className="academy-auth-note"><BookOpen size={20}/><span>Код класса и данные для входа подскажет учитель.</span></div></> : <>
+            <button className="academy-auth-back" onClick={()=>{setAuthMode('select');setError('');}}><ArrowLeft size={17}/> Назад</button><h2>{student ? 'Начнём приключение' : 'Вход для учителя'}</h2><p>{student ? 'Введи своё имя и код класса от учителя.' : 'Войдите, чтобы управлять классами и видеть прогресс учеников.'}</p>
+            <form onSubmit={student ? handleStudentLogin : handleTeacherLogin} className="academy-auth-form">
+              <label htmlFor="login-name">{student ? 'Твоё имя' : 'Логин учителя'}</label><input id="login-name" value={name} onChange={e=>setName(e.target.value)} autoComplete="username" placeholder={student ? 'Например, Саша' : 'Логин'} required autoFocus/>
+              {student && <><label htmlFor="class-code">Код класса</label><input id="class-code" value={inviteCode} onChange={e=>setInviteCode(e.target.value.toUpperCase())} placeholder="Код от учителя" maxLength={12} required autoCapitalize="characters" autoComplete="off"/></>}
+              {!student && <><label htmlFor={student ? 'student-password' : 'teacher-password'}>Пароль</label><input id={student ? 'student-password' : 'teacher-password'} type="password" value={password} onChange={e=>setPassword(e.target.value)} autoComplete="current-password" required/></>}
 
-        <div className="z-10 w-full max-w-4xl relative my-auto">
-            
-            {/* Header / Title */}
-            <div className={`text-center transition-all duration-500 ${authMode !== 'select' ? 'mb-6 md:mb-8 scale-90 md:scale-75' : 'mb-8 md:mb-12'}`}>
-                <h1 className="text-4xl sm:text-5xl md:text-7xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-cyber-neonBlue to-cyber-neonPink tracking-tighter mb-2 animate-pulse drop-shadow-[0_0_15px_rgba(0,243,255,0.5)]">
-                    CYBER<span className="text-white">LEARN</span>
-                </h1>
-                <p className="text-cyber-neonGreen font-mono tracking-widest text-[10px] sm:text-xs md:text-lg leading-tight break-words">
-                    {'>> СИСТЕМА.ЗАПУСК_ПРОТОКОЛА(v2.5)'}
-                </p>
-            </div>
-
-            {/* SELECTION SCREEN */}
-            {authMode === 'select' && (
-                <div className="relative w-full max-w-3xl mx-auto px-2 sm:px-0">
-                    {/* Corner brackets */}
-                    <div className="pointer-events-none absolute -inset-2 sm:-inset-4 border border-cyber-neonBlue/30 rounded-[16px] sm:rounded-[24px] blur-sm"></div>
-                    <div className="pointer-events-none absolute -inset-2 sm:-inset-4 border border-cyber-neonPink/20 rounded-[16px] sm:rounded-[24px] animate-pulse"></div>
-                    <div className="pointer-events-none absolute inset-2 sm:inset-6 rounded-[12px] sm:rounded-[20px] border border-white/5 backdrop-blur-sm bg-white/2 animate-[pulse_5s_ease-in-out_infinite]"></div>
-                    <div className="pointer-events-none absolute -top-4 sm:-top-8 left-1/2 -translate-x-1/2 w-24 sm:w-32 h-6 sm:h-8 bg-gradient-to-r from-transparent via-white/10 to-transparent blur-lg animate-pulse"></div>
-
-                    {/* Selection: главная карточка ученика + маленькая кнопка куратора */}
-                    <div className="animate-in fade-in slide-in-from-bottom-10 duration-500">
-                        <button 
-                            onClick={() => setAuthMode('student-login')}
-                            className="group relative w-full bg-black/60 backdrop-blur border border-cyber-neonBlue/40 hover:border-cyber-neonBlue transition-all duration-300 hover:shadow-[0_0_40px_rgba(0,243,255,0.35)] md:hover:-translate-y-1 text-left overflow-hidden rounded-xl sm:rounded-2xl"
-                        >
-                            <div className="absolute inset-0 bg-gradient-to-br from-cyber-neonBlue/10 via-transparent to-cyber-neonGreen/5 opacity-0 group-hover:opacity-100 transition-opacity"></div>
-                            <div className="absolute -left-12 top-10 w-24 h-24 bg-cyber-neonBlue/20 blur-2xl group-hover:animate-pulse"></div>
-                            <div className="absolute top-4 right-4 text-cyber-neonBlue/30 group-hover:text-cyber-neonBlue transition-colors hidden sm:block">
-                                <ArrowRight size={24} />
-                            </div>
-
-                            <div className="relative flex flex-col sm:flex-row items-center gap-4 sm:gap-6 p-6 sm:p-8">
-                                <img
-                                    src="/ava.png"
-                                    alt="Ученики за ноутбуками"
-                                    className="w-full max-w-xs sm:w-64 md:w-80 sm:max-w-none shrink-0 object-contain drop-shadow-[0_8px_24px_rgba(0,243,255,0.35)] group-hover:scale-[1.03] transition-transform"
-                                />
-                                <div className="min-w-0 text-center sm:text-left">
-                                    <Terminal className="w-8 h-8 sm:w-10 sm:h-10 text-cyber-neonBlue mb-3 mx-auto sm:mx-0 group-hover:scale-110 transition-transform" />
-                                    <h2 className="text-xl sm:text-3xl font-bold text-white mb-2">НЕТРАННЕР</h2>
-                                    <p className="text-gray-400 font-mono text-[10px] sm:text-xs mb-4 sm:mb-6">Подключение к учебному сектору через код доступа.</p>
-                                    <div className="inline-block bg-cyber-neonBlue text-black font-bold px-4 py-2 sm:px-6 sm:py-2 text-[10px] sm:text-sm skew-x-[-15deg] transition-transform group-hover:skew-x-[-5deg]">
-                                        <span className="inline-block skew-x-[15deg] group-hover:skew-x-[5deg]">НАЧАТЬ_СЕССИЮ</span>
-                                    </div>
-                                </div>
-                            </div>
-                        </button>
-
-                        <div className="mt-5 sm:mt-6 text-center">
-                            <button 
-                                onClick={() => setAuthMode('teacher-login')}
-                                className="inline-flex items-center gap-2 px-3 py-1.5 rounded-lg border border-cyber-neonPink/30 text-cyber-neonPink/80 hover:text-cyber-neonPink hover:border-cyber-neonPink/70 hover:bg-cyber-neonPink/10 transition-all font-mono text-[10px] sm:text-xs uppercase tracking-wider"
-                            >
-                                <Shield size={12} /> Кабинет куратора
-                            </button>
-                        </div>
-                    </div>
-                </div>
-            )}
-
-            {/* TEACHER FORM */}
-            {authMode === 'teacher-login' && (
-                <div className="w-full max-w-md mx-auto bg-cyber-panel border border-cyber-neonPink p-6 sm:p-8 shadow-[0_0_30px_rgba(255,0,255,0.15)] animate-in zoom-in-95 duration-300 relative">
-                    <button onClick={() => setAuthMode('select')} className="absolute top-4 right-4 text-gray-500 hover:text-white p-2">
-                        <ArrowLeft size={20}/>
-                    </button>
-                    
-                    <h2 className="text-lg sm:text-xl font-bold text-cyber-neonPink mb-6 flex items-center gap-2 pr-8 leading-tight break-words">
-                        <Shield size={20} className="shrink-0" /> <span>ИДЕНТИФИКАЦИЯ КУРАТОРА</span>
-                    </h2>
-
-                    <form onSubmit={handleTeacherLogin} className="space-y-4">
-                        {error && (
-                            <div className="p-2 bg-red-900/30 border border-red-500/50 text-red-400 text-xs font-mono break-words">
-                                [ОШИБКА]: {error}
-                            </div>
-                        )}
-                        <div>
-                            <label className="block text-gray-400 text-xs uppercase font-bold mb-1">Имя / Позывной</label>
-                            <div className="relative">
-                                <UserIcon className="absolute left-3 top-3 text-gray-500" size={18} />
-                                <input 
-                                    type="text" 
-                                    value={name}
-                                    onChange={(e) => setName(e.target.value)}
-                                    className="w-full bg-black border border-gray-700 p-2.5 pl-10 text-white focus:border-cyber-neonPink focus:outline-none focus:shadow-[0_0_10px_rgba(255,0,255,0.3)] transition-all font-mono text-sm sm:text-base"
-                                    placeholder="Mr. Anderson"
-                                    autoFocus
-                                />
-                            </div>
-                        </div>
-                        <div>
-                            <label className="block text-gray-400 text-xs uppercase font-bold mb-1">Пароль / Ключ</label>
-                            <div className="relative">
-                                <KeyRound className="absolute left-3 top-3 text-gray-500" size={18} />
-                                <input 
-                                    type="password" 
-                                    value={password}
-                                    onChange={(e) => setPassword(e.target.value)}
-                                    className="w-full bg-black border border-gray-700 p-2.5 pl-10 text-white focus:border-cyber-neonPink focus:outline-none focus:shadow-[0_0_10px_rgba(255,0,255,0.3)] transition-all font-mono text-sm sm:text-base"
-                                    placeholder="••••••••"
-                                />
-                            </div>
-                        </div>
-                        <button 
-                            type="submit" 
-                            disabled={loading}
-                            className="w-full bg-cyber-neonPink text-black font-bold py-3 hover:bg-white transition-colors flex items-center justify-center gap-2 text-sm sm:text-base mt-2"
-                        >
-                            {loading ? <Loader2 className="animate-spin" size={20} /> : 'ВОЙТИ В СИСТЕМУ'}
-                        </button>
-                    </form>
-                </div>
-            )}
-
-            {/* STUDENT FORM */}
-            {authMode === 'student-login' && (
-                <div className="w-full max-w-md mx-auto bg-cyber-panel border border-cyber-neonBlue p-6 sm:p-8 shadow-[0_0_30px_rgba(0,243,255,0.15)] animate-in zoom-in-95 duration-300 relative">
-                    <button onClick={() => setAuthMode('select')} className="absolute top-4 right-4 text-gray-500 hover:text-white p-2">
-                        <ArrowLeft size={20}/>
-                    </button>
-                    
-                    <h2 className="text-lg sm:text-xl font-bold text-cyber-neonBlue mb-6 flex items-center gap-2 pr-8 leading-tight break-words">
-                        <Terminal size={20} className="shrink-0" /> <span>ПОДКЛЮЧЕНИЕ К УЗЛУ</span>
-                    </h2>
-
-                    <form onSubmit={handleStudentLogin} className="space-y-4">
-                         <div>
-                            <label className="block text-gray-400 text-xs uppercase font-bold mb-1">Имя Нетраннера</label>
-                            <div className="relative">
-                                <UserIcon className="absolute left-3 top-3 text-gray-500" size={18} />
-                                <input 
-                                    type="text" 
-                                    value={name}
-                                    onChange={(e) => setName(e.target.value)}
-                                    className="w-full bg-black border border-gray-700 p-2.5 pl-10 text-white focus:border-cyber-neonBlue focus:outline-none focus:shadow-[0_0_10px_rgba(0,243,255,0.3)] transition-all font-mono text-sm sm:text-base"
-                                    placeholder="Neo"
-                                    autoFocus
-                                />
-                            </div>
-                        </div>
-                        <div>
-                            <label className="block text-gray-400 text-xs uppercase font-bold mb-1">Код Доступа (Invite Code)</label>
-                            <div className="relative">
-                                <KeyRound className="absolute left-3 top-3 text-gray-500" size={18} />
-                                <input 
-                                    type="text" 
-                                    value={inviteCode}
-                                    onChange={(e) => setInviteCode(e.target.value.toUpperCase())}
-                                    className="w-full bg-black border border-gray-700 p-2.5 pl-10 text-white focus:border-cyber-neonBlue focus:outline-none focus:shadow-[0_0_10px_rgba(0,243,255,0.3)] transition-all font-mono uppercase tracking-widest text-sm sm:text-base"
-                                    placeholder="XXX-XX"
-                                    maxLength={7}
-                                />
-                            </div>
-                        </div>
-
-                        {error && (
-                            <div className="p-2 bg-red-900/30 border border-red-500/50 text-red-400 text-xs font-mono break-words">
-                                [ОШИБКА]: {error}
-                            </div>
-                        )}
-
-                        <button 
-                            type="submit" 
-                            disabled={loading}
-                            className="w-full bg-cyber-neonBlue text-black font-bold py-3 hover:bg-white transition-colors flex items-center justify-center gap-2 text-sm sm:text-base mt-2"
-                        >
-                            {loading ? <Loader2 className="animate-spin" size={20} /> : 'УСТАНОВИТЬ СВЯЗЬ'}
-                        </button>
-                    </form>
-                </div>
-            )}
-        </div>
-      </div>
-    );
+              {error && <p role="alert" className="academy-auth-error">{error}</p>}
+              <button className="academy-primary academy-auth-action" disabled={loading} type="submit">{loading ? <Loader2 className="animate-spin" size={20}/> : <>Войти <ArrowRight size={18}/></>}</button>
+            </form>
+          </>}
+          {authMode === 'select' && error && <p role="alert" className="academy-auth-error">{error}</p>}
+          {LOCAL_DEMO && <aside className="academy-demo-panel"><strong>Тестовый режим</strong><p>Прогресс сохраняется в этом браузере. Код класса: TEST01.</p><div><button disabled={loading} onClick={()=>handleDemoLogin('student')}>Тестировать как ученик</button><button disabled={loading} onClick={()=>handleDemoLogin('teacher')}>Тестировать как учитель</button></div></aside>}
+        </section>
+      </main>
+    </div>;
   }
 
   const currentClass = classrooms.find(c => c.id === activeClassId);
 
   return (
-    <CyberLayout 
-      role={user.role} 
+    <Suspense fallback={<div className="p-8 text-white">Загрузка кабинета…</div>}>
+    <CyberLayout
+      role={user.role} localDemo={LOCAL_DEMO}
       onLogout={handleLogout}
       title={user.role === 'teacher' ? 'ИНТЕРФЕЙС_КУРАТОРА' : 'ТЕРМИНАЛ_НЕТРАННЕРА'}
     >
@@ -368,6 +172,7 @@ const App: React.FC = () => {
         <StudentDashboard currentUser={user} />
       )}
     </CyberLayout>
+    </Suspense>
   );
 };
 

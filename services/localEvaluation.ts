@@ -1,4 +1,5 @@
 
+import { checkTerminal } from './terminal';
 import { Task, ExecutionResult, GridEvent } from "../types";
 
 const GRID_MAX_COMMANDS = 500;
@@ -303,38 +304,26 @@ export const evaluateCodeLocally = async (code: string, task: Task): Promise<Exe
                         if (requiredProps.length === 0) {
                             success = true;
                         } else {
-                            // Collect all CSS for the target element
-                            let elementCSS = '';
-                            
-                            // 1. Inline styles
-                            const inlineStyle = (tag as HTMLElement).getAttribute('style') || '';
-                            elementCSS += inlineStyle + '; ';
-
-                            // 2. <style> block rules matching the selector
-                            const styleBlocks = rawCode.match(/<style[^>]*>([\s\S]*?)<\/style>/gi);
-                            if (styleBlocks) {
-                                const allCSS = styleBlocks.map(b => b.replace(/<\/?style[^>]*>/gi, '')).join('\n');
-                                const selectorName = task.htmlConfig.targetTag;
-                                const selectorRegex = new RegExp(
-                                    selectorName.replace('.', '\\.').replace('#', '\\#') + '\\s*\\{([^}]+)\\}',
-                                    'gi'
-                                );
-                                let cssMatch;
-                                while ((cssMatch = selectorRegex.exec(allCSS)) !== null) {
-                                    elementCSS += cssMatch[1] + '; ';
-                                }
-                            }
-
-                            const normalizedCSS = elementCSS.toLowerCase().replace(/\s+/g, ' ');
+                            const frame = document.createElement('iframe');
+                            frame.setAttribute('sandbox', 'allow-same-origin');
+                            frame.style.cssText = 'position:fixed;left:-10000px;width:800px;height:600px;visibility:hidden';
+                            document.body.appendChild(frame);
                             const missing: string[] = [];
-
-                            for (const req of requiredProps) {
-                                // Check if the property exists with any value (lenient)
-                                const propRegex = new RegExp(req.prop + '\\s*:\\s*[^;]+', 'i');
-                                if (!propRegex.test(normalizedCSS)) {
-                                    missing.push(req.prop);
+                            try {
+                                const isolated = frame.contentDocument;
+                                if (!isolated) throw new Error('Нет документа для проверки');
+                                isolated.open(); isolated.write(rawCode); isolated.close();
+                                const element = isolated.querySelector(task.htmlConfig.targetTag);
+                                if (!element) throw new Error('Целевой элемент не найден');
+                                const computed = frame.contentWindow!.getComputedStyle(element);
+                                const reference = isolated.createElement('div');
+                                isolated.body.appendChild(reference);
+                                reference.style.cssText = targetStyle;
+                                const expected = frame.contentWindow!.getComputedStyle(reference);
+                                for (const req of requiredProps) {
+                                    if (computed.getPropertyValue(req.prop) !== expected.getPropertyValue(req.prop)) missing.push(`${req.prop}: ${req.value}`);
                                 }
-                            }
+                            } finally { frame.remove(); }
 
                             if (missing.length === 0) {
                                 success = true;
@@ -361,33 +350,13 @@ export const evaluateCodeLocally = async (code: string, task: Task): Promise<Exe
         return { success, logs, steps: [], error, feedback };
     }
 
-    // --- TERMINAL LOGIC (print-based Python tasks) ---
     if (task.type === 'terminal') {
-        if (task.terminalOutput !== undefined) {
-            const printMatches = [...rawCode.matchAll(/print\s*\(([\s\S]*?)\)/g)];
-            if (!rawCode || printMatches.length === 0) {
-                error = 'Используй print(...) для вывода результата.';
-            } else {
-                success = true;
-                const expected = task.terminalOutput.split('\n').filter(l => l.trim().length > 0);
-                // ponytail: не интерпретатор Python — если число print() совпадает
-                // с эталоном, показываем ожидаемый вывод; иначе содержимое строковых литералов
-                const useExpected = expected.length === printMatches.length;
-                const outLines = printMatches.map((m, idx) => {
-                    const arg = m[1].trim();
-                    const lit = arg.match(/^(?:f|F)?(['"])([\s\S]*)\1$/);
-                    if (lit && !arg.toLowerCase().startsWith('f')) return lit[2];
-                    return useExpected ? expected[idx] : arg.replace(/^["']|["']$/g, '');
-                });
-                output = outLines.join('\n');
-                outLines.forEach(l => logs.push(`> ${l}`));
-            }
-        } else {
-            if (cleanCode.length > 15) success = true;
-            else error = "Добавь содержательный ответ по заданию.";
+        try {
+            output = await checkTerminal(rawCode, task);
+            return { success: true, logs: output.split('\n').map(line => `> ${line}`), steps: [], terminalOutput: output };
+        } catch (e) {
+            return { success: false, logs: [], steps: [], error: e instanceof Error ? e.message : 'Ошибка выполнения' };
         }
-
-        return { success, logs, steps: [], terminalOutput: output || "> Script executed.", error, feedback };
     }
 
     // --- GRID LOGIC ---

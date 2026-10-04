@@ -81,9 +81,9 @@ export const ProcessManagerGame: React.FC<ProcessManagerGameProps> = ({ task, on
   };
 
   return (
-    <div className="flex flex-col h-full bg-gray-950 p-4 md:p-6 overflow-y-auto">
+    <div className="workshop-legacy process-workshop flex flex-col h-full bg-gray-950 p-4 md:p-6 overflow-y-auto">
       {/* Title & Instructions */}
-      <div className="flex flex-wrap items-center justify-between gap-4 p-4 bg-black/70 border border-cyber-neonBlue/30 rounded-xl mb-4">
+      <div className="workshop-banner flex flex-wrap items-center justify-between gap-4 p-4 bg-black/70 border border-cyber-neonBlue/30 rounded-xl mb-4">
         <div className="flex items-center gap-3">
           <div className="p-2 rounded bg-cyber-neonBlue/20 text-cyber-neonBlue border border-cyber-neonBlue/40">
             <Activity size={22} />
@@ -163,7 +163,7 @@ export const ProcessManagerGame: React.FC<ProcessManagerGameProps> = ({ task, on
 
       {/* Process Table */}
       <div className="flex-1 bg-black border border-gray-800 rounded-xl overflow-hidden flex flex-col">
-        <div className="px-4 py-2.5 bg-gray-900/80 border-b border-gray-800 text-[11px] font-mono text-gray-400 uppercase grid grid-cols-12 gap-2 items-center">
+        <div className="process-table-heading px-4 py-2.5 bg-gray-900/80 border-b border-gray-800 text-[11px] font-mono text-gray-400 uppercase grid grid-cols-12 gap-2 items-center">
           <div className="col-span-2">PID</div>
           <div className="col-span-4">ИМЯ ПРОЦЕССА</div>
           <div className="col-span-2 text-right">CPU</div>
@@ -177,13 +177,13 @@ export const ProcessManagerGame: React.FC<ProcessManagerGameProps> = ({ task, on
             return (
               <div
                 key={proc.id}
-                className={`px-4 py-3 grid grid-cols-12 gap-2 items-center text-xs font-mono hover:bg-gray-900/40 transition-colors ${
+                className={`process-row px-4 py-3 grid grid-cols-12 gap-2 items-center text-xs font-mono hover:bg-gray-900/40 transition-colors ${
                   isDanger ? 'bg-red-950/15' : ''
                 }`}
               >
                 <div className="col-span-2 text-gray-500">#{proc.id}</div>
                 <div className="col-span-4">
-                  <div className="font-bold text-white flex items-center gap-2">
+                  <div className="process-name font-bold text-white flex items-center gap-2">
                     {proc.name}
                     {proc.isCritical && (
                       <span className="text-[9px] px-1.5 py-0.2 bg-blue-950 text-cyber-neonBlue rounded border border-cyber-neonBlue/30">
@@ -191,14 +191,14 @@ export const ProcessManagerGame: React.FC<ProcessManagerGameProps> = ({ task, on
                       </span>
                     )}
                   </div>
-                  <div className="text-[10px] text-gray-400 truncate" title={proc.description}>
+                  <div className="text-[10px] text-gray-400 break-words" title={proc.description}>
                     {proc.description}
                   </div>
                 </div>
-                <div className={`col-span-2 text-right font-bold ${proc.cpu > 20 ? 'text-red-400' : 'text-gray-400'}`}>
+                <div data-label="CPU" className={`col-span-2 text-right font-bold ${proc.cpu > 20 ? 'text-red-400' : 'text-gray-400'}`}>
                   {proc.cpu}%
                 </div>
-                <div className={`col-span-2 text-right font-bold ${proc.ramMb > 100 ? 'text-cyber-neonYellow' : 'text-gray-400'}`}>
+                <div data-label="RAM" className={`col-span-2 text-right font-bold ${proc.ramMb > 100 ? 'text-cyber-neonYellow' : 'text-gray-400'}`}>
                   {proc.ramMb} MB
                 </div>
                 <div className="col-span-2 flex justify-center">

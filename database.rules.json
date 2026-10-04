@@ -1,0 +1,8 @@
+{
+  "rules": {
+    ".read": false,
+    ".write": false,
+    "users": { ".indexOn": ["id", "classId", "name"] },
+    "classrooms": { ".indexOn": ["id", "teacherId", "inviteCode"] }
+  }
+}

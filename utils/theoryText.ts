@@ -22,7 +22,7 @@ export function stripStandardsPrefix(text: string): string {
 }
 
 export function cleanLessonTitle(title: string): string {
-  const cleaned = title.replace(/^\s*Урок\s*\d+\s*[:.\-–—]?\s*/i, '').trim();
+  const cleaned = decodeEntities(title).replace(/^\s*Урок\s*\d+\s*[:.\-–—]?\s*/i, '').trim();
   return cleaned || title;
 }
 

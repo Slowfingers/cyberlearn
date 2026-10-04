@@ -1,12 +1,17 @@
+import { AssessmentPlayer } from './AssessmentPanel';
 
 import React, { useState, useEffect, useRef, useCallback, useMemo, lazy, Suspense } from 'react';
-import { COSMETICS, ACHIEVEMENTS } from '../constants';
+import { COSMETICS, SHOP_COSMETICS, ACHIEVEMENTS, COURSES } from '../constants';
 import { Task, ExecutionResult, User, Course, GridEvent } from '../types';
+import { terminalLanguage } from '../services/terminal';
 import { evaluateCodeLocally, shuffledQuiz } from '../services/localEvaluation';
-import { calculateLevel, getNextLevelThreshold, updateUserProfile, getAllTasks, getCoursesWithProgress, buyItem, equipItem, saveTaskProgress, getTaskProgress, getTaskAttempts, saveTaskAttempts, getHiddenCoursesForStudent, getStreak, recordActivity, StreakData } from '../services/mockBackend';
+import { getNextLevelThreshold, getAllTasks, getCoursesWithProgress, buyItem, equipItem, saveTaskProgress, getTaskAttempts, saveTaskAttempts, getHiddenCoursesForStudent, getStreak, recordActivity, StreakData } from '../services/mockBackend';
+import { fbCompleteTask } from '../services/firebase';
 import { rewardMultiplier } from '../services/scoring';
 import { stripStandardsPrefix } from '../utils/theoryText';
-import ShopAvatar from './ShopAvatar';
+import ShopAvatar, { STREET_AVATARS } from './ShopAvatar';
+import StudentHome from './StudentHome';
+import { PracticeSurface } from './PracticeSurface';
 import CyberToast, { ToastMessage } from './CyberToast';
 import { Play, RotateCcw, CheckCircle, Lock, BookOpen, Zap, ArrowRight, ChevronLeft, Trophy, X, Bot, Code, Terminal as TerminalIcon, Cpu, Globe, Grid, LayoutList, Eye, Loader2, HelpCircle, ShoppingBag, Coins, BrainCircuit, Puzzle, Award, Flame, Activity, ArrowUpDown, GitBranch, ShieldAlert, Brain, Lightbulb, Folder, Smartphone, ShieldCheck } from 'lucide-react';
 import { playSound } from '../utils/sound';
@@ -75,6 +80,7 @@ export const getTaskTypeLabel = (type: string) => {
 };
 
 export const getTaskPracticeGoal = (task: Task) => {
+  if (task.lesson) return task.lesson.goal;
   if (task.type === 'file_organizer') {
     return 'Перед тобой откроется рабочий стол с неразобранными файлами (.png, .mp3, .docx, .exe). Ориентируясь на расширение файла, перетащи каждый файл мышкой в подходящую по цвету папку!';
   }
@@ -125,11 +131,11 @@ interface StudentDashboardProps {
 const StudentDashboard: React.FC<StudentDashboardProps> = ({ currentUser: propUser }) => {
   const [tasks, setTasks] = useState<Task[]>([]);
   const [courses, setCourses] = useState<(Course & { progress: number, totalTasks: number })[]>([]);
-  
+
   // Navigation State
   const [activeCourseId, setActiveCourseId] = useState<string | null>(null);
   const [activeTask, setActiveTask] = useState<Task | null>(null);
-  const [taskTab, setTaskTab] = useState<'info' | 'code' | 'visual'>('info'); 
+  const [taskTab, setTaskTab] = useState<'info' | 'code' | 'visual'>('info');
   const [showMobileSidebar, setShowMobileSidebar] = useState<boolean>(true);
   // Счётчики провальных попыток: персистентны в localStorage, живут пока задача не сдана.
   // attemptUserId — кому принадлежит текущее состояние attemptCount (защита от записи
@@ -139,8 +145,10 @@ const StudentDashboard: React.FC<StudentDashboardProps> = ({ currentUser: propUs
   const bumpAttempt = (taskId: string) => {
       setAttemptCount(prev => ({ ...prev, [taskId]: (prev[taskId] || 0) + 1 }));
   };
+  const [pendingCompletion, setPendingCompletion] = useState<{task:Task; autoAdvance:boolean} | null>(null);
+  const [savingCompletion, setSavingCompletion] = useState(false);
   const rewardedTaskIds = useRef<Set<string>>(new Set());
-  
+
   // Profile State
   const [currentUser, setCurrentUser] = useState<User | null>(propUser);
 
@@ -160,7 +168,7 @@ const StudentDashboard: React.FC<StudentDashboardProps> = ({ currentUser: propUs
   // Grid action animation state
   const [activeGridAction, setActiveGridAction] = useState<GridEvent | null>(null);
   const [destroyedObstacles, setDestroyedObstacles] = useState<string[]>([]);
-  
+
   const [hint, setHint] = useState<string>('');
   const [isHintLoading, setIsHintLoading] = useState(false);
   const [showHintModal, setShowHintModal] = useState(false);
@@ -174,7 +182,7 @@ const StudentDashboard: React.FC<StudentDashboardProps> = ({ currentUser: propUs
   const [quizSubmitted, setQuizSubmitted] = useState(false);
   const [quizIsCorrect, setQuizIsCorrect] = useState(false);
   const [lastXpAwarded, setLastXpAwarded] = useState(false);
-  
+
   // Customization & Market
   const [showProfileModal, setShowProfileModal] = useState(false);
   const [showMarketModal, setShowMarketModal] = useState(false);
@@ -197,6 +205,8 @@ const StudentDashboard: React.FC<StudentDashboardProps> = ({ currentUser: propUs
   const [liveOutputReady, setLiveOutputReady] = useState(false);
   const liveOutputRef = useRef<HTMLDivElement>(null);
 
+  const activeTaskIdRef = useRef(activeTask?.id);
+  activeTaskIdRef.current = activeTask?.id;
   const editorRef = useRef<HTMLTextAreaElement>(null);
   const terminalEndRef = useRef<HTMLDivElement>(null);
   const sidebarRef = useRef<HTMLDivElement>(null);
@@ -218,59 +228,19 @@ const StudentDashboard: React.FC<StudentDashboardProps> = ({ currentUser: propUs
   }, [propUser.id]);
 
   useEffect(() => {
-      (async () => {
-          // Bidirectional sync: merge localStorage and Firebase completed task IDs
-          const localProgress = getTaskProgress(propUser.id);
-          const localCompletedIds = Object.entries(localProgress)
-              .filter(([, v]) => v === 'completed')
-              .map(([k]) => k);
-          const firebaseCompletedIds = propUser.completedTaskIds || [];
-
-          // Merge both sources to get the true set of completed tasks
-          const mergedCompletedIds = [...new Set([...firebaseCompletedIds, ...localCompletedIds])];
-          const mergedSet = new Set(mergedCompletedIds);
-
-          // Sync Firebase → localStorage: mark Firebase-completed tasks in localStorage
-          if (firebaseCompletedIds.length > 0) {
-              const updatedProgress = { ...localProgress };
-              let localChanged = false;
-              for (const tid of firebaseCompletedIds) {
-                  if (updatedProgress[tid] !== 'completed') {
-                      updatedProgress[tid] = 'completed';
-                      localChanged = true;
-                  }
-              }
-              if (localChanged) {
-                  saveTaskProgress(propUser.id, updatedProgress);
-              }
-          }
-
-          // Load tasks with the merged progress applied
-          const allTasks = getAllTasks(propUser.id);
-          // Also apply Firebase completedTaskIds that may not be in localStorage yet
-          const patchedTasks = allTasks.map(t => ({
-              ...t,
-              status: mergedSet.has(t.id) ? 'completed' as const : t.status,
-          }));
-          setTasks(patchedTasks);
-          const hidden = await getHiddenCoursesForStudent(propUser.id);
-          setCourses(getCoursesWithProgress(patchedTasks, hidden));
-
-          // Sync localStorage → Firebase: push merged data if Firebase is behind
-          const needsFirebaseUpdate = mergedCompletedIds.length > firebaseCompletedIds.length;
-          if (needsFirebaseUpdate) {
-              const streakData = getStreak(propUser.id);
-              const updatedUser: User = {
-                  ...propUser,
-                  completedTaskIds: mergedCompletedIds,
-                  tasksCompleted: mergedCompletedIds.length,
-                  lastActiveDate: streakData.lastActiveDate || propUser.lastActiveDate,
-                  streak: streakData.currentStreak ?? propUser.streak,
-              };
-              updateUserProfile(updatedUser);
-              setCurrentUser(updatedUser);
-          }
-      })();
+      let cancelled = false;
+      const refresh = async () => {
+          try {
+              const allTasks = await getAllTasks(propUser.id);
+              const hidden = await getHiddenCoursesForStudent(propUser.id);
+              if (cancelled) return;
+              setTasks(allTasks);
+              setCourses(getCoursesWithProgress(allTasks, hidden));
+          } catch { if (!cancelled) addToast('Не удалось загрузить задания. Обновите страницу.', 'error'); }
+      };
+      void refresh();
+      const timer=setInterval(refresh,10000);
+      return () => { cancelled = true; clearInterval(timer); };
   }, [propUser.id]);
 
   const filteredTasks = tasks.filter(t => t.courseId === activeCourseId);
@@ -312,7 +282,7 @@ const StudentDashboard: React.FC<StudentDashboardProps> = ({ currentUser: propUs
 
   useEffect(() => {
     if (!activeTask) return;
-    
+
     // Reset States
     setLogs([`> СИСТЕМА ГОТОВА. ЦЕЛЬ: ${activeTask.title}`]);
     setHint('');
@@ -322,19 +292,19 @@ const StudentDashboard: React.FC<StudentDashboardProps> = ({ currentUser: propUs
     setLessonStage(pendingLessonStage.current);
     pendingLessonStage.current = 'explanation';
     setActiveGridAction(null);
-    setDestroyedObstacles([]); 
+    setDestroyedObstacles([]);
     setShowHintModal(false);
-    
+
     // Specific Task Type Resets
     if (activeTask.type === 'grid' || activeTask.type === 'html') {
-        setCode(activeTask.initialCode || '');
+        setCode(activeTask.lesson?.starterCode ?? activeTask.initialCode ?? '');
         if (activeTask.mapConfig) {
             setPlayerPos(activeTask.mapConfig.start);
             setPathHistory([activeTask.mapConfig.start]);
         }
     } else if (activeTask.type === 'terminal') {
-        setCode(activeTask.initialCode || ''); 
-        setTerminalHistory(['> Welcome to CyberShell v1.0', '> Ready for script execution...']);
+        setCode(activeTask.lesson?.starterCode ?? activeTask.initialCode ?? '');
+        setTerminalHistory(['> Учебный терминал готов. Дополни решение и нажми «Запустить».']);
         setLiveOutput([]);
         setLiveOutputReady(false);
     }
@@ -370,7 +340,7 @@ const StudentDashboard: React.FC<StudentDashboardProps> = ({ currentUser: propUs
     playSound('click');
     setIsRunning(true);
     setMissionSuccess(false);
-    
+
     // On Mobile, switch to Visual tab to see result
     if (window.innerWidth < 768 && activeTask.type !== 'terminal') {
         setTaskTab('visual');
@@ -384,6 +354,8 @@ const StudentDashboard: React.FC<StudentDashboardProps> = ({ currentUser: propUs
         setActiveGridAction(null);
     }
 
+    const runTaskId = activeTask.id;
+    const stillActive = () => activeTaskIdRef.current === runTaskId;
     const currentInput = code;
     if (activeTask.type === 'terminal') {
         setTerminalHistory(prev => [...prev, '$ EXECUTE SCRIPT...']);
@@ -392,11 +364,15 @@ const StudentDashboard: React.FC<StudentDashboardProps> = ({ currentUser: propUs
     }
 
     // --- INSTANT LOCAL CHECK ---
-    const result: ExecutionResult = await evaluateCodeLocally(currentInput, activeTask);
-    
+    let result: ExecutionResult;
+    try { result = await evaluateCodeLocally(currentInput, activeTask); }
+    catch { result = { success: false, logs: [], steps: [], error: 'Не удалось выполнить проверку. Повторите попытку.' }; }
+    if (!stillActive()) { setIsRunning(false); return; }
+
     // Grid animation: события move/jump/attack, иначе просто путь
     if (result.gridEvents && result.gridEvents.length > 0) {
         for (let i = 0; i < result.gridEvents.length; i++) {
+            if (!stillActive()) { setIsRunning(false); return; }
             const event = result.gridEvents[i];
             setActiveGridAction(event);
 
@@ -422,7 +398,7 @@ const StudentDashboard: React.FC<StudentDashboardProps> = ({ currentUser: propUs
         }
     } else if (result.steps && result.steps.length > 0) {
         for (let i = 0; i < result.steps.length; i++) {
-            await new Promise(r => setTimeout(r, 200)); 
+            await new Promise(r => setTimeout(r, 200));
             const step = result.steps[i];
             setPlayerPos([step[0], step[1]]);
             setPathHistory(prev => [...prev, [step[0], step[1]]]);
@@ -465,6 +441,7 @@ const StudentDashboard: React.FC<StudentDashboardProps> = ({ currentUser: propUs
         setLiveOutputReady(true);
     }
 
+    if (!stillActive()) { setIsRunning(false); return; }
     if (result.success) {
         setLogs(prev => [...prev, '>>> ЦЕЛЬ ДОСТИГНУТА. ПРОТОКОЛ ЗАВЕРШЕН <<<']);
         setMissionSuccess(true);
@@ -472,7 +449,7 @@ const StudentDashboard: React.FC<StudentDashboardProps> = ({ currentUser: propUs
         if (currentUser) {
             await endTaskAttempt(currentUser.id, true);
         }
-        handleTaskCompletion(activeTask);
+        await handleTaskCompletion(activeTask);
     } else {
         const errorMsg = result.error || 'Ошибка исполнения';
         setLogs(prev => [...prev, `[ОШИБКА]: ${errorMsg}`]);
@@ -491,25 +468,25 @@ const StudentDashboard: React.FC<StudentDashboardProps> = ({ currentUser: propUs
     setIsRunning(false);
   };
 
-  const handleQuizSubmit = () => {
+  const handleQuizSubmit = async () => {
       if (!activeTask || activeTask.type !== 'quiz' || quizSelectedOption === null) return;
-      
+
       const isCorrect = quizSelectedOption === quiz?.correctIndex;
       setQuizSubmitted(true);
       setQuizIsCorrect(isCorrect);
-      
+
       if (isCorrect) {
           playSound('success');
           if (currentUser) {
-              endTaskAttempt(currentUser.id, true);
+              await endTaskAttempt(currentUser.id, true);
           }
           // Don't auto-advance instantly on quiz so user can see "Correct" state
-          handleTaskCompletion(activeTask, false);
+          await handleTaskCompletion(activeTask, false);
       } else {
           playSound('error');
           recordError();
           if (currentUser) {
-              endTaskAttempt(currentUser.id, false);
+              await endTaskAttempt(currentUser.id, false);
               startTaskAttempt(activeTask.id, currentUser.id);
           }
           // Increment persistent attempt counter on wrong answer
@@ -524,153 +501,55 @@ const StudentDashboard: React.FC<StudentDashboardProps> = ({ currentUser: propUs
       playSound('click');
   };
 
-  const handleTheoryComplete = () => {
+  const handleTheoryComplete = async () => {
       playSound('success');
       if (activeTask) {
-          handleTaskCompletion(activeTask, true); // Auto-advance
+          await handleTaskCompletion(activeTask, true); // Auto-advance
       }
   };
-  
-  const handleTaskCompletion = (task: Task, autoAdvance = false) => {
-      const taskIndex = tasks.findIndex(t => t.id === task.id);
-      let isAlreadyCompleted = false;
 
-      if (taskIndex !== -1) {
-          const updatedTasks = [...tasks];
-          isAlreadyCompleted = updatedTasks[taskIndex].status === 'completed' || rewardedTaskIds.current.has(task.id);
-          updatedTasks[taskIndex] = { ...updatedTasks[taskIndex], status: 'completed' };
-          
-          let nextTaskToActivate: Task | null = null;
-
-          // Unlock next logic
+  const handleTaskCompletion = async (task: Task, autoAdvance = false) => {
+      if (!currentUser || rewardedTaskIds.current.has(task.id)) return;
+      rewardedTaskIds.current.add(task.id);
+      setSavingCompletion(true);
+      try {
+          const { user: savedUser, awarded } = await fbCompleteTask(task.id, attemptCount[task.id] || 0);
+          setPendingCompletion(null);
+          if (activeTaskIdRef.current === task.id) {
+              setMissionSuccess(true);
+              if (task.type === 'quiz') { setQuizSubmitted(true); setQuizIsCorrect(true); }
+          }
+          setCurrentUser(savedUser);
+          setLastXpAwarded(awarded);
+          const updatedTasks = tasks.map(t => ({ ...t, status: savedUser.completedTaskIds?.includes(t.id) ? 'completed' as const : t.status }));
           const courseTasks = updatedTasks.filter(t => t.courseId === task.courseId);
-          const currentInCourseIdx = courseTasks.findIndex(t => t.id === task.id);
-          
-          if (currentInCourseIdx !== -1 && currentInCourseIdx < courseTasks.length - 1) {
-             const nextTask = courseTasks[currentInCourseIdx + 1];
-             const globalNextIdx = updatedTasks.findIndex(t => t.id === nextTask.id);
-             if (globalNextIdx !== -1) {
-                 if (updatedTasks[globalNextIdx].status === 'locked') {
-                     updatedTasks[globalNextIdx] = { ...updatedTasks[globalNextIdx], status: 'open' };
-                 }
-                 nextTaskToActivate = updatedTasks[globalNextIdx];
-             }
-          }
-          
+          const next = courseTasks[courseTasks.findIndex(t => t.id === task.id) + 1];
+          if (next?.status === 'locked') next.status = 'open';
           setTasks(updatedTasks);
-          getHiddenCoursesForStudent(propUser.id).then(hidden => {
-              setCourses(getCoursesWithProgress(updatedTasks, hidden));
-          });
-
-          // Persist task progress to localStorage
-          if (currentUser) {
-              const progressMap: Record<string, 'open' | 'completed' | 'locked'> = {};
-              updatedTasks.forEach(t => { progressMap[t.id] = t.status; });
-              saveTaskProgress(currentUser.id, progressMap);
-          }
-
-          if (autoAdvance) {
-              if (nextTaskToActivate) {
-                  setActiveTask(nextTaskToActivate);
-                  if (window.innerWidth < 768) {
-                       if (['grid', 'html', 'terminal'].includes(nextTaskToActivate.type)) setTaskTab('info');
+          setCourses(previous => getCoursesWithProgress(updatedTasks, COURSES.filter(c => !previous.some(p => p.id === c.id)).map(c => c.id)));
+          const progressMap: Record<string, 'open' | 'completed' | 'locked'> = {};
+          updatedTasks.forEach(t => { progressMap[t.id] = t.status; });
+          saveTaskProgress(currentUser.id, progressMap);
+          if (awarded) {
+              const localStreak = recordActivity(currentUser.id);
+              setStreak({ ...localStreak, currentStreak:savedUser.streak || 0, lastActiveDate:savedUser.lastActiveDate || localStreak.lastActiveDate });
+              for (const id of savedUser.achievements || []) {
+                  if (!currentUser.achievements?.includes(id)) {
+                      const achievement = ACHIEVEMENTS.find(a => a.id === id);
+                      if (achievement) addToast(`🏆 ${achievement.title}`, 'success');
                   }
-                  playSound('open');
-              } else {
-                  setActiveTask(null);
-                  setActiveCourseId(null);
-                  setShowMobileSidebar(true);
-                  playSound('open');
               }
           }
-      }
-
-      // Only award XP and Currency if the task wasn't already completed
-      setLastXpAwarded(!isAlreadyCompleted);
-      if (currentUser && !isAlreadyCompleted) {
-          rewardedTaskIds.current.add(task.id);
-          // Record streak activity
-          const updatedStreak = recordActivity(currentUser.id);
-          setStreak(updatedStreak);
-          // Лестница награды по числу провальных попыток: 100/50/25/10 %
-          const attempts = attemptCount[task.id] || 0;
-          const multiplier = rewardMultiplier(attempts);
-          const rewardPercent = Math.round(multiplier * 100);
-
-          const actualXP = Math.max(1, Math.round(task.xpReward * multiplier));
-          const actualCurrency = Math.max(1, Math.round((task.currencyReward || 0) * multiplier));
-          
-          const newXP = currentUser.xp + actualXP;
-          const newCurrency = (currentUser.currency || 0) + actualCurrency;
-          const newLevel = calculateLevel(newXP);
-          
-          // Show penalty message if attempts > 0
-          if (attempts > 0) {
-              setLogs(prev => [...prev, `⚠ Ошибок: ${attempts}. Награда снижена до ${rewardPercent}%: +${actualXP} XP, +${actualCurrency} BITS`]);
+          if (autoAdvance) {
+              setActiveTask(next || null);
+              if (!next) { setActiveCourseId(null); setShowMobileSidebar(true); }
           }
-          
-          const newAchievements = [...(currentUser.achievements || [])];
-          const grantAchievement = (achId: string) => {
-              if (!newAchievements.includes(achId) && ACHIEVEMENTS.some(a => a.id === achId)) {
-                  newAchievements.push(achId);
-                  const achInfo = ACHIEVEMENTS.find(a => a.id === achId);
-                  if (achInfo) addToast(`🏆 ${achInfo.title}`, 'success');
-              }
-          };
-
-          grantAchievement('ach_1');
-
-          // Ачивки по типу задачи
-          const typeAchMap: Partial<Record<Task['type'], string>> = {
-              typing: 'ach_typing',
-              binary_switches: 'ach_binary',
-              binary_bulbs: 'ach_binary',
-              circuit_builder: 'ach_circuit',
-              grid: 'ach_robot',
-              terminal: 'ach_terminal',
-              html: 'ach_web',
-              hanoi: 'ach_hanoi',
-              phishing_detect: 'ach_safety',
-              fake_detector: 'ach_safety',
-              ai_neuron: 'ach_ai',
-              ai_kids_trainer: 'ach_ai',
-          };
-          const typeAch = typeAchMap[task.type];
-          if (typeAch) grantAchievement(typeAch);
-
-          // Ачивка за полное прохождение курса: course_gradeN -> ach_gradeN
-          const gradeAchId = `ach_${task.courseId.replace('course_', '')}`;
-          if (ACHIEVEMENTS.some(a => a.id === gradeAchId) && !newAchievements.includes(gradeAchId)) {
-              const courseTasks = tasks.filter(t => t.courseId === task.courseId);
-              const allDone = courseTasks.every(t => t.id === task.id ? true : t.status === 'completed');
-              if (allDone) grantAchievement(gradeAchId);
-          }
-
-          const prevErrors = currentUser.totalErrors || 0;
-
-          // MERGE: combine Firebase completedTaskIds + current tasks state + this task
-          const existingFirebaseIds = currentUser.completedTaskIds || [];
-          const currentTasksCompleted = tasks
-              .filter(t => t.status === 'completed')
-              .map(t => t.id);
-          const uniqueCompletedIds = [...new Set([...existingFirebaseIds, ...currentTasksCompleted, task.id])];
-
-          const updatedUser = {
-              ...currentUser,
-              xp: newXP,
-              currency: newCurrency,
-              level: newLevel,
-              achievements: newAchievements,
-              tasksCompleted: uniqueCompletedIds.length,
-              totalErrors: prevErrors + attempts,
-              completedTaskIds: uniqueCompletedIds,
-              lastActiveDate: updatedStreak.lastActiveDate,
-              streak: updatedStreak.currentStreak,
-          };
-          
-          setCurrentUser(updatedUser);
-          updateUserProfile(updatedUser); // async, fire-and-forget
-      }
+      } catch {
+          setPendingCompletion({task,autoAdvance});
+          setMissionSuccess(false);
+          setQuizSubmitted(false);
+          addToast('Результат не сохранён. Проверьте соединение и повторите отправку.', 'error');
+      } finally { rewardedTaskIds.current.delete(task.id); setSavingCompletion(false); }
   };
 
   const handleBuyItem = async (itemId: string) => {
@@ -689,7 +568,9 @@ const StudentDashboard: React.FC<StudentDashboardProps> = ({ currentUser: propUs
 
   const handleEquipItem = async (itemId: string) => {
       if (!currentUser) return;
-      const res = await equipItem(currentUser.id, itemId);
+      let res;
+      try { res = await equipItem(currentUser.id, itemId); }
+      catch { addToast("Не удалось сохранить выбранный предмет", "error"); return; }
       if (res.success && res.user) {
           setCurrentUser(res.user);
           playSound('click');
@@ -726,7 +607,8 @@ const StudentDashboard: React.FC<StudentDashboardProps> = ({ currentUser: propUs
       // Локальная подсказка на основе типа задачи
       let newHint = '';
       if (activeTask.type === 'terminal') {
-          newHint = `💡 Подсказка: Проверь синтаксис команд. Используй print() для вывода результата.`;
+          const language = terminalLanguage(activeTask);
+          newHint = language === 'python' ? '💡 Проверь вычисления и отступы. Используй print() для вывода результата.' : language === 'javascript' ? '💡 Проверь вычисления и используй console.log() для вывода результата.' : language === 'sql' ? '💡 Проверь таблицу, выбранные столбцы и условия SQL-запроса.' : '💡 Выполняй команды по порядку в учебной файловой системе. Проверь имена файлов и параметры.';
       } else if (activeTask.type === 'html') {
           newHint = `💡 Подсказка: Убедись, что все CSS-свойства написаны правильно. Проверь селекторы.`;
       } else if (activeTask.type === 'grid') {
@@ -757,7 +639,7 @@ const StudentDashboard: React.FC<StudentDashboardProps> = ({ currentUser: propUs
   const currentXP = currentUser?.xp || 0;
   const currentLevel = currentUser?.level || 1;
   const nextLevelXP = getNextLevelThreshold(currentLevel);
-  const prevLevelXP = getNextLevelThreshold(currentLevel - 1); 
+  const prevLevelXP = getNextLevelThreshold(currentLevel - 1);
   const progressPercent = Math.min(100, Math.max(0, ((currentXP - (currentLevel === 1 ? 0 : prevLevelXP)) / (nextLevelXP - (currentLevel === 1 ? 0 : prevLevelXP))) * 100));
 
 
@@ -766,153 +648,18 @@ const StudentDashboard: React.FC<StudentDashboardProps> = ({ currentUser: propUs
   // --------------------------------------------------------------------------
   if (!activeCourseId) {
     return (
-        <div className="flex-1 w-full bg-black p-4 md:p-8 overflow-y-auto">
+        <div className="academy-home-shell flex-1 w-full overflow-y-auto">
              <CyberToast toasts={toasts} onDismiss={dismissToast} />
-             {/* Header */}
-             <div className="max-w-6xl mx-auto mb-6 md:mb-12 animate-in slide-in-from-top-4 duration-500">
-                 <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-6 gap-4">
-                    <div>
-                        <h1 className="text-2xl md:text-4xl font-bold text-white tracking-widest uppercase mb-1">
-                            Академия <span className="text-cyber-neonBlue">Netrunner</span>
-                        </h1>
-                        <p className="text-gray-400 font-mono text-xs md:text-sm">Выберите программу обучения</p>
-                    </div>
+             {currentUser && <StudentHome user={currentUser} courses={courses} tasks={tasks} progress={progressPercent} today={streak.tasksToday}
+               onShop={() => setShowMarketModal(true)} onProfile={() => { playSound('open'); setShowProfileModal(true); }}
+               onCourse={(id, resume) => {
+                 playSound('click'); setActiveCourseId(id);
+                 const courseTasks = tasks.filter(t => t.courseId === id);
+                 setActiveTask(courseTasks.find(t => t.status === 'open') || courseTasks[0] || null);
+                 setLessonStage('explanation'); setShowMobileSidebar(!resume);
+                 if (sidebarRef.current) sidebarRef.current.scrollTop = 0;
+               }} />}
 
-                    {currentUser && (
-                        <div className="flex items-center gap-1.5 md:gap-4 w-full md:w-auto flex-wrap">
-                            {/* STREAK DISPLAY */}
-                            {streak.currentStreak > 0 && (
-                                <div className="flex items-center gap-1.5 bg-black border border-orange-500/50 px-2.5 py-1.5 rounded" title={`Рекорд: ${streak.longestStreak} дней`}>
-                                    <Flame size={14} className="text-orange-400 shrink-0" />
-                                    <span className="font-mono font-bold text-orange-400 text-sm">{streak.currentStreak}</span>
-                                </div>
-                            )}
-
-                            {/* DAILY PROGRESS */}
-                            {streak.tasksToday > 0 && (
-                                <div className="flex items-center gap-1.5 bg-black border border-cyber-neonGreen/50 px-2.5 py-1.5 rounded">
-                                    <CheckCircle size={14} className="text-cyber-neonGreen shrink-0" />
-                                    <span className="font-mono font-bold text-cyber-neonGreen text-sm">{streak.tasksToday}</span>
-                                    <span className="hidden sm:inline text-[10px] text-gray-500">сегодня</span>
-                                </div>
-                            )}
-
-                            {/* CURRENCY DISPLAY */}
-                            <div className="flex items-center gap-1.5 bg-black border border-cyber-neonYellow/50 px-2.5 py-1.5 rounded">
-                                <Coins size={14} className="text-cyber-neonYellow shrink-0" />
-                                <span className="font-mono font-bold text-cyber-neonYellow text-sm">{currentUser.currency || 0}</span>
-                            </div>
-
-                            <button onClick={() => setShowMarketModal(true)} className="flex items-center gap-1.5 bg-black border border-cyber-neonPink/50 px-2 py-1.5 rounded active:bg-cyber-neonPink/20 transition-colors">
-                                <ShoppingBag size={14} className="text-cyber-neonPink shrink-0" />
-                                <span className="hidden sm:inline text-xs font-bold text-cyber-neonPink">МАГАЗИН</span>
-                            </button>
-
-                            <button 
-                                onClick={() => { playSound('open'); setShowProfileModal(true); }}
-                                className="flex items-center gap-2 md:gap-3 bg-cyber-panel border border-gray-700 p-1.5 md:p-2 rounded active:border-cyber-neonBlue transition-all group ml-auto md:ml-0"
-                            >
-                                <div className="text-right hidden md:block">
-                                    <div className="text-white font-bold text-sm">{currentUser.name}</div>
-                                    <div className="text-cyber-neonYellow font-mono text-xs">LVL {currentUser.level}</div>
-                                </div>
-                                <div className="text-right md:hidden">
-                                    <div className="text-white font-bold text-[10px] leading-none">{currentUser.name}</div>
-                                    <div className="text-cyber-neonYellow font-mono text-[9px] mt-0.5">LVL {currentUser.level}</div>
-                                </div>
-                                 <div className="w-10 h-10 md:w-12 md:h-12 shrink-0 flex items-center justify-center">
-                                     <div>
-                                       <ShopAvatar frameId={currentUser.equipped.avatarFrame} avatarId={COSMETICS.find(c => c.id === currentUser.equipped.avatar)?.value || '2'} animation="Idle" scale={1} />
-                                     </div>
-                                 </div>
-                            </button>
-                        </div>
-                    )}
-                 </div>
-                 
-                 {/* XP BAR GLOBAL */}
-                 <div className="w-full h-2 bg-gray-800 rounded-full overflow-hidden relative">
-                      <div className="h-full bg-gradient-to-r from-cyber-neonBlue to-cyber-neonPink" style={{ width: `${progressPercent}%` }}></div>
-                 </div>
-             </div>
-
-             {/* COURSES GRID */}
-             <div className="max-w-6xl mx-auto grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 md:gap-6 pb-12">
-                {courses.map((course, idx) => (
-                    <button
-                        key={course.id}
-                        disabled={course.status === 'locked' || course.status === 'coming_soon'}
-                        onClick={() => {
-                            playSound('click');
-                            setActiveCourseId(course.id);
-                            const courseTasks = tasks.filter(t => t.courseId === course.id);
-                            if (courseTasks.length > 0) {
-                                const firstOpen = courseTasks.find(t => t.status === 'open') || courseTasks[0];
-                                setActiveTask(firstOpen);
-                            } else {
-                                setActiveTask(null);
-                            }
-                            setShowMobileSidebar(true);
-                            setTimeout(() => { if (sidebarRef.current) sidebarRef.current.scrollTop = 0; }, 50);
-                        }}
-                        className={`
-                            relative min-h-[14rem] md:min-h-[20rem] flex flex-col justify-between rounded-xl border-2 p-4 md:p-5 text-left transition-all duration-300 group overflow-hidden
-                            ${course.status === 'active' 
-                                ? 'bg-cyber-panel border-gray-700 active:border-cyber-neonBlue active:scale-95 md:hover:border-cyber-neonBlue md:hover:-translate-y-1' 
-                                : 'bg-black border-gray-800 opacity-60 cursor-not-allowed'}
-                        `}
-                        style={{ borderColor: course.status === 'active' ? undefined : '#333' }}
-                    >
-                        {/* Decor */}
-                        <div className="absolute top-0 left-0 w-6 h-6 border-t-2 border-l-2 border-current opacity-50" style={{color: course.color}}></div>
-                        <div className="absolute bottom-0 right-0 w-6 h-6 border-b-2 border-r-2 border-current opacity-50" style={{color: course.color}}></div>
-
-                        <div className="mb-4">
-                            <div 
-                                className="w-10 h-10 md:w-16 md:h-16 rounded-lg mb-3 md:mb-6 flex items-center justify-center text-black font-bold shadow-lg shrink-0"
-                                style={{ backgroundColor: course.color }}
-                            >
-                                {getIcon(course.icon)}
-                            </div>
-                            
-                            <h2 className="text-base md:text-xl font-bold text-white uppercase tracking-wider mb-1.5 md:mb-2 font-sans break-words leading-tight">{course.title}</h2>
-                            <p className="text-gray-400 text-[11px] md:text-sm leading-relaxed break-words line-clamp-3">{course.description}</p>
-                        </div>
-
-                        <div className="mt-auto">
-                            <div className="flex justify-between text-xs font-mono text-gray-500 mb-2 uppercase">
-                                <span>Прогресс</span>
-                                <span>{course.progress}%</span>
-                            </div>
-                            <div className="w-full h-1.5 bg-gray-800 rounded-full overflow-hidden shrink-0">
-                                <div 
-                                    className="h-full transition-all duration-1000" 
-                                    style={{ width: `${course.progress}%`, backgroundColor: course.color }}
-                                ></div>
-                            </div>
-                            
-                            <div className="mt-4 flex justify-between items-center h-8 relative z-10 gap-2">
-                                <span 
-                                    className="text-[9px] md:text-[10px] font-bold px-2 py-1 rounded bg-black border border-gray-700 uppercase leading-tight break-words"
-                                    style={{ color: course.color }}
-                                >
-                                    {course.difficulty}
-                                </span>
-                                {course.status === 'active' ? (
-                                    <span className="text-white text-[10px] md:text-xs font-bold flex items-center gap-1 group-hover:translate-x-1 transition-transform bg-black/50 px-2 py-1 rounded backdrop-blur-sm shrink-0">
-                                        НАЧАТЬ <ArrowRight size={14} className="shrink-0" />
-                                    </span>
-                                ) : (
-                                    <span className="text-gray-600 text-[10px] md:text-xs font-bold flex items-center gap-1 bg-black/50 px-2 py-1 rounded backdrop-blur-sm shrink-0">
-                                        <Lock size={12} className="shrink-0" /> НЕДОСТУПНО
-                                    </span>
-                                )}
-                            </div>
-                        </div>
-                    </button>
-                ))}
-             </div>
-             
              {/* PROFILE MODAL (Enhanced) */}
              {showProfileModal && currentUser && (() => {
                  const userAchievements = ACHIEVEMENTS.filter(a => currentUser.achievements.includes(a.id));
@@ -920,11 +667,11 @@ const StudentDashboard: React.FC<StudentDashboardProps> = ({ currentUser: propUs
                  const totalTasks = tasks.length;
 
                  return (
-                 <div className="fixed inset-0 z-[100] bg-black/95 backdrop-blur-md flex flex-col" onClick={(e) => { if (e.target === e.currentTarget) setShowProfileModal(false); }}>
+                 <div className="academy-modal fixed inset-0 z-[100] bg-black/95 backdrop-blur-md flex flex-col" onClick={(e) => { if (e.target === e.currentTarget) setShowProfileModal(false); }}>
                      <div className="h-14 md:h-16 shrink-0" />
                      <div className="flex-1 flex items-start md:items-center justify-center p-3 md:p-4 overflow-hidden">
                      <div className="w-full max-w-md max-h-full md:max-h-[85vh] bg-[#0c0c10] border border-gray-700 flex flex-col relative rounded-lg overflow-hidden shadow-2xl animate-in zoom-in-95">
-                        <button onClick={() => setShowProfileModal(false)} className="absolute top-3 right-3 z-50 text-gray-500 hover:text-white p-2 active:bg-gray-800 rounded">
+                        <button aria-label="Закрыть профиль" onClick={() => setShowProfileModal(false)} className="absolute top-3 right-3 z-50 text-gray-500 hover:text-white p-2 active:bg-gray-800 rounded">
                             <X size={24} />
                         </button>
                         <div className="p-6 md:p-8 overflow-y-auto custom-scrollbar">
@@ -938,14 +685,14 @@ const StudentDashboard: React.FC<StudentDashboardProps> = ({ currentUser: propUs
                             </div>
 
                             {/* Stats Grid */}
-                            <div className="grid grid-cols-3 gap-3 mb-6">
+                            <div className="grid grid-cols-2 sm:grid-cols-3 gap-3 mb-6">
                                 <div className="bg-gray-900 border border-gray-800 rounded-lg p-3 text-center">
                                     <div className="text-cyber-neonBlue font-mono font-bold text-lg">{currentUser.xp}</div>
                                     <div className="text-gray-500 text-[10px] uppercase tracking-wider">XP</div>
                                 </div>
                                 <div className="bg-gray-900 border border-gray-800 rounded-lg p-3 text-center">
                                     <div className="text-cyber-neonYellow font-mono font-bold text-lg">{currentUser.currency}</div>
-                                    <div className="text-gray-500 text-[10px] uppercase tracking-wider">Bits</div>
+                                    <div className="text-gray-500 text-[10px] uppercase tracking-wider">Монет</div>
                                 </div>
                                 <div className="bg-gray-900 border border-gray-800 rounded-lg p-3 text-center">
                                     <div className="text-cyber-neonGreen font-mono font-bold text-lg">{totalCompleted}</div>
@@ -953,7 +700,7 @@ const StudentDashboard: React.FC<StudentDashboardProps> = ({ currentUser: propUs
                                 </div>
                                 <div className="bg-gray-900 border border-orange-500/30 rounded-lg p-3 text-center">
                                     <div className="text-orange-400 font-mono font-bold text-lg">{streak.currentStreak}</div>
-                                    <div className="text-gray-500 text-[10px] uppercase tracking-wider">Streak</div>
+                                    <div className="text-gray-500 text-[10px] uppercase tracking-wider">Дней подряд</div>
                                 </div>
                                 <div className="bg-gray-900 border border-gray-800 rounded-lg p-3 text-center">
                                     <div className="text-orange-300 font-mono font-bold text-lg">{streak.longestStreak}</div>
@@ -968,7 +715,7 @@ const StudentDashboard: React.FC<StudentDashboardProps> = ({ currentUser: propUs
                             {/* XP Progress to Next Level */}
                             <div className="mb-6">
                                 <div className="flex justify-between text-xs text-gray-500 mb-1">
-                                    <span>Прогресс до LVL {currentLevel + 1}</span>
+                                    <span>До уровня {currentLevel + 1}</span>
                                     <span className="font-mono">{currentXP} / {nextLevelXP}</span>
                                 </div>
                                 <div className="w-full h-2 bg-gray-800 rounded-full overflow-hidden">
@@ -1041,7 +788,7 @@ const StudentDashboard: React.FC<StudentDashboardProps> = ({ currentUser: propUs
 
              {/* MARKET MODAL */}
              {showMarketModal && currentUser && (
-                 <div className="fixed inset-0 z-[100] bg-black/95 backdrop-blur-md flex flex-col" onClick={(e) => { if (e.target === e.currentTarget) setShowMarketModal(false); }}>
+                 <div className="academy-modal fixed inset-0 z-[100] bg-black/95 backdrop-blur-md flex flex-col" onClick={(e) => { if (e.target === e.currentTarget) setShowMarketModal(false); }}>
                      {/* Spacer for global header on mobile */}
                      <div className="h-14 md:h-16 shrink-0" />
                      <div className="flex-1 flex items-start md:items-center justify-center p-3 md:p-4 overflow-hidden">
@@ -1049,44 +796,45 @@ const StudentDashboard: React.FC<StudentDashboardProps> = ({ currentUser: propUs
                         <div className="p-3 md:p-4 border-b border-gray-800 flex justify-between items-center bg-gray-900 shrink-0">
                              <div className="flex items-center gap-2">
                                  <button onClick={() => setShowMarketModal(false)} className="text-gray-400 hover:text-white p-1.5 -ml-1 active:bg-gray-800 rounded"><ChevronLeft size={22} /></button>
-                                 <h2 className="text-base md:text-xl font-bold text-cyber-neonPink flex items-center gap-2"><ShoppingBag size={18} /> <span className="hidden sm:inline">ЧЕРНЫЙ</span> РЫНОК</h2>
+                                 <h2 className="text-base md:text-xl font-bold text-cyber-neonPink flex items-center gap-2"><ShoppingBag size={18} /> Магазин открытий</h2>
                              </div>
                              <div className="flex items-center gap-2 md:gap-4">
                                  <div className="text-cyber-neonYellow font-mono font-bold flex items-center gap-1.5 bg-black px-2 md:px-3 py-1 rounded border border-cyber-neonYellow/30 text-sm">
                                      <Coins size={14}/> {currentUser.currency}
                                  </div>
-                                 <button onClick={() => setShowMarketModal(false)} className="text-gray-500 hover:text-white p-1.5 active:bg-gray-800 rounded"><X size={22} /></button>
+                                 <button aria-label="Закрыть магазин" onClick={() => setShowMarketModal(false)} className="text-gray-500 hover:text-white p-1.5 active:bg-gray-800 rounded"><X size={22} /></button>
                              </div>
                         </div>
-                        
+
                         <div className="flex gap-2 overflow-x-auto p-3 md:px-6 border-b border-gray-800 shrink-0" aria-label="Категории магазина">
                             {([['avatar', 'Аватарки'], ['avatarFrame', 'Рамки'], ['mascotSkin', 'Наставники'], ['droneColor', 'Цвета дрона']] as const).map(([type, label]) => (
                                 <button key={type} onClick={() => setMarketCategory(type)} aria-pressed={marketCategory === type} className={`px-4 py-2 rounded-full text-xs font-semibold whitespace-nowrap transition-colors ${marketCategory === type ? 'bg-cyan-300 text-slate-950' : 'bg-gray-900 text-gray-400 hover:text-white'}`}>
-                                    {label} <span className="ml-1 opacity-60">{COSMETICS.filter(item => item.type === type && item.id !== 'frame_none').length}</span>
+                                    {label} <span className="ml-1 opacity-60">{SHOP_COSMETICS.filter(item => item.type === type && item.id !== 'frame_none').length}</span>
                                 </button>
                             ))}
                         </div>
-                        <div className="flex-1 overflow-y-auto p-3 md:p-6 grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-3 md:gap-4 auto-rows-max">
-                            {COSMETICS.filter(item => item.type === marketCategory).map(item => {
+                        <div className="academy-shop-grid flex-1 overflow-y-auto p-3 md:p-6 grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-3 md:gap-4 auto-rows-max">
+                            {SHOP_COSMETICS.filter(item => item.type === marketCategory).map(item => {
+                                const street = STREET_AVATARS.find(avatar => avatar.value === item.value);
                                 const isOwned = currentUser.inventory.includes(item.id);
                                 const isEquipped = currentUser.equipped.avatar === item.id || currentUser.equipped.droneColor === item.id || currentUser.equipped.mascotSkin === item.id || currentUser.equipped.avatarFrame === item.id;
                                 const canAfford = currentUser.currency >= item.cost;
                                 const isLocked = currentUser.level < item.unlockLevel;
 
                                 return (
-                                    <div key={item.id} className={`bg-black border rounded-lg ${isEquipped ? 'border-cyber-neonBlue' : 'border-gray-800'} p-3 md:p-4 flex flex-col items-center text-center relative group hover:border-gray-600 transition-colors`}>
+                                    <div key={item.id} data-cosmetic-id={item.id} className={`${street ? 'street-shop-card' : ''} bg-black border rounded-lg ${isEquipped ? 'border-cyber-neonBlue' : 'border-gray-800'} p-3 md:p-4 flex flex-col items-center text-center relative group hover:border-gray-600 transition-colors`}>
                                         {isLocked && (
                                             <div className="absolute top-2 right-2 flex items-center gap-1 text-gray-400 bg-gray-950/90 px-2 py-1 rounded-full">
                                                 <Lock size={10} />
                                                 <span className="text-[10px] font-mono">Ур. {item.unlockLevel}</span>
                                             </div>
                                         )}
-                                        
-                                        <div className="w-28 h-28 md:w-32 md:h-32 my-3 flex items-center justify-center overflow-hidden rounded-2xl bg-gradient-to-b from-slate-900 to-black">
+
+                                        <div className={`${street || item.type === 'mascotSkin' ? 'street-shop-preview' : 'w-28 h-28 md:w-32 md:h-32'} my-3 flex items-center justify-center overflow-hidden rounded-2xl bg-gradient-to-b from-slate-900 to-black`}>
                                             {item.type === 'avatar' || item.type === 'avatarFrame' ? (
-                                                <ShopAvatar avatarId={item.type === 'avatar' ? item.value : COSMETICS.find(c => c.id === currentUser.equipped.avatar)?.value || '2'} frameId={item.type === 'avatarFrame' ? item.id : currentUser.equipped.avatarFrame} scale={2.3} />
+                                                <ShopAvatar avatarId={item.type === 'avatar' ? item.value : COSMETICS.find(c => c.id === currentUser.equipped.avatar)?.value || '2'} frameId={item.type === 'avatarFrame' ? item.id : currentUser.equipped.avatarFrame} scale={street ? 4 : 2.3} fullBody={!!street} />
                                             ) : item.type === 'mascotSkin' ? (
-                                                <div className="pointer-events-none origin-top scale-[0.22] -translate-y-2">
+                                                <div className="pointer-events-none mentor-shop-stage">
                                                     <Suspense fallback={<Bot className="text-cyber-neonBlue animate-pulse" size={28} />}>
                                                         <BigCharacter3D skin={item.value} mood="happy" gesture="idle" />
                                                     </Suspense>
@@ -1095,12 +843,12 @@ const StudentDashboard: React.FC<StudentDashboardProps> = ({ currentUser: propUs
                                                 <div className="w-10 h-10 rounded-full shadow-[0_0_15px]" style={{backgroundColor: item.value, boxShadow: `0 0 15px ${item.value}`}}></div>
                                             )}
                                         </div>
-                                        
+
                                         <h3 className="text-white font-bold text-xs md:text-sm mb-0.5 md:mb-1 leading-tight">{item.name}</h3>
-                                        <p className="text-gray-500 text-[9px] md:text-[10px] uppercase mb-2 md:mb-4">{item.type === 'avatar' ? 'Аватар' : item.type === 'avatarFrame' ? 'Рамка профиля' : item.type === 'mascotSkin' ? 'Скин Наставника' : 'Цвет Дрона'}</p>
-                                        
+                                        <p className="text-gray-500 text-[9px] md:text-[10px] uppercase mb-2 md:mb-4">{street ? `${street.role} · Анимированный` : item.type === 'avatar' ? 'Аватар' : item.type === 'avatarFrame' ? 'Рамка профиля' : item.type === 'mascotSkin' ? 'Твой помощник в уроках' : 'Цвет Дрона'}</p>
+
                                         {isOwned ? (
-                                            <button 
+                                            <button
                                                 onClick={() => handleEquipItem(item.id)}
                                                 disabled={isEquipped}
                                                 className={`w-full py-1.5 md:py-2 text-[10px] md:text-xs font-bold uppercase rounded ${isEquipped ? 'bg-cyber-neonBlue text-black cursor-default' : 'bg-gray-800 text-white hover:bg-gray-700'}`}
@@ -1108,7 +856,7 @@ const StudentDashboard: React.FC<StudentDashboardProps> = ({ currentUser: propUs
                                                 {isEquipped ? 'Экипировано' : 'Надеть'}
                                             </button>
                                         ) : (
-                                            <button 
+                                            <button
                                                 onClick={() => handleBuyItem(item.id)}
                                                 disabled={!canAfford || isLocked}
                                                 className={`w-full py-1.5 md:py-2 text-[10px] md:text-xs font-bold uppercase flex items-center justify-center gap-1.5 rounded ${canAfford ? 'bg-cyber-neonPink text-black hover:bg-white' : 'bg-gray-900 text-gray-600 cursor-not-allowed'}`}
@@ -1132,7 +880,7 @@ const StudentDashboard: React.FC<StudentDashboardProps> = ({ currentUser: propUs
   // --------------------------------------------------------------------------
   // RENDER: TASK VIEW
   // --------------------------------------------------------------------------
-  
+
   const isCodingTask = activeTask ? ['grid', 'html', 'terminal'].includes(activeTask.type) : false;
   const isHanoiTask = activeTask?.type === 'hanoi';
 
@@ -1150,13 +898,13 @@ const StudentDashboard: React.FC<StudentDashboardProps> = ({ currentUser: propUs
   })();
 
   return (
-    <div className="flex-1 w-full relative flex flex-col md:flex-row overflow-hidden bg-black text-gray-300">
+    <div className="academy-lesson flex-1 w-full relative flex flex-col md:flex-row overflow-hidden bg-black text-gray-300">
       <CyberToast toasts={toasts} onDismiss={dismissToast} />
-      
+
       {/* SIDEBAR (Courses) */}
-      <div className={`${showMobileSidebar ? 'flex' : 'hidden'} md:flex absolute md:relative inset-0 md:inset-auto md:w-64 border-r border-cyber-neonBlue/20 bg-cyber-glass backdrop-blur-md flex-col shrink-0 z-30`}>
+      <div className={`academy-lesson-nav ${showMobileSidebar ? 'flex' : 'hidden'} md:flex absolute md:relative inset-0 md:inset-auto md:w-64 border-r border-cyber-neonBlue/20 bg-cyber-glass backdrop-blur-md flex-col shrink-0 z-30`}>
         <div className="h-14 flex items-center justify-between border-b border-cyber-neonBlue/20 px-3 shrink-0">
-            <button 
+            <button
                 onClick={() => {
                     playSound('click');
                     setActiveCourseId(null);
@@ -1176,14 +924,14 @@ const StudentDashboard: React.FC<StudentDashboardProps> = ({ currentUser: propUs
         </div>
 
         <div ref={sidebarRef} className="flex-1 overflow-y-auto p-2 space-y-4 custom-scrollbar pb-6">
-            {modules.map((modName) => {
+            {modules.map((modName, moduleIndex) => {
                 const modTasks = filteredTasks.filter(t => t.module === modName);
                 const modCompleted = modTasks.filter(t => t.status === 'completed').length;
                 const modTotal = modTasks.length;
                 const modProgress = modTotal > 0 ? Math.round((modCompleted / modTotal) * 100) : 0;
                 return (
-                <div key={modName}>
-                    <div className="flex items-center justify-between mb-2 pl-2 ml-1 border-l-2 border-gray-500">
+                <details className="academy-module" key={modName} open={activeTask?.module === modName || (!activeTask && moduleIndex === 0)}>
+                    <summary className="flex items-center justify-between gap-2 mb-2 py-2 pl-2 ml-1 border-l-2 border-gray-500 cursor-pointer">
                         <h3 className="text-[10px] font-bold text-gray-300 uppercase tracking-widest">
                             {modName}
                         </h3>
@@ -1193,15 +941,15 @@ const StudentDashboard: React.FC<StudentDashboardProps> = ({ currentUser: propUs
                             </div>
                             <span className="text-[9px] font-mono text-gray-400">{modCompleted}/{modTotal}</span>
                         </div>
-                    </div>
+                    </summary>
                     <div className="space-y-1">
                         {filteredTasks.filter(t => t.module === modName).map(task => (
                              <div
                                 key={task.id}
-                                className={`w-full relative group text-left p-2 md:p-2 py-3 md:py-2 rounded-md flex items-center gap-3 transition-all duration-200 border border-transparent
-                                    ${activeTask?.id === task.id 
-                                    ? 'bg-cyber-neonBlue/10 border-cyber-neonBlue/50 text-white shadow-[inset_0_0_15px_rgba(0,243,255,0.1)]' 
-                                    : 'hover:bg-white/5 text-gray-200 hover:text-white'} 
+                                className={`academy-lesson-node w-full relative group text-left p-2 md:p-2 py-3 md:py-2 rounded-md flex items-center gap-3 transition-all duration-200 border border-transparent
+                                    ${activeTask?.id === task.id
+                                    ? 'bg-cyber-neonBlue/10 border-cyber-neonBlue/50 text-white shadow-[inset_0_0_15px_rgba(0,243,255,0.1)]'
+                                    : 'hover:bg-white/5 text-gray-200 hover:text-white'}
                                     ${task.status === 'locked' ? 'opacity-40 grayscale' : ''}`}
                             >
                                 <button
@@ -1220,8 +968,8 @@ const StudentDashboard: React.FC<StudentDashboardProps> = ({ currentUser: propUs
                                     className="flex-1 min-w-0 flex items-center gap-3 text-left cursor-pointer disabled:cursor-not-allowed"
                                 >
                                     <div className="shrink-0">
-                                        {task.status === 'locked' ? <Lock size={16} /> : 
-                                         task.status === 'completed' ? <CheckCircle size={16} className="text-cyber-neonGreen drop-shadow-[0_0_5px_rgba(0,255,65,0.8)]"/> : 
+                                        {task.status === 'locked' ? <Lock size={16} /> :
+                                         task.status === 'completed' ? <CheckCircle size={16} className="text-cyber-neonGreen drop-shadow-[0_0_5px_rgba(0,255,65,0.8)]"/> :
                                          task.type === 'theory' ? <BookOpen size={16} className="text-cyber-neonPink" /> :
                                          task.type === 'quiz' ? <HelpCircle size={16} className="text-cyber-neonYellow" /> :
                                          task.type === 'terminal' ? <TerminalIcon size={16} className="text-cyber-neonGreen" /> :
@@ -1244,45 +992,24 @@ const StudentDashboard: React.FC<StudentDashboardProps> = ({ currentUser: propUs
                                          task.type === 'ai_kids_trainer' ? <Bot size={16} className="text-purple-400" /> :
                                          <div className={`w-4 h-4 rounded-sm border ${activeTask?.id === task.id ? 'bg-cyber-neonBlue border-cyber-neonBlue animate-pulse' : 'border-gray-500'}`}></div>}
                                     </div>
-                                    
+
                                     <div className="flex-1 min-w-0">
                                         <div className="text-sm md:text-sm font-bold leading-tight font-sans break-words">{task.title}</div>
-                                        <div className="text-[10px] font-mono mt-1 md:mt-1 opacity-80 text-cyber-neonYellow">XP: {task.xpReward}</div>
+                                        <div className="text-[11px] mt-1 text-gray-400">{task.type === 'quiz' ? 'Проверяем понимание' : 'Практикуемся'}</div>
                                     </div>
                                 </button>
 
-                                {task.type !== 'theory' && task.status !== 'locked' && (
-                                    <button
-                                        onClick={() => {
-                                            playSound('click');
-                                            if (task.id === activeTask?.id) {
-                                                setLessonStage('practice');
-                                            } else {
-                                                pendingLessonStage.current = 'practice';
-                                                setActiveTask(task);
-                                            }
-                                            if (window.innerWidth < 768) {
-                                                setShowMobileSidebar(false);
-                                                if (['grid', 'html', 'terminal'].includes(task.type)) {
-                                                    setTaskTab('info');
-                                                }
-                                            }
-                                        }}
-                                        title={`2. Задание (${getTaskTypeLabel(task.type)})`}
-                                        className="shrink-0 px-2 py-1.5 rounded bg-cyber-neonGreen/15 border border-cyber-neonGreen/40 text-cyber-neonGreen hover:bg-cyber-neonGreen hover:text-black transition-all flex items-center gap-1 text-[10px] font-bold uppercase"
-                                    >
-                                        <Zap size={12} /> 2
-                                    </button>
-                                )}
+
                             </div>
                         ))}
                     </div>
-                </div>
+                </details>
                 );
             })}
         </div>
       </div>
 
+      {activeTask?.type === 'assessment' && <div className={`${!showMobileSidebar ? 'flex' : 'hidden'} md:flex flex-1 min-h-0 overflow-y-auto flex-col`}><button className="academy-secondary m-3 self-start" onClick={()=>setActiveCourseId(null)}>← К работам и курсам</button><AssessmentPlayer key={activeTask.id} task={activeTask}/></div>}
       {/* 0. EMPTY TASK STATE */}
       {!activeTask && (
           <div className={`${!showMobileSidebar ? 'flex' : 'hidden'} md:flex flex-1 items-center justify-center text-gray-600 bg-black`}>
@@ -1291,11 +1018,11 @@ const StudentDashboard: React.FC<StudentDashboardProps> = ({ currentUser: propUs
       )}
 
       {/* 1. EXPLANATION STAGE (Байтик + теория) — также покрывает type 'theory' */}
-      {activeTask && (lessonStage === 'explanation' || activeTask.type === 'theory') && (
+      {activeTask && activeTask.type !== 'assessment' && (lessonStage === 'explanation' || activeTask.type === 'theory') && (
           <div className={`${!showMobileSidebar ? 'flex' : 'hidden'} md:flex flex-1 flex-col bg-black relative overflow-hidden`}>
                 <div className="flex items-center border-b border-gray-800 px-4 py-3 bg-gray-950 shrink-0 gap-3">
-                    <button 
-                        onClick={() => setShowMobileSidebar(true)} 
+                    <button
+                        onClick={() => setShowMobileSidebar(true)}
                         className="md:hidden flex items-center gap-2 text-gray-200 active:text-white"
                     >
                         <ChevronLeft size={20} />
@@ -1304,14 +1031,8 @@ const StudentDashboard: React.FC<StudentDashboardProps> = ({ currentUser: propUs
                         <BookOpen size={16} />
                     </div>
                     <span className="text-xs font-bold uppercase text-gray-300 tracking-widest leading-tight break-words flex-1">{activeTask.title}</span>
-                    {activeTask.type !== 'theory' && (
-                        <button
-                            onClick={() => { playSound('click'); setLessonStage('practice'); }}
-                            className="shrink-0 px-3 py-1.5 rounded-lg text-[10px] font-bold uppercase bg-cyber-neonGreen/15 border border-cyber-neonGreen/40 text-cyber-neonGreen hover:bg-cyber-neonGreen hover:text-black transition-all flex items-center gap-1"
-                        >
-                            <Zap size={12} /> 2. Задание ({getTaskTypeLabel(activeTask.type)})
-                        </button>
-                    )}
+                  {lessonStage === 'practice' && <button onClick={() => setLessonStage('explanation')} className="text-sm text-cyan-300 px-3 py-2">К объяснению</button>}
+
                 </div>
                 <div className="flex-1 overflow-y-auto p-4 md:p-8">
                 <div className="max-w-4xl mx-auto w-full space-y-6">
@@ -1337,36 +1058,7 @@ const StudentDashboard: React.FC<StudentDashboardProps> = ({ currentUser: propUs
                         </Suspense>
                     </MascotErrorBoundary>
 
-                    <div className="p-5 rounded-xl bg-gradient-to-r from-emerald-950/40 via-black to-cyan-950/40 border border-cyber-neonGreen/40 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
-                        <div className="max-w-xl">
-                            <div className="text-[10px] font-mono text-cyber-neonGreen uppercase font-bold tracking-wider mb-1 flex items-center gap-1.5">
-                                <Zap size={14} /> ТВОЯ ЦЕЛЬ {activeTask.type !== 'theory' ? 'В ПРАКТИЧЕСКОМ ЗАДАНИИ (ЭТАП 2)' : ''}:
-                            </div>
-                            <p className="text-xs text-gray-300 leading-relaxed">
-                                {getTaskPracticeGoal(activeTask)}
-                            </p>
-                        </div>
 
-                        {activeTask.type !== 'theory' ? (
-                            <button 
-                                onClick={() => { playSound('click'); setLessonStage('practice'); }}
-                                className="px-6 py-3.5 bg-cyber-neonBlue text-black font-bold uppercase tracking-wider text-xs rounded-xl hover:bg-white transition-all flex items-center gap-2 shadow-[0_0_20px_rgba(0,243,255,0.3)] shrink-0"
-                            >
-                                К заданию <ArrowRight size={14} />
-                            </button>
-                        ) : (
-                            <button 
-                                onClick={activeTask.status === 'completed' ? handleNextTask : handleTheoryComplete}
-                                className="px-6 py-3.5 bg-cyber-neonGreen text-black font-bold uppercase tracking-wider text-xs rounded-xl hover:bg-white transition-all flex items-center gap-2 shadow-[0_0_20px_rgba(0,255,65,0.3)] shrink-0"
-                            >
-                                <CheckCircle size={14} /> {(() => {
-                                    const courseTasks = tasks.filter(t => t.courseId === activeTask.courseId);
-                                    const idx = courseTasks.findIndex(t => t.id === activeTask.id);
-                                    return idx < courseTasks.length - 1 ? 'Материал усвоен — далее' : 'Материал усвоен — завершить';
-                                })()}
-                            </button>
-                        )}
-                    </div>
                 </div>
                 </div>
           </div>
@@ -1376,13 +1068,14 @@ const StudentDashboard: React.FC<StudentDashboardProps> = ({ currentUser: propUs
       {activeTask?.type === 'quiz' && lessonStage === 'practice' && (
           <div className={`${!showMobileSidebar ? 'flex' : 'hidden'} md:flex flex-1 flex-col bg-black relative overflow-hidden`}>
               <div className="flex items-center border-b border-gray-800 px-4 py-3 bg-gray-950 shrink-0">
-                  <button 
-                      onClick={() => setShowMobileSidebar(true)} 
+                  <button
+                      onClick={() => setShowMobileSidebar(true)}
                       className="md:hidden flex items-center gap-2 text-gray-200 active:text-white mr-3"
                   >
                       <ChevronLeft size={20} />
                   </button>
                   <span className="text-xs font-bold uppercase text-gray-300 tracking-widest leading-tight break-words flex-1">{activeTask.title}</span>
+                  {lessonStage === 'practice' && <button onClick={() => setLessonStage('explanation')} className="text-sm text-cyan-300 px-3 py-2">К объяснению</button>}
               </div>
               <div className="flex-1 overflow-y-auto p-4 md:p-12 flex flex-col items-center justify-start md:justify-center">
               <div className="max-w-2xl w-full bg-[#0e0e12] border border-gray-800 p-6 md:p-12 relative shadow-2xl">
@@ -1392,7 +1085,7 @@ const StudentDashboard: React.FC<StudentDashboardProps> = ({ currentUser: propUs
 
                   <div className="text-center mb-8">
                       <div className="inline-block px-3 py-1 bg-cyber-neonYellow/20 text-cyber-neonYellow text-xs font-bold uppercase tracking-widest mb-4 border border-cyber-neonYellow/50">
-                          Системная Диагностика
+                          Проверяем понимание
                       </div>
                       <h2 className="text-xl md:text-2xl font-bold text-white mb-6 whitespace-pre-line break-words">
                           {activeTask.quizData?.question}
@@ -1431,17 +1124,18 @@ const StudentDashboard: React.FC<StudentDashboardProps> = ({ currentUser: propUs
                       </div>
                   )}
 
+                  {quizSubmitted && quizIsCorrect && activeTask.lesson && <p className="mt-4 text-sm text-gray-300"><strong>Объясни своими словами: </strong>{activeTask.lesson.reflection}</p>}
                   <div className="mt-8 pt-6 border-t border-gray-800 flex justify-between items-center">
                       <div className="text-sm">
                           {quizSubmitted && (
                               <span className={quizIsCorrect ? "text-cyber-neonGreen font-bold" : "text-red-500 font-bold"}>
-                                  {quizIsCorrect ? ">> ДОСТУП РАЗРЕШЕН" : ">> ОШИБКА ДОСТУПА"}
+                                  {quizIsCorrect ? "Верно. Посмотри, почему." : "Попробуем разобраться."}
                               </span>
                           )}
                       </div>
-                      
+
                       {!quizSubmitted ? (
-                          <button 
+                          <button
                              onClick={handleQuizSubmit}
                              disabled={quizSelectedOption === null}
                              className={`px-8 py-3 font-bold uppercase tracking-widest transition-all ${quizSelectedOption !== null ? 'bg-cyber-neonBlue text-black hover:bg-white' : 'bg-gray-800 text-gray-500 cursor-not-allowed'}`}
@@ -1450,14 +1144,14 @@ const StudentDashboard: React.FC<StudentDashboardProps> = ({ currentUser: propUs
                           </button>
                       ) : (
                           quizIsCorrect ? (
-                              <button 
+                              <button
                                 onClick={handleNextTask}
-                                className="px-6 py-3 bg-cyber-neonGreen text-black hover:bg-white border border-cyber-neonGreen font-bold uppercase flex items-center gap-2 text-sm md:text-base"
+                                className={`${missionSuccess ? 'hidden' : 'flex'} px-6 py-3 bg-cyber-neonGreen text-black hover:bg-white border border-cyber-neonGreen font-bold uppercase items-center gap-2 text-sm md:text-base`}
                               >
                                   {(tasks.filter(t => t.courseId === activeTask.courseId).findIndex(t => t.id === activeTask.id) < tasks.filter(t => t.courseId === activeTask.courseId).length - 1) ? 'Далее' : 'Завершить'} <ArrowRight size={18} />
                               </button>
                           ) : (
-                              <button 
+                              <button
                                 onClick={handleQuizRetry}
                                 className="px-6 py-3 bg-red-500/20 text-red-500 hover:bg-red-500 hover:text-black border border-red-500 font-bold uppercase flex items-center gap-2 transition-colors text-sm md:text-base"
                               >
@@ -1475,13 +1169,14 @@ const StudentDashboard: React.FC<StudentDashboardProps> = ({ currentUser: propUs
       {activeTask?.type === 'blocks' && lessonStage === 'practice' && (
           <div className={`${!showMobileSidebar ? 'flex' : 'hidden'} md:flex flex-1 flex-col bg-black relative overflow-hidden`}>
               <div className="flex items-center border-b border-gray-800 px-4 py-3 bg-gray-950 shrink-0">
-                  <button 
-                      onClick={() => setShowMobileSidebar(true)} 
+                  <button
+                      onClick={() => setShowMobileSidebar(true)}
                       className="md:hidden flex items-center gap-2 text-gray-200 active:text-white mr-3"
                   >
                       <ChevronLeft size={20} />
                   </button>
                   <span className="text-xs font-bold uppercase text-gray-300 tracking-widest leading-tight break-words flex-1">{activeTask.title}</span>
+                  {lessonStage === 'practice' && <button onClick={() => setLessonStage('explanation')} className="text-sm text-cyan-300 px-3 py-2">К объяснению</button>}
               </div>
               <Suspense fallback={<LessonLoader />}>
                   <BlockCoding
@@ -1500,19 +1195,18 @@ const StudentDashboard: React.FC<StudentDashboardProps> = ({ currentUser: propUs
       {isHanoiTask && lessonStage === 'practice' && (
         <div className={`${!showMobileSidebar ? 'flex' : 'hidden'} md:flex flex-1 flex-col w-full relative overflow-hidden`}>
             <div className="flex items-center border-b border-gray-800 px-4 py-3 bg-gray-950 shrink-0">
-                <button 
-                    onClick={() => setShowMobileSidebar(true)} 
+                <button
+                    onClick={() => setShowMobileSidebar(true)}
                     className="md:hidden flex items-center gap-2 text-gray-200 active:text-white mr-3"
                 >
                     <ChevronLeft size={20} />
                 </button>
                 <span className="text-xs font-bold uppercase text-gray-300 tracking-widest leading-tight break-words flex-1">{activeTask?.title}</span>
+                <button onClick={() => setLessonStage('explanation')} className="text-sm text-cyan-300 px-3 py-2">К объяснению</button>
             </div>
-            <div className="flex-1 overflow-hidden">
-                <Suspense fallback={<LessonLoader />}>
-                    <HanoiGame task={activeTask!} onComplete={() => handleTaskCompletion(activeTask!)} />
-                </Suspense>
-            </div>
+            <PracticeSurface goal={getTaskPracticeGoal(activeTask!)}><Suspense fallback={<LessonLoader />}>
+                <HanoiGame task={activeTask!} onComplete={() => handleTaskCompletion(activeTask!)} />
+            </Suspense></PracticeSurface>
         </div>
       )}
 
@@ -1522,20 +1216,21 @@ const StudentDashboard: React.FC<StudentDashboardProps> = ({ currentUser: propUs
           const complete = () => handleTaskCompletion(t);
           const header = (
               <div className="flex items-center border-b border-gray-800 px-4 py-3 bg-gray-950 shrink-0">
-                  <button 
-                      onClick={() => setShowMobileSidebar(true)} 
+                  <button
+                      onClick={() => setShowMobileSidebar(true)}
                       className="md:hidden flex items-center gap-2 text-gray-200 active:text-white mr-3"
                   >
                       <ChevronLeft size={20} />
                   </button>
                   <span className="text-xs font-bold uppercase text-gray-300 tracking-widest leading-tight break-words flex-1">{t.title}</span>
+                  <button onClick={() => setLessonStage('explanation')} className="text-sm text-cyan-300 px-3 py-2">К объяснению</button>
                   <span className="hidden md:block text-[10px] font-mono text-gray-500 uppercase">{getTaskTypeLabel(t.type)}</span>
               </div>
           );
           const wrap = (game: React.ReactNode) => (
               <div className={`${!showMobileSidebar ? 'flex' : 'hidden'} md:flex flex-1 flex-col bg-black relative overflow-hidden`}>
                   {header}
-                  <div className="flex-1 overflow-hidden"><Suspense fallback={<LessonLoader />}>{game}</Suspense></div>
+                  <PracticeSurface goal={getTaskPracticeGoal(t)}><Suspense fallback={<LessonLoader />}>{game}</Suspense></PracticeSurface>
               </div>
           );
 
@@ -1563,58 +1258,61 @@ const StudentDashboard: React.FC<StudentDashboardProps> = ({ currentUser: propUs
 
       {/* 6. CODE/TERMINAL TASK VIEW */}
       {isCodingTask && activeTask && lessonStage === 'practice' && (
-          <div className={`${!showMobileSidebar ? 'flex' : 'hidden'} md:flex flex-1 flex-col min-w-0 overflow-hidden`}>
+          <div className={`${!showMobileSidebar ? 'flex' : 'hidden'} xl:flex flex-1 flex-col min-w-0 overflow-hidden`}>
             {/* MOBILE TOP BAR (always visible for coding tasks) */}
-            <div className="md:hidden flex items-center border-b border-gray-800 px-2 py-2 bg-gray-950 shrink-0 gap-2">
+            <div className="xl:hidden flex items-center border-b border-gray-800 px-2 py-2 bg-gray-950 shrink-0 gap-2">
                 <button onClick={() => setShowMobileSidebar(true)} className="p-2 text-gray-200 active:text-white shrink-0"><ChevronLeft size={20}/></button>
                 <span className="text-xs font-bold text-gray-300 uppercase leading-tight break-words flex-1">{activeTask.title}</span>
-                <button 
+                  {lessonStage === 'practice' && <button onClick={() => setLessonStage('explanation')} className="text-sm text-cyan-300 px-3 py-2">К объяснению</button>}
+                <button
                     onClick={handleRunCode}
                     disabled={isRunning}
                     className={`shrink-0 px-4 py-2 text-xs font-bold uppercase flex items-center gap-1 ${isRunning ? 'bg-gray-700 text-gray-400' : 'bg-cyber-neonGreen text-black'}`}
                 >
                     {isRunning ? <Loader2 size={14} className="animate-spin"/> : <Play size={14} className="fill-current"/>}
-                    {isRunning ? '...' : 'RUN'}
+                    {isRunning ? '...' : 'Запустить'}
                 </button>
             </div>
 
+            <section className="academy-task-brief academy-code-brief" aria-label="Задача"><span>Твоя задача</span><p>{getTaskPracticeGoal(activeTask)}</p></section>
             {/* CONTENT AREA: tabs on mobile, side-by-side on desktop */}
-            <div className="flex-1 flex flex-col md:flex-row min-w-0 overflow-hidden">
+            <div className="flex-1 flex flex-col xl:flex-row min-w-0 overflow-hidden">
 
             {/* MOBILE: TASK INFO TAB */}
-            <div className={`${taskTab === 'info' ? 'flex' : 'hidden'} md:hidden flex-1 flex-col bg-gray-950 overflow-hidden`}>
+            <div className={`${taskTab === 'info' ? 'flex' : 'hidden'} xl:hidden flex-1 flex-col bg-gray-950 overflow-hidden`}>
                 <div className="flex-1 overflow-y-auto p-4">
                     <div className="prose prose-invert prose-sm max-w-none">
-                        <h3 className="text-cyber-neonGreen font-mono">БРИФИНГ</h3>
+                        <h3 className="text-cyber-neonGreen font-mono">Задание</h3>
                         <p className="text-gray-400">{stripStandardsPrefix(activeTask.description || '')}</p>
                         <div className="h-px bg-gray-800 my-4"></div>
-                        <h3 className="text-cyber-neonBlue font-mono flex items-center gap-2"><BookOpen size={16}/> СПРАВОЧНИК</h3>
+                        <h3 className="text-cyber-neonBlue font-mono flex items-center gap-2"><BookOpen size={16}/> Подсказка</h3>
                         <div dangerouslySetInnerHTML={{ __html: activeTask.theory || '' }} />
                     </div>
                 </div>
             </div>
 
             {/* EDITOR AREA / TERMINAL INPUT */}
-            <div className={`${taskTab === 'code' ? 'flex' : 'hidden'} md:flex flex-1 flex-col relative min-w-0 bg-black overflow-hidden`}>
+            <div className={`${taskTab === 'code' ? 'flex' : 'hidden'} xl:flex flex-1 flex-col relative min-w-0 bg-black overflow-hidden`}>
                  {/* Top Bar Desktop Only */}
-                 <div className="hidden md:flex min-h-[3.5rem] py-2 bg-gray-900 border-b border-cyber-neonBlue/20 items-center justify-between px-4 shrink-0">
+                 <div className="hidden xl:flex min-h-[3.5rem] py-2 bg-gray-900 border-b border-cyber-neonBlue/20 items-center justify-between px-4 shrink-0">
                      <div className="flex items-center gap-3 min-w-0">
                          <div className="bg-cyber-neonPink/20 p-1.5 rounded text-cyber-neonPink border border-cyber-neonPink/50 shrink-0"><Code size={16} /></div>
                          <div className="min-w-0">
                              <h1 className="text-sm font-bold text-white uppercase leading-tight break-words flex-1">{activeTask.title}</h1>
-                             <div className="text-[10px] text-gray-500 font-mono leading-tight break-words">OBJ: {stripStandardsPrefix(activeTask.description || '')}</div>
+                             <div className="text-[10px] text-gray-500 font-mono leading-tight break-words">{stripStandardsPrefix(activeTask.description || '')}</div>
                          </div>
                      </div>
                      <div className="flex gap-2">
-                         <button 
+                         <button onClick={() => setLessonStage('explanation')} className="text-sm text-cyan-300 px-3 py-2">К объяснению</button>
+                         <button
                             title="Сбросить код к начальному"
-                            onClick={() => { playSound('click'); setCode(activeTask.initialCode || ''); }} 
+                            onClick={() => { playSound('click'); setCode(activeTask.lesson?.starterCode ?? activeTask.initialCode ?? ''); }}
                             className="p-2 text-gray-500 hover:text-red-400"
                         >
                             <RotateCcw size={18} />
                         </button>
-                         <button 
-                            onClick={() => setShowTheory(!showTheory)} 
+                         <button
+                            onClick={() => setShowTheory(!showTheory)}
                             className={`flex items-center gap-2 px-3 py-1.5 text-xs font-bold uppercase border transition-all ${showTheory ? 'bg-cyber-neonBlue text-black border-cyber-neonBlue' : 'border-cyber-neonBlue/30 text-cyber-neonBlue'}`}
                         >
                             <BookOpen size={14} /> Справка
@@ -1623,9 +1321,9 @@ const StudentDashboard: React.FC<StudentDashboardProps> = ({ currentUser: propUs
                  </div>
 
                  {/* Theory Panel (Desktop) */}
-                 <div className={`hidden md:block bg-gray-900 border-b border-cyber-neonBlue/20 overflow-hidden transition-all duration-300 ${showTheory ? 'max-h-[35vh]' : 'max-h-0'}`}>
+                 <div className={`hidden xl:block bg-gray-900 border-b border-cyber-neonBlue/20 overflow-hidden transition-all duration-300 ${showTheory ? 'max-h-[35vh]' : 'max-h-0'}`}>
                     <div className="p-6 overflow-y-auto max-h-[35vh] prose prose-invert prose-sm max-w-none">
-                        <h3 className="text-cyber-neonGreen font-mono">БАЗА_ЗНАНИЙ</h3>
+                        <h3 className="text-cyber-neonGreen font-mono">Главная идея</h3>
                         <div dangerouslySetInnerHTML={{ __html: activeTask.theory || '' }} />
                     </div>
                  </div>
@@ -1639,13 +1337,13 @@ const StudentDashboard: React.FC<StudentDashboardProps> = ({ currentUser: propUs
                             ))}
                             <div className="flex items-start gap-2 mt-2">
                                 <span className="text-cyber-neonPink mt-0.5">$</span>
-                                <textarea 
+                                <textarea
                                     ref={editorRef}
                                     autoFocus
                                     value={code}
                                     onChange={(e) => setCode(e.target.value)}
                                     // Removed Enter key binding to allow multiline typing
-                                    className="flex-1 bg-transparent border-none outline-none text-cyber-neonGreen font-mono resize-none min-h-[120px] md:min-h-[200px]"
+                                    className="flex-1 bg-transparent border-none outline-none text-cyber-neonGreen font-mono resize-none min-h-[120px] xl:min-h-[200px]"
                                     spellCheck={false}
                                 />
                             </div>
@@ -1658,7 +1356,7 @@ const StudentDashboard: React.FC<StudentDashboardProps> = ({ currentUser: propUs
                                 <div className="bg-[#0e0e12] border-b border-gray-800 p-2 flex flex-wrap gap-2 shrink-0 items-center z-20">
                                     <span className="text-[10px] font-bold text-gray-600 uppercase shrink-0 px-2">Hacks:</span>
                                     {activeTask.allowedCommands.map(cmd => (
-                                        <button 
+                                        <button
                                             key={cmd}
                                             onClick={() => insertCommand(cmd)}
                                             className="px-3 py-2 bg-[#1a1a20] border border-gray-700 text-gray-300 text-xs font-mono rounded active:bg-cyber-neonBlue active:text-black whitespace-nowrap"
@@ -1673,16 +1371,16 @@ const StudentDashboard: React.FC<StudentDashboardProps> = ({ currentUser: propUs
                                 ref={editorRef}
                                 value={code}
                                 onChange={(e) => setCode(e.target.value)}
-                                className="flex-1 bg-black text-gray-200 p-4 font-mono text-sm resize-none focus:outline-none leading-relaxed whitespace-pre min-w-0 min-h-[200px] md:min-h-[300px]"
+                                className="flex-1 bg-black text-gray-200 p-4 font-mono text-sm resize-none focus:outline-none leading-relaxed whitespace-pre min-w-0 min-h-[200px] xl:min-h-[300px]"
                                 spellCheck={false}
                                 placeholder={activeTask.type === 'html' ? "<!-- Пиши HTML код здесь -->" : "// Введите код..."}
                             />
                         </>
                     )}
-                    
+
                     {/* Execute Button Desktop */}
-                    <div className="absolute bottom-6 right-6 z-20 hidden md:block">
-                        <button 
+                    <div className="absolute bottom-6 right-6 z-20 hidden xl:block">
+                        <button
                             onClick={handleRunCode}
                             disabled={isRunning}
                             className={`pl-6 pr-8 py-4 bg-cyber-neonGreen text-black font-bold font-sans text-lg uppercase tracking-widest clip-path-polygon hover:bg-white transition-all ${isRunning ? 'opacity-70 cursor-wait' : 'hover:scale-105'}`}
@@ -1695,7 +1393,7 @@ const StudentDashboard: React.FC<StudentDashboardProps> = ({ currentUser: propUs
             </div>
 
             {/* VISUAL AREA */}
-            <div className={`${taskTab === 'visual' ? 'flex' : 'hidden'} md:flex md:w-96 bg-[#0c0c10] flex-col shrink-0 relative z-20 border-l border-gray-800 overflow-hidden`}>
+            <div className={`${taskTab === 'visual' ? 'flex' : 'hidden'} xl:flex xl:w-96 bg-[#0c0c10] flex-col shrink-0 relative z-20 border-l border-gray-800 overflow-hidden`}>
 
                  {/* === HTML TASK: Full browser-like preview === */}
                  {activeTask.type === 'html' && (
@@ -1715,7 +1413,7 @@ const StudentDashboard: React.FC<StudentDashboardProps> = ({ currentUser: propUs
                              <iframe
                                  title="HTML Preview"
                                  className="w-full h-full border-0"
-                                 sandbox="allow-same-origin"
+                                 sandbox="allow-scripts"
                                  srcDoc={`<!DOCTYPE html><html><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><style>body{margin:0;padding:16px;font-family:system-ui,-apple-system,sans-serif;}</style></head><body>${code}</body></html>`}
                              />
                              <div className="absolute inset-0 pointer-events-none bg-[linear-gradient(rgba(18,18,18,0)_50%,rgba(0,0,0,0.03)_50%)] bg-[size:100%_2px] z-10 opacity-30"></div>
@@ -1742,8 +1440,8 @@ const StudentDashboard: React.FC<StudentDashboardProps> = ({ currentUser: propUs
                          </div>
 
                          {/* RENDER BOX */}
-                         <div className="w-full relative bg-black flex items-center justify-center overflow-hidden border-b border-cyber-neonBlue/20 shrink-0 aspect-square md:max-h-[50vh]">
-                             
+                         <div className="w-full relative bg-black flex items-center justify-center overflow-hidden border-b border-cyber-neonBlue/20 shrink-0 aspect-square xl:max-h-[50vh]">
+
                              {activeTask.type === 'grid' && activeTask.mapConfig && (
                                 <Suspense fallback={<LessonLoader />}>
                                     <GameGrid task={activeTask} playerPos={playerPos} pathHistory={pathHistory} droneColor={equippedDroneColorValue} activeAction={activeGridAction} destroyedObstacles={destroyedObstacles} />
@@ -1813,12 +1511,9 @@ const StudentDashboard: React.FC<StudentDashboardProps> = ({ currentUser: propUs
             </div>{/* end visual area */}
 
             </div>{/* end content area flex row */}
-          </div>
-      )}
-
       {/* --- MOBILE BOTTOM NAVIGATION (coding tasks only) --- */}
       {isCodingTask && lessonStage === 'practice' && !showMobileSidebar && (
-        <div className="md:hidden h-14 bg-gray-900 border-t border-gray-800 flex items-stretch shrink-0 z-[60] w-full">
+        <div className="xl:hidden h-14 bg-gray-900 border-t border-gray-800 flex items-stretch shrink-0 z-[60] w-full">
             <button onClick={() => setTaskTab('info')} className={`flex flex-col items-center justify-center flex-1 py-2 gap-1 ${taskTab === 'info' ? 'text-cyber-neonBlue bg-black' : 'text-gray-500'}`}>
                 <LayoutList size={18} />
                 <span className="text-[9px] font-bold uppercase">Инфо</span>
@@ -1834,20 +1529,25 @@ const StudentDashboard: React.FC<StudentDashboardProps> = ({ currentUser: propUs
         </div>
       )}
 
+
+          </div>
+      )}
+
       {/* --- MISSION COMPLETE BANNER (compact, doesn't block LIVE FEED) --- */}
       {missionSuccess && activeTask && (
-          <div className="absolute bottom-4 left-1/2 -translate-x-1/2 z-[200] animate-in slide-in-from-bottom-4 fade-in duration-500 w-[90%] max-w-md">
+          <div className="academy-completion">
                <div className="bg-[#0a0a10] border border-cyber-neonYellow/50 rounded-lg p-4 shadow-[0_0_40px_rgba(252,238,10,0.15)] flex items-center gap-4">
-                   <Trophy size={32} className="text-cyber-neonYellow shrink-0 animate-bounce" />
+                   <Suspense fallback={<Trophy size={32} className="text-cyber-neonYellow shrink-0" />}><BigCharacter3D skin={currentUser.equipped.mascotSkin} mood="celebrate" className="mentor-completion-character" /></Suspense>
                    <div className="flex-1 min-w-0">
-                       <h2 className="text-sm font-bold text-white uppercase tracking-widest">Миссия Выполнена</h2>
+                       <h2 className="text-sm font-bold text-white">Задание выполнено</h2>
+                       {activeTask.lesson && <p className="text-sm text-gray-300 mt-2">{activeTask.lesson.reflection}</p>}
                        <div className="text-cyber-neonBlue font-mono text-xs mt-0.5">
                            {lastXpAwarded ? (() => {
                                const attempts = attemptCount[activeTask.id] || 0;
                                const multiplier = rewardMultiplier(attempts);
                                const rewardPercent = Math.round(multiplier * 100);
                                const actualXP = Math.max(1, Math.round(activeTask.xpReward * multiplier));
-                               const actualCurrency = Math.max(1, Math.round((activeTask.currencyReward || 0) * multiplier));
+                               const actualCurrency = Math.max(0, Math.round((activeTask.currencyReward || 0) * multiplier));
                                const hasPenalty = attempts > 0;
                                return (
                                    <>
@@ -1864,7 +1564,7 @@ const StudentDashboard: React.FC<StudentDashboardProps> = ({ currentUser: propUs
                            })() : 'Уже пройдено ранее'}
                        </div>
                    </div>
-                   <button 
+                   <button
                       onClick={handleNextTask}
                       className="px-5 py-2.5 bg-cyber-neonBlue text-black font-bold uppercase tracking-widest hover:bg-white transition-all flex items-center gap-1.5 text-sm shrink-0 rounded"
                    >
@@ -1874,6 +1574,10 @@ const StudentDashboard: React.FC<StudentDashboardProps> = ({ currentUser: propUs
           </div>
       )}
 
+       {pendingCompletion && <div role="alert" className="fixed bottom-4 left-4 right-4 z-[110] bg-red-950 border border-red-400 p-4 rounded text-white flex items-center gap-4">
+         <span>Результат «{pendingCompletion.task.title}» не сохранён.</span>
+         <button disabled={savingCompletion} onClick={() => handleTaskCompletion(pendingCompletion.task,pendingCompletion.autoAdvance)} className="px-4 py-2 bg-white text-black rounded disabled:opacity-50">{savingCompletion ? 'Сохранение…' : 'Повторить сохранение'}</button>
+       </div>}
        {/* HINT MODAL */}
        {showHintModal && (
             <div className="fixed inset-0 z-[100] bg-black/90 backdrop-blur-sm flex flex-col">

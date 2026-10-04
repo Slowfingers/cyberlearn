@@ -1,0 +1,91 @@
+<!doctype html>
+<html lang="ru">
+<head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Покадровые PNG-аватарки</title>
+<style>
+*{box-sizing:border-box}body{margin:0;background:#10131e;color:#eef1fa;font:15px system-ui}main{max-width:1100px;margin:auto;padding:40px 24px}h1{font-size:32px}p{color:#9caac1;line-height:1.6}.cards{display:grid;grid-template-columns:repeat(3,1fr);gap:20px}article{padding:20px;border:1px solid #30394d;border-radius:18px;background:#191f2e;text-align:center}canvas{image-rendering:pixelated;max-width:100%}.stage{display:grid;place-items:center;height:230px;background:radial-gradient(ellipse,#303650,transparent 70%)}button,select{font:inherit;padding:9px;border:1px solid #45506a;border-radius:8px;background:#242e43;color:white;cursor:pointer}button[aria-pressed=true]{background:#6056af}button:focus-visible,select:focus-visible{outline:2px solid #9df8f1;outline-offset:3px}.buttons{display:flex;gap:6px;justify-content:center;flex-wrap:wrap}.strip{display:flex;gap:4px;overflow-x:auto;margin-top:18px;padding-bottom:8px}.strip canvas{flex-shrink:0;border:1px solid #3d4760;border-radius:6px}.strip canvas.active{border-color:#8ef6e5;background:#283c46}.counter{font:12px monospace;color:#a0b9cc;margin:14px}.controls{display:flex;gap:12px;align-items:center;flex-wrap:wrap;margin:24px 0}.error{color:#ffb4b4}.note{font-size:13px}@media(max-width:800px){.cards{grid-template-columns:1fr}}
+</style>
+</head>
+<body><main>
+<h1>Настоящая покадровая анимация</h1>
+<p>PNG-спрайт-лист → отдельный кадр → следующий кадр. Без SVG, вращения конечностей и CSS-деформаций.</p>
+<p class="note">Здесь используются три исходных персонажа проекта, а не новые рисунки. Это образец способа анимации: новый арт в стиле референса пока не готов.</p>
+<div class="controls"><button id="pause" aria-pressed="false">Пауза</button><button id="next">Следующий кадр</button><label>Скорость <select id="fps"><option value="4">4 кадра/с</option><option value="8" selected>8 кадров/с</option><option value="12">12 кадров/с</option></select></label></div>
+<section class="cards" aria-label="Три PNG-персонажа"></section>
+<p class="note">Лента под персонажем показывает реальные кадры PNG. Кнопка «Следующий кадр» останавливает воспроизведение и позволяет рассмотреть каждую позу. Магазин и покупки не изменены.</p>
+<script>
+const definitions=[{id:'2',name:'Персонаж 01'},{id:'3',name:'Персонаж 02'},{id:'6',name:'Персонаж 03'}];
+const size=48;
+const reducedMotion=matchMedia('(prefers-reduced-motion: reduce)');
+let paused=reducedMotion.matches;
+let fps=8;
+const cards=definitions.map(definition=>{
+    const card=document.createElement('article');
+    card.innerHTML=`<h2>${definition.name}</h2><div class="stage"><canvas width="192" height="192" role="img" aria-label="${definition.name}"></canvas></div><div class="buttons">${[['Idle','Ожидание'],['Walk','Ходьба'],['Special','Действие']].map(([mode,label])=>`<button data-mode="${mode}" aria-pressed="${mode==='Idle'}">${label}</button>`).join('')}</div><div class="counter" role="status">Загрузка PNG…</div><div class="strip" aria-label="Кадры спрайт-листа"></div>`;
+    document.querySelector('.cards').append(card);
+    const canvas=card.querySelector('canvas');
+    const context=canvas.getContext('2d');
+    context.imageSmoothingEnabled=false;
+    const state={card,context,image:null,frame:0,count:0,request:0,last:0,mode:'Idle'};
+    function draw(){
+        context.clearRect(0,0,192,192);
+        if(!state.image)return;
+        context.drawImage(state.image,state.frame*size,0,size,size,0,0,192,192);
+        card.querySelector('.counter').textContent=`${state.mode} · кадр ${state.frame+1} / ${state.count}`;
+        card.querySelectorAll('.strip canvas').forEach((frame,index)=>frame.classList.toggle('active',index===state.frame));
+    }
+    async function load(mode){
+        const request=++state.request;
+        state.image=null;
+        state.frame=0;
+        state.mode=mode;
+        draw();
+        card.querySelector('.strip').replaceChildren();
+        card.querySelector('.counter').textContent='Загрузка PNG…';
+        card.querySelectorAll('[data-mode]').forEach(button=>button.setAttribute('aria-pressed',String(button.dataset.mode===mode)));
+        try{
+            const image=new Image();
+            image.src=`/avatars/${definition.id}/${mode}.png`;
+            await image.decode();
+            if(request!==state.request)return;
+            if(image.naturalHeight!==size||image.naturalWidth%size!==0)throw Error('Неверный размер спрайт-листа');
+            state.image=image;
+            state.count=image.naturalWidth/size;
+            state.last=performance.now();
+            for(let frame=0;frame<state.count;frame++){
+                const thumbnail=document.createElement('canvas');
+                thumbnail.width=thumbnail.height=size;
+                thumbnail.setAttribute('role','img');
+                thumbnail.setAttribute('aria-label',`Кадр ${frame+1}`);
+                thumbnail.getContext('2d').drawImage(image,frame*size,0,size,size,0,0,size,size);
+                card.querySelector('.strip').append(thumbnail);
+            }
+            draw();
+        }catch(error){
+            if(request===state.request)card.querySelector('.counter').textContent=`Не удалось загрузить ${mode}.png`;
+        }
+    }
+    card.querySelectorAll('[data-mode]').forEach(button=>button.addEventListener('click',()=>load(button.dataset.mode)));
+    state.draw=draw;
+    load('Idle');
+    return state;
+});
+function updatePause(){const button=document.querySelector('#pause');button.setAttribute('aria-pressed',String(paused));button.textContent=paused?'Продолжить':'Пауза';cards.forEach(state=>state.last=performance.now());}
+document.querySelector('#pause').addEventListener('click',()=>{paused=!paused;updatePause();});
+document.querySelector('#next').addEventListener('click',()=>{paused=true;updatePause();cards.forEach(state=>{if(state.image){state.frame=(state.frame+1)%state.count;state.draw();}});});
+document.querySelector('#fps').addEventListener('change',event=>{fps=Number(event.target.value);cards.forEach(state=>state.last=performance.now());});
+reducedMotion.addEventListener('change',event=>{if(event.matches){paused=true;updatePause();}});
+document.addEventListener('visibilitychange',()=>cards.forEach(state=>state.last=performance.now()));
+function tick(time){
+    if(!paused&&!document.hidden)cards.forEach(state=>{
+        if(!state.image)return;
+        const steps=Math.floor((time-state.last)/(1000/fps));
+        if(steps>0){state.frame=(state.frame+steps)%state.count;state.last+=steps*1000/fps;state.draw();}
+    });
+    requestAnimationFrame(tick);
+}
+updatePause();
+requestAnimationFrame(tick);
+</script>
+</main></body></html>

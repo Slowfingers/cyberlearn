@@ -195,9 +195,7 @@ const BlockCoding: React.FC<BlockCodingProps> = ({ task, onSuccess, onFail }) =>
             {/* GRID MAP — CodeCombat-style visual path */}
             {config.gridMap && (() => {
           const gm = config.gridMap;
-          const isMobile = typeof window !== 'undefined' && window.innerWidth < 640;
-          const cellSize = isMobile ? 44 : 56;
-          const gap = isMobile ? 3 : 4;
+          const gap = 3;
           const isOnPath = (r: number, c: number) => gm.path.some(([pr, pc]) => pr === r && pc === c);
           const isStart = (r: number, c: number) => gm.start[0] === r && gm.start[1] === c;
           const isGoal = (r: number, c: number) => gm.goal[0] === r && gm.goal[1] === c;
@@ -228,9 +226,10 @@ const BlockCoding: React.FC<BlockCodingProps> = ({ task, onSuccess, onFail }) =>
               <div className="flex justify-center">
                 <div
                   style={{
-                    display: 'inline-grid',
-                    gridTemplateColumns: `repeat(${gm.cols}, ${cellSize}px)`,
-                    gridTemplateRows: `repeat(${gm.rows}, ${cellSize}px)`,
+                    display: 'grid',
+                    width: '100%',
+                    maxWidth: gm.cols * 56 + (gm.cols - 1) * gap,
+                    gridTemplateColumns: `repeat(${gm.cols}, minmax(0, 1fr))`,
                     gap: `${gap}px`,
                   }}
                 >
@@ -249,8 +248,9 @@ const BlockCoding: React.FC<BlockCodingProps> = ({ task, onSuccess, onFail }) =>
                           key={`${r}-${c}`}
                           className="relative rounded-lg flex items-center justify-center transition-all duration-300"
                           style={{
-                            width: cellSize,
-                            height: cellSize,
+                            width: '100%',
+                            aspectRatio: '1',
+                            minWidth: 0,
                             background: obstacle ? '#1a0a0a'
                               : isCorrectEnd ? '#0a2a0a'
                               : visited ? `${theme.accent}18`

@@ -16,8 +16,8 @@ import { MODULE14_TASKS } from './grade4/module14';
 
 export const GRADE4_COURSE: Course = {
   id: 'course_grade4',
-  title: '4 КЛАСС: Кибер-Инженерия и Веб',
-  description: 'Полный курс для 4 класса: 14 модулей и 70 уроков! Алгоритмы, двоичный код, списки, HTML, интернет-сети, кибербезопасность, ИИ и цифровое искусство.',
+  title: '4 класс · Думаем и проверяем',
+  description: 'От простых команд переходим к повторениям, логике и данным. Собираем страницы и проверяем решения на примерах.',
   icon: 'Terminal',
   difficulty: 'Beginner',
   status: 'active',

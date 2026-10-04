@@ -142,9 +142,9 @@ export const FakeDetectorGame: React.FC<{ task: Task; onComplete: () => void }> 
   };
 
   return (
-    <div className="h-full flex flex-col bg-slate-950 p-4 select-none text-white overflow-y-auto">
+    <div className="workshop-legacy h-full flex flex-col bg-slate-950 p-4 select-none text-white overflow-y-auto">
       {/* Header Banner */}
-      <div className="flex flex-wrap items-center justify-between bg-slate-900/90 border-2 border-emerald-500/40 p-3 md:p-4 rounded-2xl mb-4 shadow-lg gap-3">
+      <div className="workshop-banner flex flex-wrap items-center justify-between bg-slate-900/90 border-2 border-emerald-500/40 p-3 md:p-4 rounded-2xl mb-4 shadow-lg gap-3">
         <div className="flex items-center gap-3">
           <div className="w-12 h-12 rounded-xl bg-emerald-500/20 border border-emerald-400 flex items-center justify-center text-2xl shrink-0">
             🕵️‍♂️
@@ -222,7 +222,7 @@ export const FakeDetectorGame: React.FC<{ task: Task; onComplete: () => void }> 
       <div className="flex-1 flex flex-col items-center justify-center max-w-xl mx-auto w-full">
         {/* The Card */}
         <div className="w-full bg-slate-900 border-2 border-slate-700 rounded-3xl p-5 md:p-6 shadow-2xl relative overflow-hidden mb-6">
-          <div className="flex items-center justify-between mb-4">
+          <div className="fake-clue-heading flex items-center justify-between mb-4">
             <div className="flex items-center gap-3">
               <span className="text-4xl p-2.5 bg-slate-800 rounded-2xl">{currentCase.icon}</span>
               <div>

@@ -1,5 +1,5 @@
 import { TaskAttempt } from '../types';
-import { fbSaveUser, fbGetUsers } from '../services/firebase';
+import { fbRecordAttempt, fbIncrementSwitches } from '../services/firebase';
 
 export interface ActiveAttempt {
   taskId: string;
@@ -25,28 +25,19 @@ const MIN_INTERVAL_MS = 400; // avoid double-counting blur+visibilitychange
 const flushPending = async () => {
   if (flushInFlight || pendingIncrements === 0 || !currentUserId) return;
   flushInFlight = true;
+  const flushUserId = currentUserId;
   const count = pendingIncrements;
   pendingIncrements = 0;
   try {
-    const users = await fbGetUsers();
-    const user = users.find(u => u.id === currentUserId);
-    if (user) {
-      if (!user.suspiciousActivity) {
-        user.suspiciousActivity = { totalTabSwitches: 0, highErrorTasks: [] };
-      }
-      user.suspiciousActivity.totalTabSwitches = (user.suspiciousActivity.totalTabSwitches || 0) + count;
-      await fbSaveUser(user);
-      console.log(`[ActivityTracker] Saved ${count} tab switch(es). Total: ${user.suspiciousActivity.totalTabSwitches}`);
-    } else {
-      console.warn('[ActivityTracker] User not found, skipping save');
-    }
+    await fbIncrementSwitches(count);
   } catch (e) {
+    if (currentUserId === flushUserId) pendingIncrements += count;
     console.error('[ActivityTracker] Flush failed:', e);
   } finally {
     flushInFlight = false;
     // If more piled up during flush, schedule another flush
     if (pendingIncrements > 0) {
-      scheduleFlush();
+      if (currentUserId) { flushTimer = setTimeout(() => { flushTimer = null; flushPending(); }, 5000); }
     }
   }
 };
@@ -120,36 +111,30 @@ export const endTaskAttempt = async (userId: string, success: boolean) => {
   if (!currentAttempt) return;
   currentUserId = userId;
 
-  const duration = Math.floor((Date.now() - currentAttempt.startTime) / 1000);
+  const finishedAttempt = currentAttempt;
+  currentAttempt = null;
+  const duration = Math.floor((Date.now() - finishedAttempt.startTime) / 1000);
   const attempt: TaskAttempt = {
-    taskId: currentAttempt.taskId,
+    taskId: finishedAttempt.taskId,
     timestamp: new Date().toISOString(),
-    errors: currentAttempt.errors,
-    tabSwitches: currentAttempt.tabSwitches,
+    errors: finishedAttempt.errors,
+    tabSwitches: finishedAttempt.tabSwitches,
     duration,
     success,
   };
 
   try {
-    const users = await fbGetUsers();
-    const user = users.find(u => u.id === userId);
-    if (user) {
-      if (!user.taskAttempts) user.taskAttempts = [];
-      user.taskAttempts.push(attempt);
-      if (user.taskAttempts.length > 50) {
-        user.taskAttempts = user.taskAttempts.slice(-50);
-      }
-      await fbSaveUser(user);
-    }
+    await fbRecordAttempt(attempt);
   } catch (e) {
     console.error('[ActivityTracker] endTaskAttempt failed:', e);
   }
 
-  currentAttempt = null;
 };
 
 export const cleanupTracker = () => {
-  if (pendingIncrements > 0) flushPending();
+  if (flushTimer) { clearTimeout(flushTimer); flushTimer = null; }
+  if (pendingIncrements > 0) void flushPending();
+  pendingIncrements = 0;
   if (visibilityListener) {
     document.removeEventListener('visibilitychange', visibilityListener);
     visibilityListener = null;

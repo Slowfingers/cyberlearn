@@ -135,9 +135,9 @@ export const CircuitBuilderGame: React.FC<{ task: Task; onComplete: () => void }
   ];
 
   return (
-    <div className="h-full flex flex-col bg-slate-950 p-4 select-none text-white overflow-y-auto">
+    <div className="workshop-legacy circuit-workshop h-full flex flex-col bg-slate-950 p-4 select-none text-white overflow-y-auto">
       {/* Header Banner */}
-      <div className="flex flex-wrap items-center justify-between bg-slate-900/90 border-2 border-yellow-500/40 p-4 rounded-2xl mb-4 shadow-lg gap-3">
+      <div className="workshop-banner flex flex-wrap items-center justify-between bg-slate-900/90 border-2 border-yellow-500/40 p-4 rounded-2xl mb-4 shadow-lg gap-3">
         <div className="flex items-center gap-3">
           <div className="w-12 h-12 rounded-xl bg-yellow-500/20 border border-yellow-400 flex items-center justify-center text-2xl shrink-0">
             ⚡
@@ -297,7 +297,7 @@ export const CircuitBuilderGame: React.FC<{ task: Task; onComplete: () => void }
               <span>📊 Таблица истинности для {currentChallenge.nameRu}:</span>
               <span className="text-[10px] text-yellow-400">Жёлтая строка — текущее состояние цепи</span>
             </div>
-            <div className="grid grid-cols-4 gap-2 text-center text-xs font-mono">
+            <div className="circuit-truth-grid grid grid-cols-4 gap-2 text-center text-xs font-mono">
               {truthTable.map((row, idx) => {
                 const isActive = row.a === switchA && row.b === switchB;
                 return (

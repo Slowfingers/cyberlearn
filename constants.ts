@@ -5,18 +5,13 @@ import { GRADE4_COURSE, GRADE4_TASKS } from './curriculum/grade4';
 import { GRADE5_COURSE, GRADE5_TASKS } from './curriculum/grade5';
 import { GRADE6_COURSE, GRADE6_TASKS } from './curriculum/grade6';
 import { GRADE7_COURSE, GRADE7_TASKS } from './curriculum/grade7';
+import { reviseLessons } from './curriculum/pedagogy';
 import { TRAINER_CONFIGS } from './curriculum/trainerConfigs';
-import { AVATAR_NAMES, FRAME_NAMES } from './components/ShopAvatar';
+import { AVATAR_NAMES, FRAME_NAMES, STREET_AVATARS } from './components/ShopAvatar';
 
 export const LEVEL_THRESHOLDS = [0, 100, 300, 600, 1000, 1500, 2200, 3000, 4000, 5500, 7500, 10000];
 
-export const COURSES: Course[] = [
-  GRADE3_COURSE,
-  GRADE4_COURSE,
-  GRADE5_COURSE,
-  GRADE6_COURSE,
-  GRADE7_COURSE,
-];
+
 
 export const ACHIEVEMENTS: Achievement[] = [
   { id: 'ach_1', title: 'Первый шаг', description: 'Заверши свой первый урок', icon: '🌱', condition: 'complete_1', type: 'cyber' },
@@ -46,7 +41,11 @@ export const COSMETICS: CosmeticItem[] = [
   { id: 'col_red', type: 'droneColor', name: 'Системный Сбой', value: '#ff003c', unlockLevel: 7, cost: 1000 },
   { id: 'col_white', type: 'droneColor', name: 'Чистый Код', value: '#ffffff', unlockLevel: 10, cost: 2000 },
   
-  // AVATARS (value = sprite folder ID in /public/avatars/)
+  // Stable IDs preserve purchased inventory across catalog updates.
+  ...STREET_AVATARS.map((avatar): CosmeticItem => ({
+    id: `av_${avatar.value}`, type: 'avatar', name: avatar.name,
+    value: avatar.value, unlockLevel: avatar.unlockLevel, cost: avatar.cost,
+  })),
   ...AVATAR_NAMES.map((name, index): CosmeticItem => ({
     id: `av_${index + 1}`, type: 'avatar', name, value: String(index + 2),
     unlockLevel: Math.min(12, Math.floor(index / 2) + 1),
@@ -64,6 +63,10 @@ export const COSMETICS: CosmeticItem[] = [
   { id: 'skin_prof', type: 'mascotSkin', name: 'Профессор', value: 'prof', unlockLevel: 5, cost: 600 },
   { id: 'skin_astro', type: 'mascotSkin', name: 'Астро', value: 'astro', unlockLevel: 7, cost: 900 },
 ];
+
+// Retired portraits remain resolvable for already-owned inventory, but are no longer sold.
+export const SHOP_COSMETICS = COSMETICS.filter(item => item.type !== 'avatar' || item.value.startsWith('street_'));
+
 
 export const MOCK_STUDENTS: StudentProgress[] = [
   {
@@ -92,9 +95,16 @@ const ALL_TASKS: Task[] = [
 ];
 
 // Приклеиваем авторские конфиги тренажёров к урокам, у которых их не было
-export const MOCK_TASKS: Task[] = ALL_TASKS.map(t =>
+export const MOCK_TASKS: Task[] = reviseLessons(ALL_TASKS.map(t =>
   TRAINER_CONFIGS[t.id] ? { ...t, ...TRAINER_CONFIGS[t.id] } : t
-);
+));
 
+export const COURSES: Course[] = [
+  GRADE3_COURSE,
+  GRADE4_COURSE,
+  GRADE5_COURSE,
+  GRADE6_COURSE,
+  GRADE7_COURSE,
+].map(course => ({ ...course, totalModules: new Set(MOCK_TASKS.filter(task => task.courseId === course.id).map(task => task.module)).size }));
 export const AI_SYSTEM_INSTRUCTION = `Ты - Конструктор, ИИ-ментор.`;
 export const COMIC_CHAPTERS: ComicChapter[] = [];

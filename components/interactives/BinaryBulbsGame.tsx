@@ -1,4 +1,5 @@
 import React, { useState, useMemo } from 'react';
+import { WorkshopArt } from './WorkshopArt';
 import { Task } from '../../types';
 import { playSound } from '../../utils/sound';
 import { Lightbulb, CheckCircle2, Sparkles, Star, Trophy, RotateCcw, HelpCircle, BookOpen, X } from 'lucide-react';
@@ -58,9 +59,9 @@ export const BinaryBulbsGame: React.FC<{ task: Task; onComplete: () => void }> =
   const isMatched = currentSum === currentRound.target;
 
   return (
-    <div className="h-full flex flex-col bg-slate-950 p-4 select-none text-white overflow-y-auto">
+    <div className="workshop-legacy binary-workshop h-full flex flex-col bg-slate-950 p-4 select-none text-white overflow-y-auto">
       {/* Header Banner */}
-      <div className="flex flex-wrap items-center justify-between bg-slate-900/90 border-2 border-amber-500/40 p-3 md:p-4 rounded-2xl mb-4 shadow-lg gap-3">
+      <div className="workshop-banner flex flex-wrap items-center justify-between bg-slate-900/90 border-2 border-amber-500/40 p-3 md:p-4 rounded-2xl mb-4 shadow-lg gap-3">
         <div className="flex items-center gap-3">
           <div className="w-12 h-12 rounded-xl bg-amber-500/20 border border-amber-400 flex items-center justify-center text-2xl shrink-0">
             💡
@@ -140,7 +141,7 @@ export const BinaryBulbsGame: React.FC<{ task: Task; onComplete: () => void }> =
       {/* Target Mission Card */}
       <div className="bg-gradient-to-r from-amber-950/40 via-purple-950/30 to-amber-950/40 border-2 border-amber-500/50 p-4 md:p-5 rounded-2xl text-center mb-6 shadow-[0_0_25px_rgba(245,158,11,0.15)] relative overflow-hidden">
         <div className="text-xs uppercase tracking-widest text-amber-400 font-bold mb-1">ТВОЯ ЗАДАЧА:</div>
-        <div className="text-2xl md:text-4xl font-extrabold text-white flex items-center justify-center gap-3">
+        <div className="binary-target text-2xl md:text-4xl font-extrabold text-white flex items-center justify-center gap-3">
           <span>Собери число:</span>
           <span className="px-4 py-1 bg-amber-500 text-black rounded-2xl shadow-lg transform scale-110">
             {currentRound.target}
@@ -158,7 +159,7 @@ export const BinaryBulbsGame: React.FC<{ task: Task; onComplete: () => void }> =
 
       {/* 4 Interactive Bulbs */}
       <div className="flex-1 flex flex-col justify-center items-center max-w-2xl mx-auto w-full">
-        <div className="grid grid-cols-4 gap-2.5 md:gap-6 w-full">
+        <div className="binary-switch-grid grid grid-cols-4 gap-2.5 md:gap-6 w-full">
           {weights.map((weight, idx) => {
             const isOn = bits[idx] === 1;
             return (
@@ -180,10 +181,10 @@ export const BinaryBulbsGame: React.FC<{ task: Task; onComplete: () => void }> =
                 {/* Lightbulb Visual */}
                 <div className={`p-3 md:p-4 rounded-full mb-3 transition-all duration-300 ${
                   isOn 
-                    ? 'bg-amber-400/30 text-amber-300 drop-shadow-[0_0_20px_rgba(245,158,11,0.8)] animate-pulse' 
+                    ? 'bg-amber-400/30 text-amber-300 drop-shadow-[0_0_12px_rgba(245,158,11,0.25)]'
                     : 'bg-slate-800/80 text-slate-600'
                 }`}>
-                  <Lightbulb size={36} className={isOn ? 'fill-amber-300' : ''} />
+                  <WorkshopArt kind={isOn ? 'bulb-on' : 'bulb-off'} className="workshop-bulb" />
                 </div>
 
                 {/* Bit Value Display */}

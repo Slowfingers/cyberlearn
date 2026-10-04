@@ -10,8 +10,8 @@ import { MODULE8_TASKS } from './grade6/module8';
 
 export const GRADE6_COURSE: Course = {
   id: 'course_grade6',
-  title: 'ИНФОРМАТИКА 6 КЛАСС: КУРС ЮНОГО ИНЖЕНЕРА',
-  description: 'Полная интерактивная программа 6 класса по стандартам CSTA, ACARA и UK KS3: 8 полноценных модулей, 40 уроков с глубокой инженерной теорией и симуляторами (ОС, таблицы, Big-O, Python, веб, сети, ИИ, Git).',
+  title: '6 класс · От идеи к решению',
+  description: 'Управляем файлами, используем формулы и проверяем алгоритмы. Осваиваем команды, оформление страниц и сохранение версий.',
   icon: 'Layers',
   difficulty: 'Intermediate',
   status: 'active',

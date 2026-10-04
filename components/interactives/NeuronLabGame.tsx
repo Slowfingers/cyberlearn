@@ -65,9 +65,9 @@ export const NeuronLabGame: React.FC<NeuronLabGameProps> = ({ task, onComplete }
   }, [correctCount, completed]);
 
   return (
-    <div className="flex flex-col h-full bg-gray-950 p-4 md:p-6 overflow-y-auto">
+    <div className="workshop-legacy flex flex-col h-full bg-gray-950 p-4 md:p-6 overflow-y-auto">
       {/* Header */}
-      <div className="flex flex-wrap items-center justify-between gap-4 p-4 bg-black/70 border border-cyber-neonBlue/30 rounded-xl mb-4">
+      <div className="workshop-banner flex flex-wrap items-center justify-between gap-4 p-4 bg-black/70 border border-cyber-neonBlue/30 rounded-xl mb-4">
         <div className="flex items-center gap-3">
           <div className="p-2 rounded bg-purple-950/60 text-purple-400 border border-purple-500/40">
             <Brain size={22} />
@@ -101,7 +101,7 @@ export const NeuronLabGame: React.FC<NeuronLabGameProps> = ({ task, onComplete }
           <Sliders size={16} /> ФОРМУЛА НЕЙРОНА: Сумма = (X₁ × W₁) + (X₂ × W₂) + Смещение
         </div>
         <p className="text-gray-300">
-          Настрой веса связей так, чтобы нейрон распознавал «Робота» (Сумма &gt; 0), если есть антенна, и игнорировал обычные предметы (Сумма ≤ 0)!
+          Настрой веса признаков «{features.x1}» и «{features.x2}». При сумме больше 0 модель выбирает класс 1, иначе — класс 0. Сравни ответ с ожидаемым для каждого примера.
         </p>
       </div>
 
@@ -194,7 +194,7 @@ export const NeuronLabGame: React.FC<NeuronLabGameProps> = ({ task, onComplete }
                   <div className="text-right">
                     <div className="text-[10px] text-gray-400">Σ = {res.sum}</div>
                     <div className={`font-bold ${res.prediction === 1 ? 'text-cyber-neonGreen' : 'text-blue-400'}`}>
-                      {res.prediction === 1 ? '🤖 РОБОТ' : '👤 ЧЕЛОВЕК'}
+                      {`Класс ${res.prediction} · ожидается ${res.target}`}
                     </div>
                   </div>
 
@@ -209,9 +209,9 @@ export const NeuronLabGame: React.FC<NeuronLabGameProps> = ({ task, onComplete }
           </div>
 
           <div className="text-[10px] font-mono text-gray-500 text-center">
-            {accuracy === 100 
-              ? '✅ Идеальное обучение! Все образы классифицированы верно.' 
-              : 'Совет: увеличь W₁ (вес антенны) и настрой Bias для отсечения чайника.'}
+            {accuracy === 100
+              ? 'Все показанные примеры распознаны. Это ещё не гарантирует верный ответ на новых данных.'
+              : 'Меняй один вес за раз. Проверь, какие примеры стали распознаваться лучше, а какие — хуже.'}
           </div>
         </div>
       </div>

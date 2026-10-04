@@ -1,0 +1,66 @@
+import assert from 'node:assert/strict';
+import {chromium} from '@playwright/test';
+import {createServer} from 'vite';
+const server = await createServer({server:{port:3102,host:'127.0.0.1',strictPort:true}});
+await server.listen();
+const browser = await chromium.launch({headless:true});
+const page = await browser.newPage();
+const cloudRequests = [];
+await page.route(/(?:cloudfunctions\.net|(?:identitytoolkit|securetoken|firebaseinstallations|firebaseappcheck|firestore)\.googleapis\.com|firebasedatabase\.app)/, async route => {cloudRequests.push(route.request().url()); await route.abort();});
+try {
+  await page.goto('http://127.0.0.1:3102/');
+  await page.getByRole('button',{name:'Тестировать как ученик',exact:true}).click();
+  await page.getByRole('heading',{name:'3 класс · Первые шаги с компьютером',exact:true}).waitFor();
+  const result = await page.evaluate(async () => {
+    const {fbGetUser,fbCompleteTask,callServer} = await import('/services/firebase.ts');
+    const before = await fbGetUser();
+    const completed = await fbCompleteTask('g3_m1_l1',0);
+    const retry = await fbCompleteTask('g3_m1_l1',0);
+    const bought = await callServer('buyItem',{itemId:'frame_1'});
+    await callServer('equipItem',{itemId:'frame_none'});
+    await callServer('recordAttempt',{attempt:{taskId:'g3_m1_l1',timestamp:'',errors:0,tabSwitches:0,duration:10,success:true}});
+    return {before,completed,retry,bought};
+  });
+  assert.equal(result.completed.awarded,true);
+  assert.equal(result.retry.awarded,false);
+  assert.equal(result.completed.user.xp,result.retry.user.xp);
+  assert.ok(result.bought.inventory.includes('frame_1'));
+  await page.reload();
+  await page.getByRole('heading',{name:'3 класс · Первые шаги с компьютером',exact:true}).waitFor();
+  const restored = await page.evaluate(async () => (await import('/services/firebase.ts')).fbGetUser());
+  assert.ok(restored.completedTaskIds.includes('g3_m1_l1'));
+  assert.ok(restored.inventory.includes('frame_1'));
+  assert.equal(restored.equipped.avatarFrame,'frame_none');
+  assert.equal(restored.taskAttempts.length,1);
+  await page.getByRole('button',{name:'Выйти из аккаунта',exact:true}).click();
+  await page.getByRole('button',{name:'Выйти',exact:true}).click();
+  await page.getByRole('button',{name:'Тестировать как ученик',exact:true}).waitFor();
+  await page.reload();
+  await page.getByRole('button',{name:'Тестировать как ученик',exact:true}).click();
+  await page.getByRole('heading',{name:'3 класс · Первые шаги с компьютером',exact:true}).waitFor();
+  const persisted = await page.evaluate(async () => (await import('/services/firebase.ts')).fbGetUser());
+  assert.equal(persisted.id,result.before.id);
+  assert.equal(persisted.xp,restored.xp);
+  const teacher = await page.evaluate(async () => {
+    const {logout,fbLogin,fbGetClassrooms,fbGetUsers,fbCreateClassroom,fbDeleteClassroom,fbResetStudentPassword} = await import('/services/firebase.ts');
+    await logout(); await fbLogin('teacher','Тестовый учитель','Test12345');
+    const classes = await fbGetClassrooms();
+    const students = await fbGetUsers('demo_class');
+    const created = await fbCreateClassroom({name:'Проверка локального класса'});
+    await fbDeleteClassroom(created.id);
+    const password = await fbResetStudentPassword(students[0].id);
+    await logout();
+    let oldRejected = false;
+    try { await fbLogin('student','Тестовый ученик','Test12345','TEST01'); } catch { oldRejected = true; }
+    const user = await fbLogin('student','Тестовый ученик',password,'TEST01');
+    return {classes,students,oldRejected,user};
+  });
+  assert.equal(teacher.classes[0].inviteCode,'TEST01');
+  assert.equal(teacher.students.length,1);
+  assert.equal(teacher.oldRejected,true);
+  assert.equal(teacher.user.id,result.before.id);
+  const storage = await page.evaluate(() => localStorage.getItem('cyberlearn_local_demo_v1'));
+  assert.ok(!storage.includes('Test12345'),'Пароль не хранится открытым текстом');
+  assert.deepEqual(cloudRequests,[],'Локальный режим не обращается к Firebase');
+  console.log('localDemo.browser.check: local login, teacher/classes, reload/logout, password reset, progress, purchases and reward retries OK; no Firebase requests');
+} finally {await browser.close(); await server.close();}

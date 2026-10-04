@@ -1,7 +1,12 @@
+import AssessmentBuilder from './AssessmentBuilder';
+import { AssessmentPanel } from './AssessmentPanel';
 
+import { FolderFilter, TeacherSupport } from './ClassFolders';
 import React, { useState, useEffect, useCallback } from 'react';
 import { Classroom, User, StudentProgress, Task } from '../types';
 import { createClassroom, getClassStudents, createTaskForClass, updateClassroom, deleteClassroom } from '../services/mockBackend';
+import { fbResetStudentPassword, LOCAL_SERVER } from '../services/firebase';
+import { validateMap } from '../functions/domain.mjs';
 import { COURSES } from '../constants';
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts';
 import { Users, Activity, BrainCircuit, Key, Copy, PlusCircle, RefreshCw, Layers, ChevronRight, Hash, Edit3, Save, Flag, PlayCircle, Ban, Menu, X, ArrowLeft, LogOut, BookOpen, EyeOff, Eye, Flame, Trophy, ChevronDown, ChevronUp, CheckCircle, ArrowUpDown, Target, Trash2, ExternalLink } from 'lucide-react';
@@ -28,12 +33,15 @@ const TeacherDashboard: React.FC<TeacherDashboardProps> = ({
     onClassCreated,
     onReorderClassrooms
 }) => {
-  const [viewMode, setViewMode] = useState<'dashboard' | 'create-task'>('dashboard');
+  const [editingAssessment,setEditingAssessment] = useState<Task | undefined>();
+  const [folderFilter,setFolderFilter] = useState('*');
+  const [viewMode, setViewMode] = useState<'dashboard' | 'create-task' | 'assessment'>('dashboard');
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   
   // Dashboard State
   const [newClassName, setNewClassName] = useState('');
   const [students, setStudents] = useState<StudentProgress[]>([]);
+  const [classActionPending, setClassActionPending] = useState(false);
   const [isCreatingClass, setIsCreatingClass] = useState(false);
 
   // Student detail view
@@ -57,6 +65,8 @@ const TeacherDashboard: React.FC<TeacherDashboardProps> = ({
   }, []);
 
   // Task Creator State
+  const [savingTask, setSavingTask] = useState(false);
+  const [issuedPassword, setIssuedPassword] = useState<{name:string; password:string} | null>(null);
   const [taskTitle, setTaskTitle] = useState('');
   const [taskDesc, setTaskDesc] = useState('');
   const [gridSize, setGridSize] = useState(5);
@@ -85,12 +95,12 @@ const TeacherDashboard: React.FC<TeacherDashboardProps> = ({
   const totalTasksDone = students.reduce((sum, s) => sum + s.tasksCompleted, 0);
 
   useEffect(() => {
-    if (classrooms.length === 0 && !isCreatingClass) {}
-  }, [classrooms.length]);
-
-  useEffect(() => {
+    let cancelled = false;
     if (currentClass) {
-        getClassStudents(currentClass.id).then(s => setStudents(s));
+
+        setStudents([]);
+        getClassStudents(currentClass.id).then(s => { if (!cancelled) setStudents(s); }).catch(() => { if (!cancelled) addToast('Не удалось загрузить учеников', 'error'); });
+        // Stale requests must not fill a newly selected class.
         setIsCreatingClass(false);
         setViewMode('dashboard');
         setIsMobileMenuOpen(false);
@@ -99,50 +109,57 @@ const TeacherDashboard: React.FC<TeacherDashboardProps> = ({
         setIsCreatingClass(true);
         setIsMobileMenuOpen(false);
     }
+    return () => { cancelled = true; };
   }, [currentClass, activeClassId]);
 
   const handleCreateClass = async (e: React.FormEvent) => {
       e.preventDefault();
-      if (!newClassName.trim()) return;
-      playSound('success');
-      const cls = await createClassroom(currentUser.id, newClassName);
-      onClassCreated(cls);
-      setNewClassName('');
-      setIsCreatingClass(false);
-      addToast(`Сектор "${newClassName}" создан`, 'success');
+      if (!newClassName.trim() || classActionPending) return;
+      setClassActionPending(true);
+      try {
+          const cls = await createClassroom(currentUser.id, newClassName);
+          if(folderFilter!=='*' && folderFilter){ cls.folder=folderFilter; await updateClassroom(cls); }
+          onClassCreated(cls);
+          setNewClassName('');
+          setIsCreatingClass(false);
+          playSound('success');
+          addToast(`Класс "${cls.name}" создан`, 'success');
+      } catch { addToast('Не удалось создать класс', 'error'); }
+      finally { setClassActionPending(false); }
   };
 
   const handleRenameClass = async () => {
-      if (!currentClass || !renameValue.trim()) return;
-      const updated = { ...currentClass, name: renameValue.trim() };
-      await updateClassroom(updated);
-      onClassCreated(updated);
-      setIsRenaming(false);
-      playSound('success');
-      addToast('Сектор переименован', 'success');
+      if (!currentClass || !renameValue.trim() || classActionPending) return;
+      setClassActionPending(true);
+      try {
+          const updated = { ...currentClass, name: renameValue.trim() };
+          await updateClassroom(updated);
+          onClassCreated(updated);
+          setIsRenaming(false);
+          playSound('success');
+          addToast('Класс переименован', 'success');
+      } catch { addToast('Не удалось переименовать класс', 'error'); }
+      finally { setClassActionPending(false); }
   };
 
   const handleDeleteClass = async () => {
-      if (!currentClass) return;
-      if (!confirm(`Удалить сектор "${currentClass.name}"? Все студенты будут отключены от класса.`)) return;
-      const success = await deleteClassroom(currentClass.id);
-      if (success) {
-          playSound('success');
-          addToast('Сектор удалён', 'success');
+      if (!currentClass || classActionPending) return;
+      if (!confirm(`Удалить класс "${currentClass.name}"? Все студенты будут отключены от класса.`)) return;
+      setClassActionPending(true);
+      try {
+          if (!await deleteClassroom(currentClass.id)) throw new Error();
+          onReorderClassrooms(classrooms.filter(c => c.id !== currentClass.id));
           onSelectClass(null);
-          window.location.reload();
-      } else {
-          playSound('error');
-          addToast('Ошибка удаления', 'error');
-      }
+          playSound('success');
+          addToast('Класс удалён', 'success');
+      } catch { addToast('Не удалось удалить класс', 'error'); }
+      finally { setClassActionPending(false); }
   };
 
-  const copyCode = () => {
-      if(currentClass) {
-          navigator.clipboard.writeText(currentClass.inviteCode);
-          playSound('click');
-          addToast('Код скопирован', 'info');
-      }
+  const copyCode = async () => {
+      if (!currentClass) return;
+      try { await navigator.clipboard.writeText(currentClass.inviteCode); playSound('click'); addToast('Код скопирован', 'info'); }
+      catch { addToast('Не удалось скопировать код. Выделите его вручную.', 'error'); }
   };
 
   const handleSort = (key: SortKey) => {
@@ -157,10 +174,12 @@ const TeacherDashboard: React.FC<TeacherDashboardProps> = ({
 
   const refreshStudents = async () => {
       if (currentClass) {
-          const s = await getClassStudents(currentClass.id);
-          setStudents(s);
-          playSound('click');
-          addToast('Данные обновлены', 'info');
+          try {
+              const s = await getClassStudents(currentClass.id);
+              setStudents(s);
+              playSound('click');
+              addToast('Данные обновлены', 'info');
+          } catch { addToast('Не удалось обновить данные', 'error'); }
       }
   };
 
@@ -190,7 +209,8 @@ const TeacherDashboard: React.FC<TeacherDashboardProps> = ({
       }
   };
 
-  const saveTask = () => {
+  const saveTask = async () => {
+      if (savingTask) return;
       if (!currentClass || !taskTitle) {
           playSound('error');
           addToast('Заполните название миссии', 'error');
@@ -222,7 +242,12 @@ const TeacherDashboard: React.FC<TeacherDashboardProps> = ({
           }
       };
       
-      createTaskForClass(currentClass.id, newTask);
+      try { validateMap(newTask.mapConfig); }
+      catch (error) { addToast(error instanceof Error ? error.message : 'Неверная карта','error'); return; }
+      setSavingTask(true);
+      try { await createTaskForClass(currentClass.id, newTask); }
+      catch { addToast('Не удалось сохранить миссию. Повторите попытку.', 'error'); return; }
+      finally { setSavingTask(false); }
       playSound('success');
       addToast('Миссия создана и доступна студентам!', 'success');
       setViewMode('dashboard');
@@ -238,7 +263,7 @@ const TeacherDashboard: React.FC<TeacherDashboardProps> = ({
       <div className={`flex flex-col h-full ${isMobile ? 'bg-black' : ''}`}>
           <div className="p-4 border-b border-cyber-neonBlue/20 flex justify-between items-center shrink-0">
                 <h2 className="text-white font-bold tracking-widest flex items-center gap-2 text-sm uppercase">
-                    <Layers size={16} className="text-cyber-neonPink" /> Сектора
+                    <Layers size={16} className="text-cyber-neonPink" /> Классы
                 </h2>
                 {/* On Desktop sidebar, no close button needed usually, but for consistency */}
                 {!isMobile && (
@@ -247,12 +272,13 @@ const TeacherDashboard: React.FC<TeacherDashboardProps> = ({
           </div>
           
           <div className="flex-1 overflow-y-auto p-2 space-y-2">
+                <FolderFilter value={folderFilter} onChange={setFolderFilter}/>
                 {classrooms.length === 0 && (
                     <div className="text-center p-8 text-gray-600 text-xs font-mono">
-                        Нет активных секторов.
+                        Пока нет классов.
                     </div>
                 )}
-                {classrooms.map((cls, idx) => (
+                {classrooms.map((cls, idx) => (folderFilter==='*'||(cls.folder ?? '')===folderFilter) && (
                     <div key={cls.id} className="flex items-center gap-1">
                         <button
                             onClick={() => {
@@ -269,7 +295,8 @@ const TeacherDashboard: React.FC<TeacherDashboardProps> = ({
                                  <Hash size={16} />
                             </div>
                             <div className="flex-1">
-                                <div className="font-bold text-sm">{cls.name}</div>
+                                <div className="font-bold text-sm break-words">{cls.name}</div>
+                                {cls.folder && <div className="text-xs text-cyan-300 break-words">{cls.folder}</div>}
                                 <div className="text-[10px] font-mono opacity-50">CODE: {cls.inviteCode}</div>
                             </div>
                             <ChevronRight size={16} className={activeClassId === cls.id ? 'text-cyber-neonBlue' : 'text-gray-600'} />
@@ -310,14 +337,14 @@ const TeacherDashboard: React.FC<TeacherDashboardProps> = ({
                         : 'border-gray-700 text-gray-500 hover:border-cyber-neonGreen hover:text-cyber-neonGreen'
                     }`}
                 >
-                    <PlusCircle size={16} /> {isMobile ? 'Инициализировать Сектор' : 'Создать Сектор'}
+                    <PlusCircle size={16} /> {isMobile ? 'Создать класс' : 'Создать класс'}
                 </button>
             </div>
       </div>
   );
 
   return (
-    <div className="flex flex-col md:flex-row h-full overflow-hidden relative">
+    <div className="academy-teacher flex flex-col md:flex-row h-full overflow-hidden relative">
         <CyberToast toasts={toasts} onDismiss={dismissToast} />
         
         {/* --- MOBILE: LIST VIEW (Master) --- */}
@@ -340,6 +367,7 @@ const TeacherDashboard: React.FC<TeacherDashboardProps> = ({
         {/* On mobile, this is hidden if no class selected, unless creating */}
         <div className={`flex-1 overflow-y-auto bg-black relative flex flex-col ${!currentClass && !isCreatingClass ? 'hidden md:flex' : 'flex'}`}>
             
+            <TeacherSupport classes={classrooms} current={currentClass} onUpdated={onClassCreated}/>
             {/* MOBILE HEADER (Only for Class View) */}
             {currentClass && !isCreatingClass && (
                 <div className="md:hidden h-14 bg-cyber-dark border-b border-cyber-neonBlue/20 flex items-center justify-between px-4 shrink-0 sticky top-0 z-30">
@@ -351,7 +379,7 @@ const TeacherDashboard: React.FC<TeacherDashboardProps> = ({
                         className="flex items-center gap-2 text-gray-400 hover:text-white transition-colors"
                     >
                         <ArrowLeft size={20} />
-                        <span className="text-xs font-bold uppercase tracking-wider">Все сектора</span>
+                        <span className="text-xs font-bold uppercase tracking-wider">Все классы</span>
                     </button>
                     
                     <div className="flex items-center gap-2 min-w-0 flex-1 justify-end">
@@ -381,7 +409,7 @@ const TeacherDashboard: React.FC<TeacherDashboardProps> = ({
                         <div className="absolute bottom-0 right-0 w-4 h-4 border-b-2 border-r-2 border-cyber-neonBlue"></div>
 
                         <div className="text-center mb-8">
-                            <h2 className="text-xl md:text-2xl font-bold text-white tracking-widest uppercase mb-2">Инициализация Сектора</h2>
+                            <h2 className="text-xl md:text-2xl font-bold text-white tracking-widest uppercase mb-2">Новый класс</h2>
                             <p className="text-cyber-neonBlue font-mono text-xs md:text-sm">Создайте новое учебное пространство</p>
                         </div>
 
@@ -457,10 +485,10 @@ const TeacherDashboard: React.FC<TeacherDashboardProps> = ({
 
                             <div className="flex flex-col sm:flex-row gap-3">
                                 <button 
-                                    onClick={() => setViewMode('create-task')}
+                                    onClick={() => {setEditingAssessment(undefined);setViewMode('assessment');}}
                                     className="px-5 py-3 bg-cyber-neonPink/10 border border-cyber-neonPink text-cyber-neonPink hover:bg-cyber-neonPink hover:text-black transition-all uppercase font-bold text-xs tracking-widest flex items-center justify-center gap-2 rounded"
                                 >
-                                    <Edit3 size={16} /> Создать Миссию
+                                    <Edit3 size={16} /> Создать контрольную
                                 </button>
 
                                 <button 
@@ -516,7 +544,7 @@ const TeacherDashboard: React.FC<TeacherDashboardProps> = ({
                         {students.length === 0 ? (
                             <div className="bg-cyber-panel/50 border border-dashed border-gray-700 p-8 md:p-12 text-center rounded">
                                 <Key className="mx-auto text-gray-600 mb-4" size={48} />
-                                <h3 className="text-gray-300 font-bold text-lg mb-2">Сектор пуст</h3>
+                                <h3 className="text-gray-300 font-bold text-lg mb-2">В классе пока нет учеников</h3>
                                 <p className="text-gray-500 max-w-md mx-auto text-sm">
                                     Передайте код <span className="text-cyber-neonGreen font-mono font-bold">{currentClass.inviteCode}</span> ученикам, чтобы они могли подключиться.
                                 </p>
@@ -632,6 +660,7 @@ const TeacherDashboard: React.FC<TeacherDashboardProps> = ({
                             </>
                         )}
 
+                        <AssessmentPanel classId={currentClass.id} onEdit={task=>{setEditingAssessment(task);setViewMode('assessment');}}/>
                         {/* COURSE VISIBILITY MANAGEMENT */}
                         <div className="bg-cyber-panel border border-gray-800 rounded overflow-hidden">
                             <div className="p-4 border-b border-gray-800 flex items-center justify-between">
@@ -661,16 +690,22 @@ const TeacherDashboard: React.FC<TeacherDashboardProps> = ({
                                                 </div>
                                             </div>
                                             <button
-                                                onClick={() => {
+                                                disabled={classActionPending}
+                                                onClick={async () => {
+                                                    if (classActionPending) return;
                                                     playSound('click');
                                                     const hidden = currentClass.hiddenCourses || [];
                                                     const updated = isHidden
                                                         ? hidden.filter(id => id !== course.id)
                                                         : [...hidden, course.id];
                                                     const updatedClass = { ...currentClass, hiddenCourses: updated };
-                                                    updateClassroom(updatedClass);
-                                                    onClassCreated(updatedClass);
-                                                    addToast(isHidden ? `${course.title.split(':')[0]} — виден` : `${course.title.split(':')[0]} — скрыт`, 'info');
+                                                    setClassActionPending(true);
+                                                    try {
+                                                        await updateClassroom(updatedClass);
+                                                        onClassCreated(updatedClass);
+                                                        addToast(isHidden ? `${course.title.split(':')[0]} — виден` : `${course.title.split(':')[0]} — скрыт`, 'info');
+                                                    } catch { addToast('Не удалось изменить доступ к курсу', 'error'); }
+                                                    finally { setClassActionPending(false); }
                                                 }}
                                                 className={`shrink-0 flex items-center gap-1.5 px-3 py-1.5 rounded text-xs font-bold uppercase tracking-wider transition-all ${
                                                     isHidden 
@@ -688,6 +723,13 @@ const TeacherDashboard: React.FC<TeacherDashboardProps> = ({
                         </div>
 
                         {/* STUDENT DETAIL MODAL */}
+                        {issuedPassword && <div role="dialog" aria-label="Пароль ученика" className="fixed inset-0 z-[120] bg-black/90 flex items-center justify-center p-4">
+                            <div className="bg-gray-950 border border-cyan-400 p-6 rounded text-white">
+                                <p>Новый пароль для {issuedPassword.name}</p><code className="block text-xl my-4 select-all">{issuedPassword.password}</code>
+                                <p className="text-sm mb-4">Передайте пароль этому ученику. Старый пароль больше не действует.</p>
+                                <button onClick={() => setIssuedPassword(null)} className="border px-4 py-2 rounded">Закрыть</button>
+                            </div>
+                        </div>}
                         {selectedStudent && (
                             <div className="fixed inset-0 z-[100] bg-black/95 backdrop-blur-md flex flex-col" onClick={(e) => { if (e.target === e.currentTarget) setSelectedStudent(null); }}>
                                 <div className="h-14 md:h-16 shrink-0" />
@@ -701,11 +743,15 @@ const TeacherDashboard: React.FC<TeacherDashboardProps> = ({
                                                 <span className="text-2xl font-bold text-cyber-neonBlue">{selectedStudent.name.charAt(0).toUpperCase()}</span>
                                             </div>
                                             <h3 className="text-xl font-bold text-white uppercase">{selectedStudent.name}</h3>
+                                            {!LOCAL_SERVER && <button className="mt-3 px-3 py-2 border border-cyan-400 rounded text-cyan-300" onClick={async () => {
+                                                try { const password = await fbResetStudentPassword(selectedStudent.studentId); setIssuedPassword({name:selectedStudent.name,password}); }
+                                                catch { addToast('Не удалось выдать пароль','error'); }
+                                            }}>Выдать новый пароль</button>}
                                             <span className="text-cyber-neonYellow font-mono text-sm">УРОВЕНЬ {selectedStudent.level}</span>
                                         </div>
 
                                         {/* Stats */}
-                                        <div className="grid grid-cols-5 gap-2 mb-6">
+                                        <div className="grid grid-cols-2 sm:grid-cols-5 gap-2 mb-6">
                                             <div className="bg-gray-900 border border-gray-800 rounded p-2 text-center">
                                                 <div className="text-cyber-neonBlue font-mono font-bold">{selectedStudent.totalXP}</div>
                                                 <div className="text-gray-500 text-[9px] uppercase">XP</div>
@@ -813,6 +859,8 @@ const TeacherDashboard: React.FC<TeacherDashboardProps> = ({
                             </div>
                         )}
                     </div>
+                ) : viewMode === 'assessment' ? (
+                    <AssessmentBuilder key={editingAssessment?.id ?? 'new'} classId={currentClass.id} initial={editingAssessment} onClose={()=>setViewMode('dashboard')} onMiniTask={()=>setViewMode('create-task')}/>
                 ) : (
                     // TASK CREATOR MODE (Responsive)
                     <div className="h-full flex flex-col">
@@ -823,7 +871,7 @@ const TeacherDashboard: React.FC<TeacherDashboardProps> = ({
                                 </button>
                                 <h2 className="text-lg md:text-xl font-bold text-cyber-neonPink uppercase tracking-wider leading-tight break-words flex-1">Конструктор</h2>
                              </div>
-                             <button onClick={saveTask} className="w-full sm:w-auto px-6 py-3 bg-cyber-neonGreen text-black font-bold uppercase tracking-widest text-xs flex items-center justify-center gap-2 hover:bg-white transition-colors rounded">
+                             <button onClick={saveTask} disabled={savingTask} className="w-full sm:w-auto px-6 py-3 bg-cyber-neonGreen text-black font-bold uppercase tracking-widest text-xs flex items-center justify-center gap-2 hover:bg-white transition-colors rounded">
                                  <Save size={16} /> Сохранить
                              </button>
                         </div>
@@ -862,7 +910,13 @@ const TeacherDashboard: React.FC<TeacherDashboardProps> = ({
                                         <input 
                                             type="range" min="3" max="8" 
                                             value={gridSize} 
-                                            onChange={(e) => setGridSize(Number(e.target.value))}
+                                            onChange={(e) => {
+                                                const size = Number(e.target.value);
+                                                setGridSize(size);
+                                                setStartPos(([x,y]) => [Math.min(x,size-1),Math.min(y,size-1)]);
+                                                setEndPos(([x,y]) => [Math.min(x,size-1),Math.min(y,size-1)]);
+                                                setObstacles(previous => previous.filter(cell => cell.split(',').every(n => Number(n) < size)));
+                                            }}
                                             className="w-full accent-cyber-neonBlue"
                                         />
                                     </div>
@@ -940,7 +994,7 @@ const TeacherDashboard: React.FC<TeacherDashboardProps> = ({
             ) : (
                 /* DESKTOP EMPTY STATE (Mobile is handled by list view) */
                 <div className="hidden md:flex flex-1 items-center justify-center text-gray-600">
-                    Выберите сектор для управления
+                    Выберите класс
                 </div>
             )}
         </div>

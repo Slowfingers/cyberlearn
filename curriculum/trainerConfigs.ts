@@ -5,7 +5,7 @@ import { Task } from '../types';
 export const TRAINER_CONFIGS: Record<string, Partial<Task>> = {
 
   // --- Электронные таблицы ---
-  g3_m8_l1: { spreadsheetConfig: { tableData: [], targetFormula: '=B2*C2', formulaType: 'sum' } },
+  g3_m8_l1: { spreadsheetConfig: { tableData: [], targetFormula: '=B2*C2', formulaType: 'multiply' } },
   g3_m8_l2: { spreadsheetConfig: { tableData: [], targetFormula: '=SUM(D2:D4)', formulaType: 'sum' } },
   // 7 класс: условное форматирование и логика выборки — сценарий с условием, а не с суммой
   g7_l41: { spreadsheetConfig: { tableData: [], targetFormula: '=IF(B2>=60;"Зачёт";"Доработать")', formulaType: 'if' } },

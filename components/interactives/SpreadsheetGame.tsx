@@ -1,254 +1,61 @@
-import React, { useState, useEffect } from 'react';
+import React, { useEffect, useState } from 'react';
 import { Task } from '../../types';
-import { playSound } from '../../utils/sound';
-import { Table, CheckCircle, Calculator, HelpCircle, Sparkles, RefreshCw } from 'lucide-react';
+import { evaluateSumFormula, parseIfFormula } from '../../services/spreadsheetEvaluation';
+import { CheckCircle, RefreshCw } from 'lucide-react';
 
-interface SpreadsheetGameProps {
-  task: Task;
-  onComplete: () => void;
-}
-
-export const SpreadsheetGame: React.FC<SpreadsheetGameProps> = ({ task, onComplete }) => {
-  const isIfTask = task.spreadsheetConfig?.formulaType === 'if';
-  const isGrade3 = task.courseId === 'course_grade3' || task.id.startsWith('g3_');
-
-  // Initial table data
-  const defaultRows = isIfTask ? [
-    { id: 1, name: 'Нео (Студент #1)', score: 85, status: '' },
-    { id: 2, name: 'Тринити (Студент #2)', score: 92, status: '' },
-    { id: 3, name: 'Сайфер (Студент #3)', score: 45, status: '' },
-  ] : isGrade3 ? [
-    { id: 1, name: '💎 Кристаллы силы', cost: 100, qty: 3, total: 300 },
-    { id: 2, name: '🧪 Зелья здоровья', cost: 50, qty: 4, total: 200 },
-    { id: 3, name: '🗡️ Лазерный меч', cost: 500, qty: 1, total: 500 },
-  ] : [
-    { id: 1, name: 'Сенсоры дрона', cost: 120, qty: 3, total: 360 },
-    { id: 2, name: 'Батареи питания', cost: 250, qty: 2, total: 500 },
-    { id: 3, name: 'Квантовый чип', cost: 400, qty: 1, total: 400 },
-  ];
-
-  const [rows, setRows] = useState(defaultRows);
-  const [selectedCell, setSelectedCell] = useState<string>(isIfTask ? 'C2' : 'D5');
-  const [formulaInput, setFormulaInput] = useState<string>('');
-  const [computedResult, setComputedResult] = useState<any>(null);
-  const [errorMessage, setErrorMessage] = useState<string>('');
-  const [completed, setCompleted] = useState<boolean>(false);
-
-  useEffect(() => {
-    resetGame();
-  }, [task.id]);
-
-  const resetGame = () => {
-    setRows(defaultRows);
-    setSelectedCell(isIfTask ? 'C2' : 'D5');
-    setFormulaInput('');
-    setComputedResult(null);
-    setErrorMessage('');
-    setCompleted(false);
-  };
-
-  const evaluateFormula = () => {
-    const raw = formulaInput.trim().toUpperCase();
-    if (!raw.startsWith('=')) {
-      setErrorMessage('Формула в таблицах ВСЕГДА должна начинаться со знака "=" (равно)!');
-      playSound('error');
-      return;
-    }
-
-    setErrorMessage('');
-
-    if (isIfTask) {
-      // Expecting IF formula: =IF(B2>=60; "СДАЛ"; "ПЕРЕСДАЧА") or Russian =ЕСЛИ(B2>=60; "СДАЛ"; "ПЕРЕСДАЧА")
-      const ifRegex = /=(?:IF|ЕСЛИ)\s*\(\s*B(\d+)\s*(>=|>)\s*(\d+)\s*[,;]\s*["']?([^"']+)["']?\s*[,;]\s*["']?([^"']+)["']?\s*\)/i;
-      const match = raw.match(ifRegex);
-
-      if (match) {
-        const threshold = parseInt(match[3], 10);
-        const passText = match[4].trim();
-        const failText = match[5].trim();
-
-        // Calculate statuses for students
-        const updated = rows.map((r: any) => ({
-          ...r,
-          status: r.score >= threshold ? passText : failText
-        }));
-        setRows(updated);
-        setComputedResult('Формула IF успешно применена ко всем строкам!');
-        playSound('success');
-        setCompleted(true);
-        onComplete();
-      } else {
-        setErrorMessage('Синтаксис неверен. Используй шаблон: =IF(B2>=60; "СДАЛ"; "ПЕРЕСДАЧА")');
-        playSound('error');
+interface Props { task: Task; onComplete: () => void }
+export const SpreadsheetGame: React.FC<Props> = ({ task, onComplete }) => {
+  const config = task.spreadsheetConfig;
+  const isIf = config?.formulaType === 'if';
+  const isMultiply = config?.formulaType === 'multiply';
+  const expectedIf = isIf ? parseIfFormula(config?.targetFormula ?? '') : null;
+  const fallback: NonNullable<Task['spreadsheetConfig']>['tableData'] = isIf
+    ? [{ id: '1', name: 'Аня', val1: 85, val2: 0 }, { id: '2', name: 'Тимур', val1: 60, val2: 0 }, { id: '3', name: 'Лена', val1: 45, val2: 0 }]
+    : [{ id: '1', name: 'Тетради', val1: 100, val2: 3 }, { id: '2', name: 'Карандаши', val1: 50, val2: 4 }, { id: '3', name: 'Альбом', val1: 500, val2: 1 }];
+  const rows = config?.tableData.length ? config.tableData : fallback;
+  const total = (row: typeof rows[number]) => typeof row.formulaResult === 'number' ? row.formulaResult : row.val1 * row.val2;
+  const [formula, setFormula] = useState('');
+  const [error, setError] = useState('');
+  const [completed, setCompleted] = useState(false);
+  const [result, setResult] = useState<number | string | null>(null);
+  const [statuses, setStatuses] = useState<string[]>([]);
+  const [hint, setHint] = useState(false);
+  const reset = () => { setFormula(''); setError(''); setCompleted(false); setResult(null); setStatuses([]); setHint(false); };
+  useEffect(reset, [task.id]);
+  const cell = isIf ? 'C2' : isMultiply ? 'D2' : 'D5';
+  const check = () => {
+    if (!formula.trim().startsWith('=')) { setError('Начни формулу со знака =.'); return; }
+    if (isIf) {
+      const parsed = parseIfFormula(formula);
+      if (!parsed || !expectedIf || parsed.threshold !== expectedIf.threshold || parsed.inclusive !== expectedIf.inclusive || parsed.passText !== expectedIf.passText || parsed.failText !== expectedIf.failText) {
+        setError('Проверь условие, границу и два текста результата.'); return;
       }
+      setStatuses(rows.map(row => (parsed.inclusive ? row.val1 >= parsed.threshold : row.val1 > parsed.threshold) ? parsed.passText : parsed.failText));
+      setResult('Условие применено');
+    } else if (isMultiply) {
+      if (!/^=(?:B2\*C2|C2\*B2)$/i.test(formula.replace(/\s/g, ''))) { setError('Используй адрес цены B2, адрес количества C2 и знак умножения *.'); return; }
+      setResult(rows[0].val1 * rows[0].val2);
     } else {
-      // Expecting SUM formula: =SUM(D2:D4) or =СУММ(D2:D4) or =D2+D3+D4
-      const sumRegex = /=(?:SUM|СУММ)\s*\(\s*D2\s*[:;]\s*D4\s*\)/i;
-      if (sumRegex.test(raw) || raw === '=D2+D3+D4' || raw.includes('D2') && raw.includes('D3') && raw.includes('D4')) {
-        const totalSum = rows.reduce((acc, r: any) => acc + (r.total || 0), 0);
-        setComputedResult(totalSum);
-        playSound('success');
-        setCompleted(true);
-        onComplete();
-      } else {
-        setErrorMessage('Синтаксис неверен. Для сложения диапазона D2:D4 используй: =SUM(D2:D4)');
-        playSound('error');
-      }
+      const sum = evaluateSumFormula(formula, rows.map(total));
+      if (sum === null) { setError('Нужна сумма всех значений D2, D3 и D4. Проверь диапазон.'); return; }
+      setResult(sum);
     }
+    setError(''); setCompleted(true); onComplete();
   };
-
-  return (
-    <div className="flex flex-col h-full bg-gray-950 p-4 md:p-6 overflow-y-auto">
-      {/* Header */}
-      <div className="flex flex-wrap items-center justify-between gap-4 p-4 bg-black/70 border border-cyber-neonBlue/30 rounded-xl mb-4">
-        <div className="flex items-center gap-3">
-          <div className="p-2 rounded bg-cyber-neonBlue/20 text-cyber-neonBlue border border-cyber-neonBlue/40">
-            <Table size={22} />
-          </div>
-          <div>
-            <div className="text-[10px] font-mono text-gray-400 uppercase tracking-widest">THE_SPREADSHEET // ИНЖЕНЕРНЫЕ ТАБЛИЦЫ</div>
-            <h2 className="text-base md:text-lg font-bold text-white">
-              {isIfTask ? 'Логические вычисления с функцией IF' : 'Автоматизация расчетов через формулу =SUM()'}
-            </h2>
-          </div>
-        </div>
-
-        <button
-          onClick={resetGame}
-          className="flex items-center gap-1.5 px-3 py-1.5 bg-gray-900 hover:bg-gray-800 text-gray-300 border border-gray-800 rounded text-xs font-mono transition-colors"
-        >
-          <RefreshCw size={14} /> Сброс
-        </button>
-      </div>
-
-      {/* Instructions & Goal Box */}
-      <div className="bg-gray-900/80 border border-cyber-neonBlue/30 rounded-xl p-4 mb-4">
-        <div className="text-xs font-mono text-cyber-neonBlue font-bold uppercase mb-1 flex items-center gap-2">
-          <Calculator size={16} /> ЗАДАНИЕ ДЛЯ ЭЛЕКТРОННОЙ ТАБЛИЦЫ:
-        </div>
-        <p className="text-xs text-gray-300">
-          {isIfTask 
-            ? 'Введи формулу условия в строку fx, чтобы колонка "Статус" автоматически определяла, сдал ли студент зачет (порог: 60 баллов). Формула: =IF(B2>=60; "СДАЛ"; "ПЕРЕСДАЧА")'
-            : 'Посчитай итоговый бюджет миссии в ячейке D5, сложив сумму строк D2, D3, D4 через функцию: =SUM(D2:D4)'
-          }
-        </p>
-      </div>
-
-      {/* Formula Bar (fx) */}
-      <div className="flex items-center gap-2 bg-black border border-cyber-neonBlue/50 rounded-xl p-2.5 mb-4 shadow-[0_0_15px_rgba(0,243,255,0.1)]">
-        <div className="px-2.5 py-1 bg-gray-900 border border-gray-800 text-cyber-neonYellow font-mono font-bold text-xs rounded">
-          {selectedCell}
-        </div>
-        <div className="text-cyber-neonBlue font-mono font-bold text-sm px-1 italic">
-          fx
-        </div>
-        <input
-          type="text"
-          value={formulaInput}
-          onChange={(e) => setFormulaInput(e.target.value)}
-          onKeyDown={(e) => {
-            if (e.key === 'Enter') evaluateFormula();
-          }}
-          placeholder={isIfTask ? '=IF(B2>=60; "СДАЛ"; "ПЕРЕСДАЧА")' : '=SUM(D2:D4)'}
-          className="flex-1 bg-gray-950 border border-gray-800 text-white font-mono px-3 py-1.5 rounded text-sm focus:outline-none focus:border-cyber-neonBlue"
-        />
-        <button
-          onClick={evaluateFormula}
-          className="px-4 py-1.5 bg-cyber-neonBlue text-black font-bold uppercase text-xs font-mono rounded hover:bg-white transition-colors"
-        >
-          Применить
-        </button>
-      </div>
-
-      {/* Error / Hint display */}
-      {errorMessage && (
-        <div className="mb-4 p-3 bg-red-950/40 border border-red-500 rounded-lg text-xs font-mono text-red-300">
-          {errorMessage}
-        </div>
-      )}
-
-      {/* Spreadsheet Interactive Grid */}
-      <div className="flex-1 bg-black border border-gray-800 rounded-xl overflow-hidden flex flex-col">
-        {/* Column Headers */}
-        <div className="grid grid-cols-12 bg-gray-900/90 border-b border-gray-800 text-center text-xs font-mono font-bold text-gray-400 select-none">
-          <div className="col-span-1 py-2 border-r border-gray-800 bg-gray-950">#</div>
-          <div className="col-span-5 py-2 border-r border-gray-800">A (Наименование)</div>
-          <div className="col-span-3 py-2 border-r border-gray-800">{isIfTask ? 'B (Баллы)' : 'B (Цена / шт)'}</div>
-          <div className="col-span-3 py-2">{isIfTask ? 'C (Статус)' : 'D (Итого)'}</div>
-        </div>
-
-        {/* Row 1 to N */}
-        <div className="divide-y divide-gray-900 font-mono text-xs">
-          {rows.map((row: any, idx) => {
-            const rowNum = idx + 2; // header is 1
-            const cellKey = isIfTask ? `C${rowNum}` : `D${rowNum}`;
-            const isHighlight = !isIfTask && ['D2', 'D3', 'D4'].includes(cellKey);
-
-            return (
-              <div key={row.id} className="grid grid-cols-12 items-center hover:bg-gray-900/30 transition-colors">
-                <div className="col-span-1 py-2.5 text-center text-gray-600 bg-gray-950 border-r border-gray-800 font-bold">
-                  {rowNum}
-                </div>
-                <div className="col-span-5 px-4 py-2.5 text-gray-200 border-r border-gray-900 truncate">
-                  {row.name}
-                </div>
-                <div className="col-span-3 px-4 py-2.5 text-right text-cyber-neonGreen border-r border-gray-900">
-                  {isIfTask ? `${row.score} б.` : `${row.cost} ₭`}
-                </div>
-                <div className={`col-span-3 px-4 py-2.5 text-right font-bold transition-all ${
-                  isHighlight ? 'bg-cyber-neonBlue/10 text-cyber-neonBlue border border-cyber-neonBlue/30' : ''
-                } ${row.status === 'СДАЛ' ? 'text-cyber-neonGreen' : row.status === 'ПЕРЕСДАЧА' ? 'text-red-400' : 'text-gray-300'}`}>
-                  {isIfTask ? (row.status || '—') : `${row.total} ₭`}
-                </div>
-              </div>
-            );
-          })}
-
-          {/* Total row for SUM task */}
-          {!isIfTask && (
-            <div className="grid grid-cols-12 items-center bg-gray-950/90 border-t-2 border-gray-800 font-bold">
-              <div className="col-span-1 py-2.5 text-center text-gray-600 bg-gray-950 border-r border-gray-800">
-                5
-              </div>
-              <div className="col-span-8 px-4 py-2.5 text-right text-gray-400 uppercase text-[11px] border-r border-gray-900">
-                ИТОГО (СУММА БЮДЖЕТА D2:D4):
-              </div>
-              <div
-                onClick={() => {
-                  setSelectedCell('D5');
-                  setFormulaInput('=SUM(D2:D4)');
-                }}
-                className={`col-span-3 px-4 py-2.5 text-right cursor-pointer transition-all ${
-                  completed ? 'text-cyber-neonGreen text-sm' : 'text-cyber-neonYellow border border-dashed border-cyber-neonYellow/60'
-                }`}
-              >
-                {completed ? `${computedResult} ₭` : formulaInput || '=SUM(?)'}
-              </div>
-            </div>
-          )}
-        </div>
-      </div>
-
-      {/* Completion Banner */}
-      {completed && (
-        <div className="mt-4 p-4 bg-cyber-neonGreen/15 border border-cyber-neonGreen rounded-xl flex items-center justify-between text-white animate-fade-in">
-          <div className="flex items-center gap-3">
-            <CheckCircle className="text-cyber-neonGreen" size={26} />
-            <div>
-              <div className="font-bold text-sm text-cyber-neonGreen uppercase">ФОРМУЛА ВЫЧИСЛЕНА БЕЗУПРЕЧНО!</div>
-              <div className="text-xs text-gray-300">
-                {isIfTask ? 'Функция IF успешно автоматизировала проверку данных!' : `Итоговая сумма: ${computedResult} ₭. Таблица полностью синхронизирована.`}
-              </div>
-            </div>
-          </div>
-          <button
-            onClick={onComplete}
-            className="px-5 py-2 bg-cyber-neonGreen text-black font-bold uppercase rounded-lg text-xs hover:bg-white transition-colors"
-          >
-            ПРИНЯТЬ ОТЧЕТ (+{task.xpReward} XP)
-          </button>
-        </div>
-      )}
-    </div>
-  );
+  const instruction = isIf && expectedIf
+    ? `Если баллы ${expectedIf.inclusive ? 'не меньше' : 'больше'} ${expectedIf.threshold}, запиши «${expectedIf.passText}», иначе — «${expectedIf.failText}». Введи формулу для C2; тренажёр применит такое же условие к остальным строкам.`
+    : isMultiply ? 'В ячейке D2 вычисли стоимость тетрадей: цена B2 × количество C2.'
+    : 'В ячейке D5 сложи итоги D2, D3 и D4. Проверь сумму вручную.';
+  return <div className="workshop-legacy h-full overflow-auto bg-gray-950 p-4 md:p-6 text-gray-200 space-y-5">
+    <div className="spreadsheet-heading"><h2 className="text-xl text-white font-semibold">{isIf ? 'Условие в таблице' : isMultiply ? 'Цена и количество' : 'Сумма по строкам'}</h2><button onClick={reset} className="flex items-center gap-2 text-sm px-3 py-2 border border-gray-700 rounded-lg"><RefreshCw size={16}/>Начать заново</button></div>
+    <p>{instruction}</p>
+    <p className="spreadsheet-address-note">A — название, B — {isIf ? 'баллы' : isMultiply ? 'цена' : 'значение 1'}{!isIf && (isMultiply ? ', C — количество' : ', C — значение 2')}. {isIf ? 'C' : 'D'} — результат. Число в адресе — номер строки.</p>
+    <div className="spreadsheet-mobile-rows" aria-label="Строки учебной таблицы">{rows.map((row, i) => <section key={row.id} className="spreadsheet-row-card"><h3>Строка {i + 2} · {row.name}</h3><dl><div><dt>A{i+2} · Название</dt><dd>{row.name}</dd></div><div><dt>B{i+2} · {isIf ? 'Баллы' : isMultiply ? 'Цена' : 'Значение 1'}</dt><dd>{row.val1}</dd></div>{!isIf && <div><dt>C{i+2} · {isMultiply ? 'Количество' : 'Значение 2'}</dt><dd>{row.val2}</dd></div>}<div><dt>{isIf ? 'C' : 'D'}{i+2} · Результат</dt><dd>{isIf ? statuses[i] ?? '—' : isMultiply && i === 0 ? result ?? '?' : total(row)}</dd></div></dl></section>)}{!isIf && !isMultiply && <section className="spreadsheet-row-card"><h3>D5 · Общий итог</h3><p>{result ?? '?'}</p></section>}</div>
+    <div className="spreadsheet-desktop-table overflow-x-auto" role="region" aria-label="Учебная таблица, прокрутка по горизонтали" tabIndex={0}><table className="w-full text-sm border-collapse"><caption className="text-left pb-3 text-gray-400">Строка 1 — названия столбцов. Данные начинаются со строки 2.</caption><thead><tr className="bg-gray-900"><th className="p-3">Строка</th><th>A · Название</th><th>B · {isIf ? 'Баллы' : 'Значение 1'}</th>{!isIf && <th>C · Значение 2</th>}<th>{isIf ? 'C · Результат' : 'D · Итог'}</th></tr></thead><tbody>{rows.map((row, i) => <tr key={row.id} className="border-b border-gray-800"><th className="p-3">{i+2}</th><td>{row.name}</td><td className="text-center">{row.val1}</td>{!isIf && <td className="text-center">{row.val2}</td>}<td className="text-center">{isIf ? statuses[i] ?? '—' : isMultiply && i === 0 ? result ?? '?' : total(row)}</td></tr>)}{!isIf && !isMultiply && <tr><th className="p-3">5</th><td colSpan={3}>Общий итог</td><td className="text-center font-bold">{result ?? '?'}</td></tr>}</tbody></table></div>
+    <label className="block space-y-2"><span>Формула для {cell}</span><input aria-label={`Формула для ${cell}`} value={formula} onChange={event => { setFormula(event.target.value); setError(''); }} onKeyDown={event => { if (event.key === 'Enter' && !completed) check(); }} spellCheck={false} autoComplete="off" disabled={completed} placeholder="Начни со знака =" className="block w-full rounded-lg bg-black border border-gray-600 p-3 font-mono text-white"/></label>
+    {error && <p role="alert" className="text-rose-300">{error}</p>}
+    <div className="flex flex-wrap items-center gap-4"><button onClick={check} disabled={completed} className="px-5 py-3 rounded-lg bg-cyan-300 text-black font-semibold disabled:opacity-50">Проверить</button><button onClick={() => setHint(!hint)} aria-expanded={hint} className="text-sm text-cyan-300 underline">{hint ? 'Скрыть подсказку' : 'Показать подсказку'}</button></div>
+    {hint && <p className="text-sm text-gray-400">{isIf ? 'IF(условие; результат при «да»; результат при «нет»). Текст записывается в кавычках.' : isMultiply ? 'Умножение записывается знаком *. Используй адреса ячеек вместо готового ответа.' : 'SUM складывает диапазон. Двоеточие соединяет адрес первой и последней ячейки.'}</p>}
+    {completed && <p role="status" className="flex gap-2 text-emerald-300"><CheckCircle size={20}/>Верно. {task.lesson?.reflection}</p>}
+  </div>;
 };
