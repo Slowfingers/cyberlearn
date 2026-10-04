@@ -108,6 +108,8 @@ export async function loginLocal(role: 'teacher' | 'student', name: string, pass
 export async function localCall<T>(operation: string, data: Record<string, unknown> = {}): Promise<T> {
   const state = read();
   const user = current(state);
+  // Checking the session before login (or after expiry) is normal, not an error.
+  if (operation === 'getUser') return structuredClone(user ?? null) as T;
   if (!user) throw new Error('Войди в локальный аккаунт.');
   const owned = (id: string) => {
     const cls = state.classes[id];
@@ -121,7 +123,6 @@ export async function localCall<T>(operation: string, data: Record<string, unkno
     case 'createFolder': { if(user.role!=='teacher') throw new Error('Нет доступа.'); const name=String(data.name ?? '').trim().slice(0,100); if(!name) throw new Error('Укажи название папки.'); state.folders=[...new Set([...(state.folders ?? []),name])]; changed=true; result=state.folders; break; }
     case 'raiseHand': { if(user.role!=='student'||!user.classId||!state.classes[user.classId]) throw new Error('Нет класса.'); user.helpRequestedAt = data.raised ? (user.helpRequestedAt ?? new Date().toISOString()) : undefined; user.helpTaskId = data.raised ? String(data.taskId ?? '').slice(0,100) : undefined; changed=true; result=user; break; }
     case 'resolveHand': { const student=state.users[String(data.studentId)]; if(!student?.classId) throw new Error('Ученик не найден.'); owned(student.classId); student.helpRequestedAt=undefined; student.helpTaskId=undefined; changed=true; break; }
-    case 'getUser': result = user; break;
     case 'listClassrooms': result = Object.values(state.classes).filter(cls => user.role === 'teacher' ? cls.teacherId === user.id : cls.id === user.classId); break;
     case 'listUsers': {
       if (user.role !== 'teacher') throw new Error('Нет доступа.');

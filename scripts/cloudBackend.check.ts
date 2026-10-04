@@ -9,6 +9,8 @@ const store:CloudStore={
 process.env.CYBERLEARN_TEACHER_PASSWORD='only-for-cloud-check';
 const call=(op:string,data:Record<string,unknown>={},cookie='')=>cloudOperation(store,op,data,cookie,'test-ip');
 try {
+ const signedOut=await call('getUser');assert.equal(signedOut.error,undefined);assert.equal(signedOut.result,null);
+ assert.ok((await call('listClassrooms')).error);
  const teacher=await call('login',{role:'teacher',name:'imyourteacher',password:'only-for-cloud-check'});
  assert.equal(teacher.error,undefined);
  const cookie='cyberlearn_session='+teacher.token;
@@ -26,6 +28,10 @@ try {
  assert.equal((again.result as any).id,(student.result as any).id);
  assert.equal(Object.keys(saved!.state.users).length,usersBefore);
  assert.equal(Object.values(saved!.state.users).filter(u=>u.role==='teacher').length,1);
+ const activeSession=Object.values(saved!.sessions).find(s=>s.uid===(teacher.result as any).id)!;
+ activeSession.expires=Date.now()-1;
+ const expired=await call('getUser',{},cookie);assert.equal(expired.error,undefined);assert.equal(expired.result,null);
+ assert.ok((await call('listClassrooms',{},cookie)).error);
  assert.ok(Object.values(saved!.state.credentials).every(c=>c.digest && !JSON.stringify(c).includes('only-for-cloud-check')));
  let output='',status=0;
  const res:any={setHeader(){},set statusCode(n:number){status=n;},end(s:string){output=s;}};

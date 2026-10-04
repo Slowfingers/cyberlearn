@@ -2,6 +2,29 @@
 
 @import "tailwindcss";
 
+/* Local Rajdhani files have recalculated glyph bounds (Firefox font sanitizer). */
+@font-face {
+  font-family: 'Rajdhani';
+  font-style: normal;
+  font-weight: 400;
+  font-display: swap;
+  src: url('/fonts/rajdhani-regular.woff2') format('woff2');
+}
+@font-face {
+  font-family: 'Rajdhani';
+  font-style: normal;
+  font-weight: 600;
+  font-display: swap;
+  src: url('/fonts/rajdhani-semibold.woff2') format('woff2');
+}
+@font-face {
+  font-family: 'Rajdhani';
+  font-style: normal;
+  font-weight: 700;
+  font-display: swap;
+  src: url('/fonts/rajdhani-bold.woff2') format('woff2');
+}
+
 @theme {
   --color-cyber-black: #050505;
   --color-cyber-dark: #09090b;

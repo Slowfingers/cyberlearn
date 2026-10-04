@@ -56,7 +56,9 @@ try {
  assert.equal((await call('listSubmissions',{},student.cookie)).data[0].grades.q3.comment,'Хорошо');
  await call('publishAssessment',{classId:c1.id,taskId:assessment.id,published:false},teacher.cookie);assert.equal((await call('listTasks',{},student.cookie)).data.length,1);
  const newcomer=await call('login',{role:'student',name:'Другой ученик',inviteCode:c1.inviteCode});assert.equal((await call('listTasks',{},newcomer.cookie)).data.length,0);
- await call('logout',{},student.cookie);assert.equal((await call('getUser',{},student.cookie)).status,400);
+ await call('logout',{},student.cookie);
+ const signedOut=await call('getUser',{},student.cookie);assert.equal(signedOut.status,200);assert.equal(signedOut.data,null);
+ assert.equal((await call('listClassrooms',{},student.cookie)).status,400);
  assert.ok(!readFileSync('.cyberlearn/data.json','utf8').includes('test-teacher-secret'));
  console.log('School server: teacher-only login, sessions, permissions, folders, help, assessment publication, hidden answers, grading, review and permissions passed.');
 }finally{await new Promise<void>(r=>server.close(()=>r()));process.chdir(previous);rmSync(dir,{recursive:true,force:true});}

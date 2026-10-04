@@ -10,7 +10,7 @@ export async function serverCall<T>(operation:string,data:Record<string,unknown>
 }
 export function observeServer(callback:(user:User|null,error?:unknown)=>void) {
  let cancelled=false;
- const refresh=()=>serverCall<User>('getUser').then(user=>{if(!cancelled)callback(user);}).catch(()=>{if(!cancelled)callback(null);});
+ const refresh=()=>serverCall<User|null>('getUser').then(user=>{if(!cancelled)callback(user);}).catch(()=>{if(!cancelled)callback(null);});
  void refresh(); window.addEventListener('cyberlearn-session',refresh);
  return ()=>{cancelled=true;window.removeEventListener('cyberlearn-session',refresh);};
 }
