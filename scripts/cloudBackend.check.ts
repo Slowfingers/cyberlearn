@@ -1,0 +1,36 @@
+import assert from 'node:assert/strict';
+import {cloudOperation,cloudApi} from '../server/cloudBackend';
+import type {CloudStore,CloudSnapshot} from '../server/firebaseStore';
+let saved:CloudSnapshot|null=null,version=0,conflicts=0;
+const store:CloudStore={
+ async load(){return {snapshot:structuredClone(saved),etag:String(version)};},
+ async save(snapshot,etag){if(conflicts>0){conflicts--;return false;}if(etag!==String(version))return false;saved=structuredClone(snapshot);version++;return true;},
+};
+process.env.CYBERLEARN_TEACHER_PASSWORD='only-for-cloud-check';
+const call=(op:string,data:Record<string,unknown>={},cookie='')=>cloudOperation(store,op,data,cookie,'test-ip');
+try {
+ const teacher=await call('login',{role:'teacher',name:'imyourteacher',password:'only-for-cloud-check'});
+ assert.equal(teacher.error,undefined);
+ const cookie='cyberlearn_session='+teacher.token;
+ assert.ok((await call('login',{role:'teacher',name:'other',password:'only-for-cloud-check'})).error);
+ const cls=(await call('createClassroom',{name:'8 А'},cookie)).result as any;
+ conflicts=1;
+ const student=await call('login',{role:'student',name:'Проверка',inviteCode:cls.inviteCode});
+ assert.equal(student.error,undefined);
+ const sc='cyberlearn_session='+student.token;
+ assert.ok((await call('listUsers',{},sc)).error);
+ await call('raiseHand',{raised:true},sc);
+ assert.ok(((await call('listUsers',{},cookie)).result as any[])[0].helpRequestedAt);
+ const usersBefore=Object.keys(saved!.state.users).length;
+ const again=await call('login',{role:'student',name:'Проверка',inviteCode:cls.inviteCode});
+ assert.equal((again.result as any).id,(student.result as any).id);
+ assert.equal(Object.keys(saved!.state.users).length,usersBefore);
+ assert.equal(Object.values(saved!.state.users).filter(u=>u.role==='teacher').length,1);
+ assert.ok(Object.values(saved!.state.credentials).every(c=>c.digest && !JSON.stringify(c).includes('only-for-cloud-check')));
+ let output='',status=0;
+ const res:any={setHeader(){},set statusCode(n:number){status=n;},end(s:string){output=s;}};
+ await cloudApi({method:'POST',headers:{host:'cyberlearn.example',origin:'https://other.example'},body:{operation:'getUser'}},res);
+ assert.equal(status,403);assert.ok(JSON.parse(output).error);
+ await cloudApi({method:'GET',headers:{}},res);assert.equal(status,405);
+ console.log('cloudBackend.check: one teacher, class-code entry, private class access, hand requests, retry on write conflict, session and credential persistence, and HTTP guards.');
+} finally {delete process.env.CYBERLEARN_TEACHER_PASSWORD;}

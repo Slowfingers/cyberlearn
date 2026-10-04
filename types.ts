@@ -90,6 +90,11 @@ export type TaskType =
   | 'circuit' | 'ai_trainer';
 
 export interface LessonGuide {
+  mentorQuestion?: {
+    prompt: string;
+    options: { text: string; feedback: string }[];
+    correct: number;
+  };
   topic?: string;
   concept: string;
   explanation: string;
@@ -135,6 +140,7 @@ export interface Task {
   
   // For 'html' only
   htmlConfig?: {
+      interaction?: { inputId: string; buttonId: string; listId: string };
       targetTag?: string; 
       targetStyle?: string; 
       previewScale?: number;
@@ -146,6 +152,8 @@ export interface Task {
       goalCommand: string; // e.g., "cat secret.txt"
   };
   terminalOutput?: string; // expected output for print-based terminal tasks
+  terminalTests?: string; // Additional checks run inside the isolated Python worker.
+  terminalSetup?: string; // Authored SQL fixture, recreated for every execution.
 
   // For 'typing' (variant used in grades 3-5)
   typingData?: {

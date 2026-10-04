@@ -85,6 +85,6 @@ export async function checkTerminal(code: string, task: Task): Promise<string> {
         else finish(undefined,event.data.output);
       }
     };
-    worker.postMessage({language, code, reference:task.initialCode});
+    worker.postMessage({language, code, reference:task.initialCode, tests:task.terminalTests, setup:task.terminalSetup});
   });
 }

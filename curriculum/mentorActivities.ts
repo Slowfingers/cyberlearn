@@ -126,7 +126,7 @@ export const MENTOR_QUESTIONS: Record<string, MentorQuestion> = {
 };
 
 export function getMentorQuestion(task: Task): MentorQuestion {
-  return MENTOR_QUESTIONS[task.lesson?.topic ?? ''] ?? question(
+  return task.lesson?.mentorQuestion ?? MENTOR_QUESTIONS[task.lesson?.topic ?? ''] ?? question(
     'С чего начнём выполнение этого задания?', 'Прочитаем цель и проверим, что требуется получить',
     'Сначала выясняем задачу, затем выбираем действия и проверяем результат.',
     [['Сразу отправим пустой ответ', 'Пустой ответ не решает задачу. Сначала прочитай цель.'], ['Будем нажимать всё подряд', 'Случайные действия не помогают понять задачу. Сначала составь план.']],

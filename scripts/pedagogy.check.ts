@@ -5,10 +5,11 @@ import { GRADE4_TASKS } from '../curriculum/grade4';
 import { GRADE5_TASKS } from '../curriculum/grade5';
 import { GRADE6_TASKS } from '../curriculum/grade6';
 import { GRADE7_TASKS } from '../curriculum/grade7';
+import { GRADE8_TASKS } from '../curriculum/grade8';
 import { TRAINER_CONFIGS } from '../curriculum/trainerConfigs';
 import { reviseLessons } from '../curriculum/pedagogy';
 import { parseIfFormula } from '../services/spreadsheetEvaluation';
-const original = [...GRADE3_TASKS, ...GRADE4_TASKS, ...GRADE5_TASKS, ...GRADE6_TASKS, ...GRADE7_TASKS];
+const original = [...GRADE3_TASKS, ...GRADE4_TASKS, ...GRADE5_TASKS, ...GRADE6_TASKS, ...GRADE7_TASKS, ...GRADE8_TASKS];
 assert.deepEqual(MOCK_TASKS.map(t => t.id).sort(), original.map(t => t.id).sort(), 'Сохранены ID всего учебного прогресса');
 const byId = new Map(MOCK_TASKS.map(t => [t.id, t]));
 const reversed = reviseLessons([...original].map(t => ({...t, ...TRAINER_CONFIGS[t.id]})).reverse());
@@ -38,4 +39,4 @@ for (const course of COURSES) assert.equal(course.totalModules, new Set(MOCK_TAS
 assert.equal(byId.get('g3_m8_l1')?.spreadsheetConfig?.formulaType, 'multiply');
 assert.equal(byId.get('g3_m2_l6')?.quizData?.options[0], '16 бит');
 assert.equal(byId.get('g7_l16')?.quizData?.options[0], 'legs["кот"]');
-console.log('pedagogy.check: все 320 ID, привязка тем, учебные циклы, самостоятельные заготовки и соответствие практики проверены');
+console.log(`pedagogy.check: все ${MOCK_TASKS.length} ID, привязка тем, учебные циклы, самостоятельные заготовки и соответствие практики проверены`);

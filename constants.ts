@@ -5,6 +5,7 @@ import { GRADE4_COURSE, GRADE4_TASKS } from './curriculum/grade4';
 import { GRADE5_COURSE, GRADE5_TASKS } from './curriculum/grade5';
 import { GRADE6_COURSE, GRADE6_TASKS } from './curriculum/grade6';
 import { GRADE7_COURSE, GRADE7_TASKS } from './curriculum/grade7';
+import { GRADE8_COURSE, GRADE8_TASKS } from './curriculum/grade8';
 import { reviseLessons } from './curriculum/pedagogy';
 import { TRAINER_CONFIGS } from './curriculum/trainerConfigs';
 import { AVATAR_NAMES, FRAME_NAMES, STREET_AVATARS } from './components/ShopAvatar';
@@ -29,6 +30,7 @@ export const ACHIEVEMENTS: Achievement[] = [
   { id: 'ach_grade5', title: 'Выпускник 5 класса', description: 'Пройди курс 5 класса полностью', icon: '🥇', condition: 'grade5_complete', type: 'cyber' },
   { id: 'ach_grade6', title: 'Выпускник 6 класса', description: 'Пройди курс 6 класса полностью', icon: '🏅', condition: 'grade6_complete', type: 'cyber' },
   { id: 'ach_grade7', title: 'Выпускник 7 класса', description: 'Пройди курс 7 класса полностью', icon: '🏆', condition: 'grade7_complete', type: 'cyber' },
+  { id: 'ach_grade8', title: 'Выпускник 8 класса', description: 'Пройди курс 8 класса полностью', icon: '🚀', condition: 'grade8_complete', type: 'cyber' },
 ];
 
 export const COSMETICS: CosmeticItem[] = [
@@ -92,6 +94,7 @@ const ALL_TASKS: Task[] = [
   ...GRADE5_TASKS,
   ...GRADE6_TASKS,
   ...GRADE7_TASKS,
+  ...GRADE8_TASKS,
 ];
 
 // Приклеиваем авторские конфиги тренажёров к урокам, у которых их не было
@@ -105,6 +108,7 @@ export const COURSES: Course[] = [
   GRADE5_COURSE,
   GRADE6_COURSE,
   GRADE7_COURSE,
+  GRADE8_COURSE,
 ].map(course => ({ ...course, totalModules: new Set(MOCK_TASKS.filter(task => task.courseId === course.id).map(task => task.module)).size }));
 export const AI_SYSTEM_INSTRUCTION = `Ты - Конструктор, ИИ-ментор.`;
 export const COMIC_CHAPTERS: ComicChapter[] = [];

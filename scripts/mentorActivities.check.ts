@@ -14,8 +14,8 @@ for (const [topic, activity] of Object.entries(MENTOR_QUESTIONS)) {
 }
 for (const task of MOCK_TASKS) {
   assert.ok(task.lesson?.topic, `Missing topic: ${task.id}`);
-  assert.ok(MENTOR_QUESTIONS[task.lesson!.topic!], `Missing question: ${task.id}`);
-  assert.ok(CLEAR_EXPLANATIONS[task.lesson!.topic!], `Missing clear explanation: ${task.id}`);
+  assert.ok(task.lesson!.mentorQuestion ?? MENTOR_QUESTIONS[task.lesson!.topic!], `Missing question: ${task.id}`);
+  assert.ok(task.lesson!.mentorQuestion ? task.lesson!.explanation : CLEAR_EXPLANATIONS[task.lesson!.topic!], `Missing clear explanation: ${task.id}`);
   const markup = renderToStaticMarkup(React.createElement(BigMascotTheoryStory, { task, mascotSkinItemId: 'skin_cat', onStartPractice: () => {} }));
   assert.ok(markup.includes('Кибер-Кот'));
   assert.ok(markup.includes('Шаги объяснения'));

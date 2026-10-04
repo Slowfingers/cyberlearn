@@ -9,7 +9,7 @@
     "preview": "vite preview",
     "validate:curriculum": "node --import tsx scripts/validateCurriculum.ts",
     "typecheck": "tsc --noEmit -p .",
-    "check": "npm run typecheck && npm run validate:curriculum && node --import tsx scripts/cosmetics.check.ts && node --import tsx scripts/scoring.check.ts && node --import tsx scripts/gridInterpreter.check.ts && node --import tsx scripts/trainerConfig.check.ts && node --import tsx scripts/theoryNarration.check.ts && node --import tsx scripts/pedagogy.check.ts && node --import tsx scripts/mentorActivities.check.ts && node --import tsx scripts/regressions.check.ts && node scripts/activityTracker.check.mjs && npm run build:functions && node --test functions/domain.test.mjs functions/api.test.mjs",
+    "check": "npm run typecheck && npm run validate:curriculum && node --import tsx scripts/cosmetics.check.ts && node --import tsx scripts/scoring.check.ts && node --import tsx scripts/gridInterpreter.check.ts && node --import tsx scripts/trainerConfig.check.ts && node --import tsx scripts/theoryNarration.check.ts && node --import tsx scripts/pedagogy.check.ts && node --import tsx scripts/mentorActivities.check.ts && node --import tsx scripts/regressions.check.ts && node --import tsx scripts/cloudBackend.check.ts && node --import tsx scripts/firebaseStore.check.ts && node --import tsx scripts/importLegacySchool.check.ts && node scripts/activityTracker.check.mjs && npm run build:functions && node --test functions/domain.test.mjs functions/api.test.mjs",
     "build:functions": "node scripts/buildFunctions.mjs",
     "check:browser": "node scripts/browser.check.mjs",
     "check:local": "node scripts/localDemo.browser.check.mjs",
@@ -17,7 +17,10 @@
     "check:layout": "node scripts/layout.browser.check.mjs",
     "setup:teacher": "node --import tsx scripts/setupTeacher.ts",
     "check:school": "node --import tsx scripts/localServer.check.ts",
-    "start": "vite preview --host 0.0.0.0 --port 3000 --strictPort"
+    "start": "vite preview --host 0.0.0.0 --port 3000 --strictPort",
+    "check:grade8": "node --import tsx scripts/grade8.check.ts",
+    "check:cloud": "node --import tsx scripts/cloudBackend.check.ts && node --import tsx scripts/firebaseStore.check.ts && node --import tsx scripts/importLegacySchool.check.ts",
+    "import:firebase": "node --import tsx scripts/importFirebaseSchool.ts"
   },
   "dependencies": {
     "firebase": "^12.11.0",
@@ -43,5 +46,8 @@
   },
   "overrides": {
     "@grpc/grpc-js": "^1.13.6"
+  },
+  "engines": {
+    "node": "22.x"
   }
 }

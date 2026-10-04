@@ -347,6 +347,29 @@ export const evaluateCodeLocally = async (code: string, task: Task): Promise<Exe
             error = "Ошибка парсинга HTML.";
         }
         
+        if (success && task.htmlConfig?.interaction) {
+            const { inputId, buttonId, listId } = task.htmlConfig.interaction;
+            const parser = new DOMParser();
+            const doc = parser.parseFromString(rawCode, 'text/html');
+            if (![inputId, buttonId, listId].every(id => doc.getElementById(id))) {
+                success = false;
+                error = 'Сохрани поле, кнопку и список с ID из шаблона.';
+            } else {
+                // Execute scripts in the existing disposable Worker, with a small DOM model.
+                // Student code has no access to the page or the teacher's data.
+                const ids = JSON.stringify([inputId, buttonId, listId]);
+                const prefix = `const elements = Object.fromEntries(${ids}.map(id => [id, {value:'', children:[], textContent:'', listeners:{}, addEventListener(event,fn){this.listeners[event]=fn}, appendChild(child){this.children.push(child)}, append(child){this.children.push(child)}}]));\nconst document = {getElementById(id){return elements[id]}, createElement(){return {textContent:''}}};\n`;
+                const suffix = `\nfor (const value of ['Миссия', '   ', '  Дрон  ']) {elements[${JSON.stringify(inputId)}].value=value; elements[${JSON.stringify(buttonId)}].listeners.click();}\nconsole.log(JSON.stringify(elements[${JSON.stringify(listId)}].children.map(child=>child.textContent)));`;
+                const scripts = (html:string) => Array.from(parser.parseFromString(html,'text/html').querySelectorAll('script')).map(script=>script.textContent).join('\n');
+                try {
+                    await checkTerminal(prefix + scripts(rawCode) + suffix, {...task,initialCode:prefix + scripts(task.initialCode ?? '') + suffix});
+                    logs.push('✓ Кнопка добавляет текст, удаляет крайние пробелы и отклоняет пустой ввод');
+                } catch (e) {
+                    success = false;
+                    error = e instanceof Error ? e.message : 'Проверь обработчик кнопки.';
+                }
+            }
+        }
         return { success, logs, steps: [], error, feedback };
     }
 

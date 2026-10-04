@@ -15,7 +15,7 @@ export default defineConfig(() => {
         rollupOptions: {
           output: {
             manualChunks(id) {
-              const grade = id.match(/\/curriculum\/(grade[3-7])(?:\/|\.ts)/)?.[1];
+              const grade = id.match(/\/curriculum\/(grade[3-8])(?:\/|\.ts)/)?.[1];
               if (grade) return `curriculum-${grade}`;
             },
           },

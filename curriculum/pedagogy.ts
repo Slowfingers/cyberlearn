@@ -296,6 +296,8 @@ const gaps: Record<string, [string, string]> = {
 
 export function reviseLessons(tasks: Task[]): Task[] {
   const revised = tasks.map(original => {
+    // New courses carry authored, topic-specific guides; retain their scaffolds and order.
+    if (original.courseId === 'course_grade8' && original.lesson) return original;
     const task = { ...original };
     const mappedKey = topicOverrides[task.id]?.[0] ?? topics.get(task.id);
     const key = task.type === 'wireframe_builder' ? 'wireframe' : task.type === 'ai_neuron' ? 'neuron' : task.type === 'spreadsheet' ? (task.spreadsheetConfig?.formulaType === 'if' ? 'ifformula' : task.spreadsheetConfig?.formulaType === 'multiply' ? 'multiply' : 'spreadsheet') : mappedKey;

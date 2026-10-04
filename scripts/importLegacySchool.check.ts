@@ -1,0 +1,15 @@
+import assert from 'node:assert/strict';
+import {importLegacySchool} from '../server/importLegacySchool';
+import {dispatchSchool,withSchoolSnapshot} from '../server/localBackend';
+const legacy={users:{t:{id:'t',name:'Старый учитель',role:'teacher',password:'old-password'},s:{id:'s',name:'Саша',role:'student',classId:'c',password:'old-student-password',xp:400,currency:50,level:3,completedTaskIds:['g3_m1_l1'],inventory:['av_1','av_11','frame_2'],equipped:{avatar:'av_11',avatarFrame:'frame_2',droneColor:'col_default'}}},classrooms:{c:{id:'c',name:'8 А',teacherId:'t',inviteCode:'OLDCODE',studentIds:['s']}},tasks:{}};
+const snapshot=await importLegacySchool(legacy,'imyourteacher','new-teacher-password');
+assert.equal(snapshot.state.classes.c.inviteCode,'OLDCODE');
+assert.deepEqual(snapshot.state.users.s.inventory,['av_1','av_11','frame_2']);
+assert.deepEqual(snapshot.state.users.s.completedTaskIds,['g3_m1_l1']);
+assert.equal(snapshot.state.users.s.equipped.avatarFrame,'frame_2');
+assert.ok(!JSON.stringify(snapshot).includes('old-password') && !JSON.stringify(snapshot).includes('old-student-password'));
+const user:any=await withSchoolSnapshot(snapshot,'student-import-session',()=>dispatchSchool('login',{role:'student',name:'Саша',inviteCode:'OLDCODE'}));
+assert.equal(user.id,'s');assert.equal(user.xp,400);
+assert.equal(Object.keys(snapshot.state.users).length,2);
+await assert.rejects(importLegacySchool({...legacy,users:{...legacy.users,s2:{...legacy.users.s,id:'s2'}}},'imyourteacher','new-teacher-password'),/Совпадающие имена/);
+console.log('importLegacySchool.check: old class codes, student IDs, progress, legacy purchased cosmetics and frame preserved; old passwords excluded; ambiguous names rejected.');

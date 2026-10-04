@@ -1,6 +1,6 @@
 // No Firebase SDK or credentials are loaded in the execution worker.
 const PYODIDE_URL = 'https://cdn.jsdelivr.net/pyodide/v314.0.7/full/pyodide.mjs';
-self.onmessage = async ({ data: { language, code, reference } }) => {
+self.onmessage = async ({ data: { language, code, reference, tests = '', setup = '' } }) => {
   try {
     let run;
     if (language === 'javascript') {
@@ -21,6 +21,7 @@ self.onmessage = async ({ data: { language, code, reference } }) => {
         try {
           if (language === 'sql') {
             globals.set('student_sql',source);
+            globals.set('fixture_sql', setup);
             await pyodide.runPythonAsync(`
 import sqlite3
 connection = sqlite3.connect(':memory:')
@@ -30,6 +31,7 @@ INSERT INTO players VALUES ('Neo','hacker',14,'active'),('Morpheus','teacher',25
 CREATE TABLE leaderboard (username TEXT, score INTEGER);
 INSERT INTO leaderboard VALUES ('CyberGhost',9840),('ZeroCool',9210),('Trinity',8950),('Agent',100);
 ''')
+connection.executescript(fixture_sql)
 statement = ''
 for character in student_sql:
     statement += character
@@ -52,8 +54,9 @@ connection.close()
       };
     }
     self.postMessage({ready:true});
-    const expected = await run(reference);
-    const output = await run(code);
+    const withTests = source => language === 'python' && tests ? source + '\n' + tests : source;
+    const expected = await run(withTests(reference));
+    const output = await run(withTests(code));
     self.postMessage({output,expected});
   } catch (error) { self.postMessage({error:String(error.message || error)}); }
 };

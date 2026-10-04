@@ -7,21 +7,34 @@ import { ACHIEVEMENTS, COSMETICS, LEVEL_THRESHOLDS, MOCK_TASKS } from '../consta
 import { buyCosmetic, completeTask, validateMap } from '../functions/domain.mjs';
 
 const context = new AsyncLocalStorage<string>();
-type Sessions=Record<string,{uid:string;expires:number}>;
+export type Sessions=Record<string,{uid:string;expires:number}>;
+export interface SchoolSnapshot {state: State; sessions: Sessions}
+const storageContext = new AsyncLocalStorage<SchoolSnapshot>();
 const sessionKey=(token:string)=>createHash('sha256').update(token).digest('hex');
-function readSessions():Sessions {try{return JSON.parse(readFileSync('.cyberlearn/sessions.json','utf8'));}catch{return {};}}
-function saveSessions(sessions:Sessions){mkdirSync('.cyberlearn',{recursive:true,mode:0o700});for(const key of Object.keys(sessions)) if(sessions[key].expires<=Date.now()) delete sessions[key];writeFileSync('.cyberlearn/sessions.json.tmp',JSON.stringify(sessions),{mode:0o600});renameSync('.cyberlearn/sessions.json.tmp','.cyberlearn/sessions.json');}
+function readSessions():Sessions {const storage=storageContext.getStore();if(storage)return structuredClone(storage.sessions);try{return JSON.parse(readFileSync('.cyberlearn/sessions.json','utf8'));}catch{return {};}}
+function saveSessions(sessions:Sessions){for(const key of Object.keys(sessions)) if(sessions[key].expires<=Date.now()) delete sessions[key];const storage=storageContext.getStore();if(storage){storage.sessions=structuredClone(sessions);return;}mkdirSync('.cyberlearn',{recursive:true,mode:0o700});writeFileSync('.cyberlearn/sessions.json.tmp',JSON.stringify(sessions),{mode:0o600});renameSync('.cyberlearn/sessions.json.tmp','.cyberlearn/sessions.json');}
 const file = '.cyberlearn/data.json';
 interface Credential { uid: string; salt: string; digest: string }
-interface State { submissions?: AssessmentSubmission[]; folders?: string[]; version: 1; users: Record<string, User>; classes: Record<string, Classroom>; tasks: Record<string, Task[]>; credentials: Record<string, Credential> }
+export interface State { submissions?: AssessmentSubmission[]; folders?: string[]; version: 1; users: Record<string, User>; classes: Record<string, Classroom>; tasks: Record<string, Task[]>; credentials: Record<string, Credential> }
 const newUser = (id: string, name: string, role: User['role'], classId?: string): User => ({ id, name, role, ...(classId ? {classId} : {}), xp: 0, currency: 0, level: 1, tasksCompleted: 0, totalErrors: 0, completedTaskIds: [], inventory: ['av_1','col_default','frame_none','skin_sparky'], achievements: [], equipped: {avatar:'av_1',droneColor:'col_default',avatarFrame:'frame_none',mascotSkin:'skin_sparky'} });
 function read(): State {
+  const storage=storageContext.getStore();if(storage)return structuredClone(storage.state);
   return JSON.parse(readFileSync(file,'utf8'));
 }
 function save(state: State) {
+  const storage=storageContext.getStore();if(storage){storage.state=structuredClone(state);return;}
   mkdirSync('.cyberlearn',{recursive:true,mode:0o700});
   writeFileSync(file+'.tmp',JSON.stringify(state),{mode:0o600});
   renameSync(file+'.tmp',file);
+}
+/** Shared authorization and school logic, with a request-scoped persistent-store snapshot. */
+export function withSchoolSnapshot<T>(snapshot:SchoolSnapshot,token:string,work:()=>Promise<T>):Promise<T> {
+  return storageContext.run(snapshot,()=>context.run(token,work));
+}
+export async function dispatchSchool(operation:string,data:Record<string,unknown>):Promise<unknown> {
+  if(operation==='login') return loginLocal(data.role as 'teacher'|'student',data.name as string,(data.password ?? '') as string,data.inviteCode as string|undefined);
+  if(operation==='logout') return logoutLocal();
+  return localCall(operation,data);
 }
 export async function provisionTeacher(name: string, password: string) {
   let state: State;
@@ -33,6 +46,14 @@ export async function provisionTeacher(name: string, password: string) {
   state.credentials[identity('teacher',name)]=await credential(teacher.id,password);
   save(state);
   saveSessions({});
+}
+export async function provisionImportedStudent(user:User) {
+  const state=read();
+  if(user.role!=='student' || !user.classId || !state.classes[user.classId] || !state.users[user.id]) throw Error('Неверная связь импортируемого ученика с классом.');
+  const key=identity('student',user.name,user.classId);
+  if(state.credentials[key] && state.credentials[key].uid!==user.id) throw Error('Дублирующееся имя ученика в классе.');
+  state.credentials[key]=await credential(user.id,'class-code-entry');
+  save(state);
 }
 const identity = (role: string, name: string, classId = '') => JSON.stringify([role,name.trim().toLocaleLowerCase('ru'),classId]);
 async function digest(password: string, salt: string) {
