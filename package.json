@@ -5,7 +5,7 @@
   "type": "module",
   "scripts": {
     "dev": "vite",
-    "build": "vite build",
+    "build": "node scripts/buildCloud.mjs && vite build",
     "preview": "vite preview",
     "validate:curriculum": "node --import tsx scripts/validateCurriculum.ts",
     "typecheck": "tsc --noEmit -p .",
