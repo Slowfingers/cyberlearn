@@ -392,6 +392,15 @@ export function reviseLessons(tasks: Task[]): Task[] {
         success='Разметка соответствует правилу; ты понимаешь назначение этих данных.';
       }
     }
+    if (task.id === 'g6_m4_grid2') {
+      goal = 'Доведи робота до цели с помощью цикла for. Направление и число повторов выбери по карте.';
+      steps = ['Посчитай одинаковые шаги от старта до цели.', 'Запиши цикл for и команду с отступом.', 'Запусти: проверяются и маршрут, и использование повторения.'];
+      success = 'Робот достиг цели; повторяющиеся шаги объединены в цикл.';
+      reflection = 'Почему число повторов должно совпадать с количеством шагов?';
+    }
+    if (task.id === 'g6_m1_l1') reflection = 'Как система помогает нескольким программам работать одновременно?';
+    if (task.id === 'g6_m1_term') success = 'Показаны текущая папка, подробный список и содержимое welcome.txt.';
+    if (task.id === 'g6_m8_l2') reflection = 'Что сохраняется локально, а что требует отправки?';
     task.lesson = { topic: key, concept, explanation, example: workedExample, goal, steps: [...steps], success, reflection, starterCode, mentorQuestion: PROGRESSION_QUESTIONS[task.id], commands: task.type === 'grid' ? gridCommands(task) : undefined };
     // Короткое описание рассказывает о действии, а не перечисляет стандарты.
     task.description = goal;

@@ -1,5 +1,8 @@
 import type {Task} from '../types';
 export const GRADE6_SCENARIOS:Record<string,Partial<Task>>={
+ g6_m4_grid2:{initialCode:'for i in range(4):\n    drone.moveRight()',allowedCommands:['drone.moveRight()','drone.moveLeft()','drone.moveDown()','drone.moveUp()','for i in range(2):'],mapConfig:{gridSize:5,start:[0,1],end:[4,1],obstacles:[[2,2],[3,2]],requireLoop:true}},
+ g6_m8_l2:{quizData:{question:'После git add ученик выполнил git commit с сообщением «Исправлено меню». Что произошло?',options:['Выбранные изменения сохранены в локальной истории проекта','Проект автоматически опубликован в интернете','Все старые версии удалены','Файлы сразу отправлены одноклассникам'],correctIndex:0,explanation:'Commit сохраняет выбранные изменения с описанием. Предыдущие версии остаются в истории. Для отправки в удалённое хранилище нужна отдельная команда.'}},
+ g6_m7_ethics:{quizData:{question:'Модель обучали только на дневных фото улицы. Что нужно сделать перед использованием ночью?',options:['Проверить на ночных фото и дополнить учебные примеры','Считать любой ответ модели правильным','Только изменить название модели','Убрать все дневные примеры без проверки'],correctIndex:0,explanation:'Если новых условий почти не было в учебных примерах, ошибки могут встречаться чаще. Люди проверяют модель в разных условиях и решают, где её можно применять.'}},
  g6_m3_hanoi:{hanoiConfig:{disks:4}},
  g6_m4_typing:{typingConfig:{targetText:'for i in range(3):\n    total += i'}},
  g6_m2_sheets_sum:{spreadsheetConfig:{formulaType:'sum',targetFormula:'=SUM(D2:D4)',tableData:[{id:'s1',name:'Датчики',val1:120,val2:3},{id:'s2',name:'Кабели',val1:45,val2:4},{id:'s3',name:'Корпуса',val1:80,val2:2}]}},

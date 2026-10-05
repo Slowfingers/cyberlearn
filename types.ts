@@ -128,6 +128,7 @@ export interface Task {
     start: [number, number]; 
     end: [number, number];
     obstacles: [number, number][];
+    requireLoop?: boolean;
   };
 
   // For 'quiz' only

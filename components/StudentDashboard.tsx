@@ -1052,7 +1052,7 @@ const StudentDashboard: React.FC<StudentDashboardProps> = ({ currentUser: propUs
                 <div className="max-w-4xl mx-auto w-full space-y-6">
                     <MascotErrorBoundary fallback={activeTask.theory ? (
                         <div className="bg-black/80 border border-gray-800 p-6 md:p-8 rounded-xl shadow-xl prose prose-invert max-w-none text-sm leading-relaxed">
-                            <div dangerouslySetInnerHTML={{ __html: activeTask.theory }} />
+                            <div className="lesson-theory-copy" dangerouslySetInnerHTML={{ __html: activeTask.theory }} />
                         </div>
                     ) : null}>
                         <Suspense fallback={<LessonLoader />}>
@@ -1300,7 +1300,7 @@ const StudentDashboard: React.FC<StudentDashboardProps> = ({ currentUser: propUs
                         <p className="text-gray-400">{stripStandardsPrefix(activeTask.description || '')}</p>
                         <div className="h-px bg-gray-800 my-4"></div>
                         <h3 className="text-cyber-neonBlue font-mono flex items-center gap-2"><BookOpen size={16}/> Подсказка</h3>
-                        <div dangerouslySetInnerHTML={{ __html: activeTask.theory || '' }} />
+                        <div className="lesson-theory-copy" dangerouslySetInnerHTML={{ __html: activeTask.theory || '' }} />
                     </div>
                 </div>
             </div>
@@ -1338,7 +1338,7 @@ const StudentDashboard: React.FC<StudentDashboardProps> = ({ currentUser: propUs
                  <div className={`hidden xl:block bg-gray-900 border-b border-cyber-neonBlue/20 overflow-hidden transition-all duration-300 ${showTheory ? 'max-h-[35vh]' : 'max-h-0'}`}>
                     <div className="p-6 overflow-y-auto max-h-[35vh] prose prose-invert prose-sm max-w-none">
                         <h3 className="text-cyber-neonGreen font-mono">Главная идея</h3>
-                        <div dangerouslySetInnerHTML={{ __html: activeTask.theory || '' }} />
+                        <div className="lesson-theory-copy" dangerouslySetInnerHTML={{ __html: activeTask.theory || '' }} />
                     </div>
                  </div>
 

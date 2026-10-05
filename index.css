@@ -518,8 +518,8 @@ body { margin:0; background:#0b111d; font-family:system-ui,-apple-system,'Segoe 
 .mentor-bubble::before { content: ''; position: absolute; left: -10px; top: 28px; width: 18px; height: 18px; background: #193047; border-left: 1px solid #35566c; border-bottom: 1px solid #35566c; transform: rotate(45deg); }
 .mentor-bubble-label { display: flex; align-items: center; gap: 6px; color: #67e8f9; font-size: 11px; margin-bottom: 12px; }
 .mentor-opening { font-size: 12px; color: #a6b8cc; margin: 0 0 12px; }
-.mentor-main-speech { font-size: 17px; font-weight: 600; line-height: 1.65; margin: 0; color: #f2f7ff; white-space: pre-line; overflow-wrap: anywhere; }
-.mentor-example-text { margin-top: 15px; font-size: 14px; line-height: 1.7; white-space: pre-line; overflow-wrap: anywhere; }
+.mentor-main-speech { font-size: 17px; font-weight: 600; line-height: 1.65; margin: 0; color: #f2f7ff; white-space: pre-wrap; overflow-wrap: anywhere; }
+.mentor-example-text { margin-top: 15px; font-size: 14px; line-height: 1.7; white-space: pre-wrap; overflow-wrap: anywhere; }
 .mentor-explanation-progress { display: flex; gap: 6px; margin: 14px 0 8px; }
 .mentor-explanation-progress button { width: 28px; min-height: 28px; position: relative; }
 .mentor-explanation-progress button::after { content: ''; display: block; height: 4px; width: 100%; border-radius: 5px; background: #384a62; }
@@ -949,3 +949,5 @@ body { margin:0; background:#0b111d; font-family:system-ui,-apple-system,'Segoe 
 .mentor-character[data-character="moss"] .street-avatar-strip {animation-duration:4.2s;}
 .mentor-character[data-character="lyra"] .mentor-movement-strip {animation-duration:1.8s;}
 .mentor-character[data-character="moss"] .mentor-movement-strip {animation-duration:2.2s;}
+
+.lesson-theory-copy p {white-space:pre-wrap;overflow-wrap:anywhere;}

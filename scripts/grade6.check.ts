@@ -1,3 +1,4 @@
+import {runGridProgram, evaluateCodeLocally} from '../services/localEvaluation';
 import {getProcessScenario} from '../components/interactives/ProcessManagerGame';
 import assert from 'node:assert/strict';
 import {MOCK_TASKS} from '../constants';
@@ -26,3 +27,13 @@ assert.deepEqual(boundary.tableData.map(r=>r.val1),[84,70,69]);
 assert.equal(new Set(tasks.map(t=>t.lesson!.explanation)).size,40,'Повтор объяснения');
 assert.equal(tasks.find(t=>t.id==='g6_m3_hanoi')!.hanoiConfig!.disks,4);
 console.log('grade6.check: 40 уникальных уроков и сценариев, авторские таблицы, граница IF, процессные цели и четыре диска проверены.');
+
+const loopTask=tasks.find(t=>t.id==='g6_m4_grid2')!;
+assert.equal(runGridProgram(loopTask.initialCode!,loopTask.mapConfig!).success,true);
+assert.equal(runGridProgram(Array(4).fill('drone.moveRight()').join('\n'),loopTask.mapConfig!).success,false,'Обычный маршрут не заменяет практику цикла');
+assert.equal(runGridProgram('# for i in range(4):\n'+Array(4).fill('drone.moveRight()').join('\n'),loopTask.mapConfig!).success,false,'Комментарий не считается циклом');
+for(const task of tasks.filter(t=>['grid','html','terminal'].includes(t.type))){
+ const result=await evaluateCodeLocally(task.lesson!.starterCode!,task);
+ assert.equal(result.success,false,`${task.id}: пустая заготовка не должна завершать задание`);
+}
+console.log('grade6.check: цикл обязателен; все 6 ученических заготовок требуют самостоятельного решения.');

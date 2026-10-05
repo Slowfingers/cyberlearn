@@ -201,6 +201,11 @@ export function runGridProgram(code: string, map: NonNullable<Task['mapConfig']>
         else { error = `Неизвестная команда: ${orig}`; break; }
     }
 
+    if (!error && pos[0] === end[0] && pos[1] === end[1] && map.requireLoop) {
+        const source = code.split('\n').map(line => line.split('#')[0]).join('\n');
+        const repeats = [...source.matchAll(/^\s*for\s+\w+\s+in\s+range\(\s*(\d+)\s*\)\s*:/gm)];
+        if (!repeats.some(match => Number(match[1]) >= 2)) error = 'Маршрут верный. В этом уроке нужно объединить повторяющиеся шаги в цикл for с двумя или большим числом повторов.';
+    }
     const success = !error && pos[0] === end[0] && pos[1] === end[1];
     if (!error && !success) error = 'Цель не достигнута.';
     return { success, steps, gridEvents, logs, error };
