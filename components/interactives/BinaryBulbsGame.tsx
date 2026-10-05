@@ -152,9 +152,6 @@ export const BinaryBulbsGame: React.FC<{ task: Task; onComplete: () => void }> =
             </span>
           )}
         </div>
-        <div className="text-xs text-amber-200 mt-2 font-mono bg-black/40 inline-block px-3 py-1 rounded-full border border-amber-500/30">
-          💡 Подсказка: {currentRound.target} = {currentRound.formula}
-        </div>
       </div>
 
       {/* 4 Interactive Bulbs */}
@@ -249,4 +246,3 @@ export const BinaryBulbsGame: React.FC<{ task: Task; onComplete: () => void }> =
     </div>
   );
 };
-

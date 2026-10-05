@@ -1,6 +1,7 @@
 import assert from 'node:assert';
 import { runGridProgram } from '../services/localEvaluation';
 import { Task } from '../types';
+import { MOCK_TASKS } from '../constants';
 
 const map = (over: Partial<NonNullable<Task['mapConfig']>> = {}): NonNullable<Task['mapConfig']> => ({
     gridSize: 3,
@@ -75,4 +76,26 @@ const map = (over: Partial<NonNullable<Task['mapConfig']>> = {}): NonNullable<Ta
     assert.strictEqual(r.success, false);
 }
 
-console.log('gridInterpreter.check: все 9 проверок прошли');
+{
+ const r=runGridProgram('right()\nright()\nright()\nright()',map({end:[0,0]}));
+ assert.deepStrictEqual(r.gridEvents.map(e=>e.heading),['S','W','N','E']);
+ assert.ok(r.gridEvents.every(e=>e.type==='turn' && e.x===0 && e.y===0));
+ assert.equal(r.steps.length,1,'Повороты не добавляют шаги маршрута');
+}
+for(const code of ['for i in range(2):\nforward()','for i in range(2):','for i in range():']) {
+ const r=runGridProgram(code,map());assert.equal(r.success,false);assert.ok(r.error && !r.error.includes('лимит'),'Понятная ошибка цикла вместо неверного выполнения');
+}
+{
+ const r=runGridProgram('drone.move_down()',map({obstacles:[[0,1]]}));
+ assert.equal(r.gridEvents[0].heading,'S');assert.equal(r.gridEvents[0].type,'turn');assert.deepStrictEqual(r.steps,[[0,0]]);
+}
+const routes=MOCK_TASKS.filter(t=>t.type==='grid');
+assert.equal(runGridProgram('for i=2,4 do forward() end',map({gridSize:4,end:[3,0]})).success,true);
+for(const task of routes) {
+ const r=runGridProgram(task.initialCode!,task.mapConfig!);
+ assert.equal(r.success,task.id!=='g4_l43',`${task.id}: эталон достигает цели (кроме задания на исправление ошибки)`);
+ assert.ok(r.gridEvents.every(e=>e.heading),`${task.id}: каждое событие имеет направление для анимации`);
+ const blank=runGridProgram(task.lesson!.starterCode!,task.mapConfig!);
+ assert.equal(blank.success,false,`${task.id}: заготовка не выдаёт готовый маршрут`);
+}
+console.log(`gridInterpreter.check: turns, headings, invalid loops, collisions and all ${routes.length} course routes passed.`);

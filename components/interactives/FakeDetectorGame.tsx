@@ -248,7 +248,7 @@ export const FakeDetectorGame: React.FC<{ task: Task; onComplete: () => void }> 
           {/* Teacher Clue Banner */}
           {showHint && !feedback && currentCase.teacherHint && (
             <div className="p-3 mb-4 bg-cyan-950/60 border border-cyan-400/40 rounded-xl text-xs text-cyan-200 animate-fadeIn">
-              💡 <strong>Подсказка учителя:</strong> {currentCase.teacherHint}
+              Проверь источник, дату, доказательства и просьбы в сообщении. Выбери ответ по этим признакам.
             </div>
           )}
 
@@ -300,4 +300,3 @@ export const FakeDetectorGame: React.FC<{ task: Task; onComplete: () => void }> 
     </div>
   );
 };
-

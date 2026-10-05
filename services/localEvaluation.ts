@@ -46,10 +46,12 @@ const expandGridProgram = (code: string): { cmd: string; orig: string }[] => {
             if (l.text === 'end') { i++; continue; }
 
             const pyFor = l.text.match(/^for\b.*\bin\s+range\s*\(\s*(\d+)\s*\)\s*:\s*$/i);
-            const luaFor = l.text.match(/^for\s+\w+\s*=\s*\d+\s*,\s*(\d+)\s+do\b([\s\S]*)$/i);
+            const luaFor = l.text.match(/^for\s+\w+\s*=\s*(\d+)\s*,\s*(\d+)\s+do\b([\s\S]*)$/i);
 
             if (pyFor) {
                 const n = parseInt(pyFor[1]);
+                if(n > GRID_MAX_COMMANDS) throw new Error('LIMIT');
+                if(!lines[i+1] || lines[i+1].indent <= l.indent) throw new Error('После строки for нужны команды с отступом: добавь четыре пробела перед ними.');
                 const innerStart = out.length;
                 i = expandBlock(i + 1, l.indent);
                 const body = out.splice(innerStart);
@@ -59,13 +61,16 @@ const expandGridProgram = (code: string): { cmd: string; orig: string }[] => {
                 }
                 continue;
             }
+            if (/^for\b.*\brange\s*\(/i.test(l.text)) throw new Error('В скобках range укажи число повторений, например range(2), а после скобок поставь двоеточие.');
             if (luaFor) {
-                const n = parseInt(luaFor[1]);
-                const rest = luaFor[2].trim();
+                const n = Math.max(0,parseInt(luaFor[2])-parseInt(luaFor[1])+1);
+                if(n > GRID_MAX_COMMANDS) throw new Error('LIMIT');
+                const rest = luaFor[3].trim();
                 const innerStart = out.length;
                 if (rest) {
                     // Однострочный цикл: for i=1,N do cmd() end
                     const innerText = rest.replace(/\bend\s*$/, '').trim();
+                    if(!/\bend\s*$/.test(rest)) throw new Error('Закрой цикл Lua командой end.');
                     for (const m of innerText.matchAll(/[a-zA-Z_.]+\s*\([^)]*\)/g)) pushCmd(m[0]);
                     i++;
                 } else {
@@ -80,6 +85,7 @@ const expandGridProgram = (code: string): { cmd: string; orig: string }[] => {
                         bodyLines.push(lines[i]);
                         i++;
                     }
+                    if(depth!==0) throw new Error('Закрой цикл Lua командой end.');
                     // Тело обрабатываем тем же expandBlock: подменяем lines временно
                     const saved = lines.splice(0, lines.length, ...bodyLines);
                     expandBlock(0, -1);
@@ -123,7 +129,7 @@ export function runGridProgram(code: string, map: NonNullable<Task['mapConfig']>
     try {
         commands = expandGridProgram(code);
     } catch (e) {
-        return { success: false, steps, gridEvents, logs, error: `Превышен лимит команд (${GRID_MAX_COMMANDS}).` };
+        return { success: false, steps, gridEvents, logs, error: e instanceof Error && e.message !== 'LIMIT' ? e.message : `Превышен лимит команд (${GRID_MAX_COMMANDS}).` };
     }
 
     const FWD = new Set(['forward', 'moveforward', 'move', 'step']);
@@ -138,11 +144,11 @@ export function runGridProgram(code: string, map: NonNullable<Task['mapConfig']>
 
     const tryLand = (nx: number, ny: number): boolean => {
         if (nx < 0 || nx >= gridSize || ny < 0 || ny >= gridSize) {
-            error = 'CRASH: выход за пределы сетки!';
+            error = 'Шаг выводит робота за край карты. Проверь клетку и направление стрелки.';
             return false;
         }
         if (activeObstacles.has(`${nx},${ny}`)) {
-            error = 'CRASH: столкновение с файрволом!';
+            error = 'На пути препятствие. Проверь следующий шаг и направление стрелки.';
             return false;
         }
         return true;
@@ -154,7 +160,7 @@ export function runGridProgram(code: string, map: NonNullable<Task['mapConfig']>
         if (!tryLand(nx, ny)) return false;
         pos[0] = nx; pos[1] = ny;
         steps.push([nx, ny]);
-        gridEvents.push({ type: 'move', x: nx, y: ny });
+        gridEvents.push({ type: 'move', x: nx, y: ny, heading });
         return true;
     };
 
@@ -165,7 +171,7 @@ export function runGridProgram(code: string, map: NonNullable<Task['mapConfig']>
         if (!tryLand(nx, ny)) return false;
         pos[0] = nx; pos[1] = ny;
         steps.push([nx, ny]);
-        gridEvents.push({ type: 'jump', x: nx, y: ny, targetX: nx, targetY: ny });
+        gridEvents.push({ type: 'jump', x: nx, y: ny, targetX: nx, targetY: ny, heading });
         return true;
     };
 
@@ -175,18 +181,21 @@ export function runGridProgram(code: string, map: NonNullable<Task['mapConfig']>
         if (activeObstacles.delete(`${tx},${ty}`)) {
             logs.push(`Файрвол уничтожен на [${tx}, ${ty}]`);
         }
-        gridEvents.push({ type: 'attack', x: pos[0], y: pos[1], targetX: tx, targetY: ty });
+        gridEvents.push({ type: 'attack', x: pos[0], y: pos[1], targetX: tx, targetY: ty, heading });
         return true;
+    };
+    const face = (dir: Heading) => {
+        if(heading !== dir) {heading=dir;gridEvents.push({type:'turn',x:pos[0],y:pos[1],heading});}
     };
 
     for (const { cmd, orig } of commands) {
         if (FWD.has(cmd)) { if (!doMove(heading)) break; }
         else if (BACK.has(cmd)) { if (!doMove(TURN_LEFT[TURN_LEFT[heading]])) break; }
-        else if (TURN_R.has(cmd)) { heading = TURN_RIGHT[heading]; }
-        else if (TURN_L.has(cmd)) { heading = TURN_LEFT[heading]; }
-        else if (cmd in MOVE_ABS) { heading = MOVE_ABS[cmd]; if (!doMove(heading)) break; }
+        else if (TURN_R.has(cmd)) { heading = TURN_RIGHT[heading]; gridEvents.push({type:'turn',x:pos[0],y:pos[1],heading}); }
+        else if (TURN_L.has(cmd)) { heading = TURN_LEFT[heading]; gridEvents.push({type:'turn',x:pos[0],y:pos[1],heading}); }
+        else if (cmd in MOVE_ABS) { face(MOVE_ABS[cmd]); if (!doMove(heading)) break; }
         else if (JUMP.has(cmd)) { if (!doJump(heading)) break; }
-        else if (cmd in JUMP_ABS) { heading = JUMP_ABS[cmd]; if (!doJump(heading)) break; }
+        else if (cmd in JUMP_ABS) { face(JUMP_ABS[cmd]); if (!doJump(heading)) break; }
         else if (ATTACK.has(cmd)) { doAttack(heading); }
         else if (cmd in ATTACK_ABS) { doAttack(ATTACK_ABS[cmd]); }
         else { error = `Неизвестная команда: ${orig}`; break; }

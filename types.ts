@@ -292,10 +292,12 @@ export interface Task {
   status: 'locked' | 'open' | 'completed';
 }
 
-export type GridActionType = 'move' | 'attack' | 'jump';
+export type GridHeading = 'E' | 'S' | 'W' | 'N';
+export type GridActionType = 'move' | 'attack' | 'jump' | 'turn';
 
 export interface GridEvent {
     type: GridActionType;
+    heading?: GridHeading;
     x: number; // Actor position
     y: number;
     targetX?: number; // Target for attack/jump land

@@ -167,6 +167,7 @@ const StudentDashboard: React.FC<StudentDashboardProps> = ({ currentUser: propUs
 
   // Grid action animation state
   const [activeGridAction, setActiveGridAction] = useState<GridEvent | null>(null);
+  const [playerHeading, setPlayerHeading] = useState<'E'|'S'|'W'|'N'>('E');
   const [destroyedObstacles, setDestroyedObstacles] = useState<string[]>([]);
 
   const [hint, setHint] = useState<string>('');
@@ -292,6 +293,7 @@ const StudentDashboard: React.FC<StudentDashboardProps> = ({ currentUser: propUs
     setLessonStage(pendingLessonStage.current);
     pendingLessonStage.current = 'explanation';
     setActiveGridAction(null);
+    setPlayerHeading('E');
     setDestroyedObstacles([]);
     setShowHintModal(false);
 
@@ -352,6 +354,7 @@ const StudentDashboard: React.FC<StudentDashboardProps> = ({ currentUser: propUs
         setPathHistory([activeTask.mapConfig.start]);
         setDestroyedObstacles([]);
         setActiveGridAction(null);
+        setPlayerHeading('E');
     }
 
     const runTaskId = activeTask.id;
@@ -375,6 +378,7 @@ const StudentDashboard: React.FC<StudentDashboardProps> = ({ currentUser: propUs
             if (!stillActive()) { setIsRunning(false); return; }
             const event = result.gridEvents[i];
             setActiveGridAction(event);
+            if(event.heading)setPlayerHeading(event.heading);
 
             if (event.type === 'move') {
                 await new Promise(r => setTimeout(r, 200));
@@ -384,6 +388,8 @@ const StudentDashboard: React.FC<StudentDashboardProps> = ({ currentUser: propUs
                 await new Promise(r => setTimeout(r, 400));
                 setPlayerPos([event.x, event.y]);
                 setPathHistory(prev => [...prev, [event.x, event.y]]);
+            } else if (event.type === 'turn') {
+                await new Promise(r => setTimeout(r, 350));
             } else if (event.type === 'attack') {
                 await new Promise(r => setTimeout(r, 300));
                 const targetKey = `${event.targetX},${event.targetY}`;
@@ -622,7 +628,13 @@ const StudentDashboard: React.FC<StudentDashboardProps> = ({ currentUser: propUs
 
   const insertCommand = (cmd: string) => {
       playSound('type');
-      setCode(prev => prev + (prev.endsWith('\n') || prev === '' ? '' : '\n') + cmd);
+      setCode(prev => {
+        const last = prev.trimEnd().split('\n').at(-1) ?? '';
+        const indent = last.match(/^\s*/)?.[0] ?? '';
+        const prefix = activeTask?.type === 'grid' ? indent + (last.trim().endsWith(':') ? '    ' : '') : '';
+        const command = activeTask?.type === 'grid' ? cmd.replace(/range\(\d+\)/, 'range()') : cmd;
+        return prev.trimEnd() + (prev.trim() ? '\n' : '') + prefix + command;
+      });
   };
 
   const getIcon = (name: string) => {
@@ -1354,14 +1366,14 @@ const StudentDashboard: React.FC<StudentDashboardProps> = ({ currentUser: propUs
                         <>
                              {activeTask.allowedCommands && (
                                 <div className="bg-[#0e0e12] border-b border-gray-800 p-2 flex flex-wrap gap-2 shrink-0 items-center z-20">
-                                    <span className="text-[10px] font-bold text-gray-600 uppercase shrink-0 px-2">Hacks:</span>
+                                    <span className="text-[10px] font-bold text-gray-600 uppercase shrink-0 px-2">Команды:</span>
                                     {activeTask.allowedCommands.map(cmd => (
                                         <button
                                             key={cmd}
                                             onClick={() => insertCommand(cmd)}
                                             className="px-3 py-2 bg-[#1a1a20] border border-gray-700 text-gray-300 text-xs font-mono rounded active:bg-cyber-neonBlue active:text-black whitespace-nowrap"
                                         >
-                                            {cmd}
+                                            {activeTask.type === 'grid' ? <span className="flex flex-col whitespace-normal text-left"><strong>{activeTask.lesson?.commands?.find(c=>c.code===cmd)?.meaning ?? cmd}</strong><small>{cmd.replace(/range\(\d+\)/,'range(число)')}</small></span> : cmd}
                                         </button>
                                     ))}
                                 </div>
@@ -1444,7 +1456,8 @@ const StudentDashboard: React.FC<StudentDashboardProps> = ({ currentUser: propUs
 
                              {activeTask.type === 'grid' && activeTask.mapConfig && (
                                 <Suspense fallback={<LessonLoader />}>
-                                    <GameGrid task={activeTask} playerPos={playerPos} pathHistory={pathHistory} droneColor={equippedDroneColorValue} activeAction={activeGridAction} destroyedObstacles={destroyedObstacles} />
+                                    <GameGrid task={activeTask} playerPos={playerPos} heading={playerHeading} pathHistory={pathHistory} droneColor={equippedDroneColorValue} activeAction={activeGridAction} destroyedObstacles={destroyedObstacles} />
+                                    <p className="absolute bottom-1 inset-x-2 text-center text-xs bg-black/80 text-cyber-neonBlue p-1 pointer-events-none">Робот смотрит {{E:'→ вправо',S:'↓ вниз',W:'← влево',N:'↑ вверх'}[playerHeading]}. Вперёд — по направлению стрелки.</p>
                                 </Suspense>
                              )}
 

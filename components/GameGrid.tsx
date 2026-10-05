@@ -1,6 +1,6 @@
 
 import React, { useEffect, useRef } from 'react';
-import { Task, GridEvent } from '../types';
+import { Task, GridEvent, GridHeading } from '../types';
 import { playSound } from '../utils/sound';
 
 interface GameGridProps {
@@ -10,6 +10,7 @@ interface GameGridProps {
   droneColor?: string; // Customization
   activeAction?: GridEvent | null; // Trigger animations for move/jump/attack
   destroyedObstacles?: string[]; // IDs of destroyed walls "x,y"
+  heading?: GridHeading;
 }
 
 interface Particle {
@@ -29,7 +30,9 @@ interface LaserBeam {
     life: number;
 }
 
-const GameGrid: React.FC<GameGridProps> = ({ task, playerPos, pathHistory, droneColor = '#00f3ff', activeAction, destroyedObstacles = [] }) => {
+const GameGrid: React.FC<GameGridProps> = ({ task, playerPos, pathHistory, droneColor = '#00f3ff', activeAction, destroyedObstacles = [], heading = 'E' }) => {
+  const headingRef = useRef(heading);
+  useEffect(()=>{headingRef.current=heading;},[heading]);
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const containerRef = useRef<HTMLDivElement>(null);
   
@@ -197,6 +200,7 @@ const GameGrid: React.FC<GameGridProps> = ({ task, playerPos, pathHistory, drone
         // Bigger bob for visibility
         const bob = Math.sin(time * 5) * 4; 
         ctx.translate(0, bob);
+        ctx.rotate(({N:0,E:Math.PI/2,S:Math.PI,W:-Math.PI/2})[headingRef.current]);
         const s = size * 0.5; // Larger player
         ctx.shadowColor = primaryColor;
         ctx.shadowBlur = 15;
