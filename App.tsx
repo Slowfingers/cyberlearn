@@ -169,7 +169,7 @@ const App: React.FC = () => {
             onReorderClassrooms={setClassrooms}
         />
       ) : (
-        <StudentDashboard currentUser={user} />
+        <StudentDashboard key={user.id} currentUser={user} />
       )}
     </CyberLayout>
     </Suspense>

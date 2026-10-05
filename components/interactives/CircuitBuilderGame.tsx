@@ -79,6 +79,7 @@ export const CircuitBuilderGame: React.FC<{ task: Task; onComplete: () => void }
   const transition = useRef(false);
   const timer = useRef<ReturnType<typeof setTimeout> | null>(null);
   useEffect(() => () => {if(timer.current) clearTimeout(timer.current);}, []);
+  const [error,setError]=useState('');
   const [levelIdx, setLevelIdx] = useState(0);
   const [switchA, setSwitchA] = useState(false);
   const [switchB, setSwitchB] = useState(false);
@@ -107,7 +108,7 @@ export const CircuitBuilderGame: React.FC<{ task: Task; onComplete: () => void }
     playSound('click');
     const nextA = !switchA;
     setSwitchA(nextA);
-    checkProgress(nextA, switchB);
+    setError('');
   };
 
   const toggleSwitchB = () => {
@@ -115,10 +116,13 @@ export const CircuitBuilderGame: React.FC<{ task: Task; onComplete: () => void }
     playSound('click');
     const nextB = !switchB;
     setSwitchB(nextB);
-    checkProgress(switchA, nextB);
+    setError('');
   };
 
   const checkProgress = (a: boolean, b: boolean) => {
+    if(transition.current || completed)return;
+    if(!currentChallenge.isTargetMet(a,b)){setError('Выход пока не соответствует условию. Сравни входы с правилом схемы.');playSound('error');return;}
+    setError('');
     if (currentChallenge.isTargetMet(a, b)) {
       transition.current = true;
       playSound('hit');
@@ -341,7 +345,7 @@ export const CircuitBuilderGame: React.FC<{ task: Task; onComplete: () => void }
             <div className="flex items-center gap-2 text-xs">
               <Zap size={16} className={isPowered ? 'text-yellow-400 fill-yellow-400' : 'text-slate-600'} />
               <span className={isPowered ? 'text-yellow-300 font-bold' : 'text-slate-400'}>
-                {isGoalMet ? 'Цель уровня достигнута! Переходим дальше...' : currentChallenge.targetStateDesc}
+                {isGoalMet ? 'Выход соответствует условию. Нажми «Проверить схему».' : currentChallenge.targetStateDesc}
               </span>
             </div>
             {isGoalMet && (
@@ -354,6 +358,8 @@ export const CircuitBuilderGame: React.FC<{ task: Task; onComplete: () => void }
 
         </div>
       </div>
+      {!completed && <button className="workshop-primary mt-4" disabled={transition.current} onClick={()=>checkProgress(switchA,switchB)}>Проверить схему</button>}
+      {error && <p role="alert" className="text-rose-300 mt-3">{error}</p>}
     </div>
   );
 };

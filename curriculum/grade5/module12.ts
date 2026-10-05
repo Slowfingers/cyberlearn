@@ -109,9 +109,9 @@ export const MODULE12_TASKS: Task[] = [
     `,
     spreadsheetConfig: {
       tableData: [
-        { id: '1', name: 'Серверный кластер 1', val1: 75, val2: 100, formulaResult: 'ЗАЧЕТ' },
-        { id: '2', name: 'Серверный кластер 2', val1: 42, val2: 100, formulaResult: 'НЕЗАЧЕТ' },
-        { id: '3', name: 'Серверный кластер 3', val1: 88, val2: 100, formulaResult: 'ЗАЧЕТ' }
+        { id: '1', name: 'Команда 1', val1: 75, val2: 100, formulaResult: 'ЗАЧЕТ' },
+        { id: '2', name: 'Команда 2', val1: 42, val2: 100, formulaResult: 'НЕЗАЧЕТ' },
+        { id: '3', name: 'Команда 3', val1: 60, val2: 100, formulaResult: 'ЗАЧЕТ' }
       ],
       targetFormula: '=IF(B2>=60; "ЗАЧЕТ"; "НЕЗАЧЕТ")',
       formulaType: 'if'

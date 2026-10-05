@@ -2,6 +2,7 @@
 import { User, Classroom, StudentProgress, Task } from "../types";
 import { LEVEL_THRESHOLDS, MOCK_TASKS, COURSES } from "../constants";
 import { fbGetClassrooms, fbCreateClassroom, fbUpdateClassroom, fbDeleteClassroom, fbGetUsers, fbGetUser, fbGetTasks, fbCreateTask, fbLogin, callServer } from './firebase';
+import {uniqueTaskCatalog, applyCompletedTasks} from './taskProgress';
 import { readStoredJSON, writeStoredJSON } from '../utils/storage';
 
 const TASK_PROGRESS_PREFIX = 'task_progress_';
@@ -102,11 +103,11 @@ export const saveTaskAttempts = (userId: string, attempts: Record<string, number
 
 export const getAllTasks = async (userId?: string): Promise<Task[]> => {
     const custom = await fbGetTasks();
-    const allTasks = [...MOCK_TASKS, ...custom];
+    const allTasks = uniqueTaskCatalog(MOCK_TASKS, custom);
     if (!userId) return allTasks;
     const user = await fbGetUser();
-    const completed = new Set(user.completedTaskIds || []);
-    return allTasks.map(t => ({ ...t, status: completed.has(t.id) ? 'completed' : t.status }));
+    if (!user || user.id !== userId) throw new Error('Сеанс ученика изменился. Войди снова.');
+    return applyCompletedTasks(allTasks, user.completedTaskIds || []);
 };
 
 export const getCoursesWithProgress = (tasks: Task[], hiddenCourseIds?: string[]): any[] => {

@@ -342,7 +342,7 @@ export function reviseLessons(tasks: Task[]): Task[] {
     if (task.type === 'circuit_builder' || task.type === 'circuit') {
       const gates = task.circuitConfig?.gates ?? [task.circuitConfig?.gate ?? task.circuitConfig?.targetGate ?? 'and'];
       goal = `Проверь логическое правило ${gates.map(g => g.toUpperCase()).join(', ')}.`;
-      steps = ['Прочитай правило текущей схемы.', 'Сравни выход для разных пар входов.', 'Настрой входы для указанного результата.'];
+      steps = ['Прочитай правило текущей схемы.', 'Сравни выход для разных пар входов.', 'Настрой входы и нажми «Проверить схему».'];
       success = 'Выход схемы соответствует требуемому результату.';
     }
     let workedExample = example;
@@ -360,7 +360,7 @@ export function reviseLessons(tasks: Task[]): Task[] {
       starterCode = task.id === 'g4_l43' ? task.initialCode : '# Составь маршрут: одна команда на строке\n';
       if (task.id === 'g4_l43') goal = 'Найди и исправь ошибку в готовом маршруте. Робот должен дойти до цели.';
       workedExample += ' В начале робот смотрит вправо. ' + gridCommands(task).slice(0, 3).map(({code, meaning}) => `${code} — ${meaning}`).join('. ') + '.';
-      if (/for |repeat/i.test(task.initialCode ?? '')) workedExample += '\nПример двух повторов:\nfor i in range(2):\n    forward()\nПробелы перед forward() показывают тело цикла.';
+      if (/for |repeat/i.test(task.initialCode ?? '')) workedExample += `\nПример двух повторов:\nfor i in range(2):\n    ${gridCommands(task)[0]?.code ?? 'forward()'}\nПробелы перед командой показывают тело цикла.`;
     }
     if (task.type === 'html') {
       if (task.id === 'g7_l34') task.htmlConfig = { ...task.htmlConfig, targetTag: 'button' };
@@ -384,6 +384,14 @@ export function reviseLessons(tasks: Task[]): Task[] {
       if (task.type === 'grid') workedExample += ' В этой среде: ' + gridCommands(task).slice(0, 3).map(({code, meaning}) => `${code} — ${meaning}`).join('; ') + '.';
     }
     if (task.binaryConfig?.bitsCount === 5) explanation += ' В этой практике пять разрядов с весами 16, 8, 4, 2 и 1. Новый разряд слева весит вдвое больше предыдущего: 8 × 2 = 16.';
+    if(task.courseId==='course_grade5') {
+      if(['grid','spreadsheet','wireframe_builder','network_route','tree_search','sorting','circuit_builder','ai_kids_trainer'].includes(task.type)) task.title=task.id==='g5_l57'?'Условие: проверяем границу':concept;
+      if(['g5_l31','g5_l32','g5_l60'].includes(task.id)) {
+        goal=task.id==='g5_l31'?'Подпиши примеры для двух учебных наборов.':task.id==='g5_l32'?'Подпиши предметы на разных фонах и объясни, зачем нужно разнообразие.':'Подпиши учебные и новые проверочные примеры. Объясни, зачем их разделили.';
+        steps=['Прочитай подписи и правило двух наборов.','Разложи карточки и проверь разметку.',task.id==='g5_l31'?'Ошибочную карточку можно вернуть и переложить.':'Пройди проверку новых примеров или ответь на итоговый вопрос.'];
+        success='Разметка соответствует правилу; ты понимаешь назначение этих данных.';
+      }
+    }
     task.lesson = { topic: key, concept, explanation, example: workedExample, goal, steps: [...steps], success, reflection, starterCode, mentorQuestion: PROGRESSION_QUESTIONS[task.id], commands: task.type === 'grid' ? gridCommands(task) : undefined };
     // Короткое описание рассказывает о действии, а не перечисляет стандарты.
     task.description = goal;

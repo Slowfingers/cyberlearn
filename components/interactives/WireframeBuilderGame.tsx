@@ -56,7 +56,7 @@ export const resolveWireframeWidgets = (task: Task): { widgets: Widget[]; requir
 };
 
 
-const SLOT_LABELS: Record<SlotName, string> = { header: 'Шапка: игрок и настройки', hero: 'Главная область: игра и рекорды', action: 'Кнопка действия', footer: 'Нижняя панель: очки' };
+const SLOT_LABELS: Record<SlotName, string> = { header: 'Верхняя панель', hero: 'Главная область', action: 'Главное действие', footer: 'Нижняя панель' };
 export const WireframeBuilderGame: React.FC<{ task: Task; onComplete: () => void }> = ({ task, onComplete }) => {
   const { widgets, requiredSlots } = resolveWireframeWidgets(task);
   const [slots, setSlots] = useState<Partial<Record<SlotName, Widget>>>({});

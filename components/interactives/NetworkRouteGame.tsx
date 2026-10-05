@@ -131,7 +131,7 @@ export const NetworkRouteGame: React.FC<NetworkRouteGameProps> = ({ task, onComp
 
       if (hitOverloaded) {
         playSound('error');
-        setErrorMsg(`⚠️ Маршрут проходит через перегруженный узел! Пинг слишком высокий (${totalLatency} мс). Выбери более чистый канал!`);
+        setErrorMsg('⚠️ Маршрут проходит через перегруженный узел. Найди путь через свободные узлы.');
       } else if (totalLatency <= maxLatency) {
         // Optimal route: client -> rA -> rC -> server = 15 + 20 + 15 = 50ms
         setCompleted(true);
@@ -139,7 +139,7 @@ export const NetworkRouteGame: React.FC<NetworkRouteGameProps> = ({ task, onComp
         onComplete();
       } else {
         playSound('click');
-        setErrorMsg(`Пакет доставлен, но задержка ${totalLatency} мс. Можно быстрее! Попробуй путь через Роутер A.`);
+        setErrorMsg(`Пакет доставлен, но задержка ${totalLatency} мс превышает предел ${maxLatency} мс. Сравни другие пути.`);
       }
     }
   };

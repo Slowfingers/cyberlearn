@@ -37,6 +37,8 @@ for(const task of MOCK_TASKS){
  if(task.type==='fake_detector'){const cases=resolveFakeCases(task);check(cases.length>0&&cases.every(c=>c.text&&typeof c.isDangerOrFake==='boolean'&&c.explanation),'неполное дело');scenarios++;}
  if(task.type==='phishing_detect'){check((task.phishingConfig?.threats??[]).every(t=>['sender','urgency','hidden_link','attachment'].includes(t.id)),'угроза без кликабельной зоны');scenarios++;}
  if(task.type==='ai_kids_trainer'&&task.aiTrainerConfig?.cards){const cards=task.aiTrainerConfig.cards;check(cards.length>0&&cards.every(c=>['cat','dog'].includes(c.category))&&new Set(cards.map(c=>c.id)).size===cards.length,'карточки без допустимых категорий');scenarios++;}
+ if(task.aiTrainerConfig?.testCards){const cfg=task.aiTrainerConfig;const cards=cfg.testCards!;check(cards.length>0&&cards.every(c=>['cat','dog'].includes(c.category))&&new Set([...cfg.cards!,...cards].map(c=>c.id)).size===cfg.cards!.length+cards.length,'проверочные примеры повторяют учебные или не имеют категории');}
+ if(task.aiTrainerConfig?.review){const review=task.aiTrainerConfig.review;check(review.question&&review.explanation&&review.options.length>=2&&new Set(review.options).size===review.options.length&&review.correctIndex>=0&&review.correctIndex<review.options.length,'невалидный проверочный вопрос');}
  if(task.type==='file_organizer'){
   const {folders,files}=getFileScenario(task);
   check(folders.length>0&&files.length>0,'нет папок или файлов');

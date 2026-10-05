@@ -1,5 +1,5 @@
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { Task } from '../types';
 import { playSound } from '../utils/sound';
 import { RefreshCw, Trophy } from 'lucide-react';
@@ -10,8 +10,10 @@ interface HanoiGameProps {
 }
 
 const HanoiGame: React.FC<HanoiGameProps> = ({ task, onComplete }) => {
+    const timer=useRef<ReturnType<typeof setTimeout>|null>(null);
+    useEffect(()=>()=>{if(timer.current)clearTimeout(timer.current);},[]);
     const numDisks = task.hanoiConfig?.disks || 3;
-    const [pegs, setPegs] = useState<number[][]>([[], [], []]);
+    const [pegs, setPegs] = useState<number[][]>(()=>[Array.from({length:numDisks},(_,i)=>numDisks-i),[],[]]);
     const [selectedPeg, setSelectedPeg] = useState<number | null>(null);
     const [moves, setMoves] = useState(0);
     const [isSolved, setIsSolved] = useState(false);
@@ -34,6 +36,7 @@ const HanoiGame: React.FC<HanoiGameProps> = ({ task, onComplete }) => {
     }, [numDisks]);
 
     const resetGame = () => {
+        if(timer.current)clearTimeout(timer.current);
         const initialPeg: number[] = [];
         for (let i = numDisks; i >= 1; i--) {
             initialPeg.push(i);
@@ -89,7 +92,7 @@ const HanoiGame: React.FC<HanoiGameProps> = ({ task, onComplete }) => {
                 if (destPeg.length === numDisks && pegIndex === 2) { // Usually target is last peg
                     setIsSolved(true);
                     playSound('success');
-                    setTimeout(onComplete, 1500);
+                    timer.current=setTimeout(onComplete, 1500);
                 }
             } else {
                 // Invalid Move
@@ -123,6 +126,8 @@ const HanoiGame: React.FC<HanoiGameProps> = ({ task, onComplete }) => {
                 </button>
             </div>
 
+            <p className="relative z-10 mt-16 text-sm text-gray-200 max-w-xl text-center">Перенеси все диски с башни 1 на башню 3. За ход бери только верхний диск. Большой диск нельзя класть на маленький. Нажми на башню с диском, затем на башню назначения.</p>
+
             {/* ERROR MESSAGE */}
             {errorMsg && (
                 <div className="relative w-full mt-12 bg-red-900/80 text-white px-4 py-2 rounded font-mono text-xs border border-red-500 animate-pulse z-20">
@@ -131,10 +136,14 @@ const HanoiGame: React.FC<HanoiGameProps> = ({ task, onComplete }) => {
             )}
 
             {/* Game Area */}
-            <div className="flex items-end justify-center gap-2 md:gap-12 w-full max-w-2xl h-64 md:h-80 relative z-10 mt-16">
+            <div className="flex items-end justify-center gap-2 md:gap-12 w-full max-w-2xl h-64 md:h-80 relative z-10 mt-8 shrink-0">
                 {pegs.map((peg, pegIndex) => (
                     <div 
                         key={pegIndex}
+                        role="button"
+                        tabIndex={0}
+                        aria-label={`Башня ${pegIndex + 1}`}
+                        onKeyDown={event => { if(event.key === 'Enter' || event.key === ' ') { event.preventDefault(); handlePegClick(pegIndex); } }}
                         onClick={() => handlePegClick(pegIndex)}
                         className={`
                             relative flex flex-col-reverse items-center justify-start flex-1 min-w-0 h-full cursor-pointer group transition-all duration-300

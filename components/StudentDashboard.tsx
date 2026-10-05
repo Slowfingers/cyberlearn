@@ -4,6 +4,7 @@ import React, { useState, useEffect, useRef, useCallback, useMemo, lazy, Suspens
 import { COSMETICS, SHOP_COSMETICS, ACHIEVEMENTS, COURSES } from '../constants';
 import { Task, ExecutionResult, User, Course, GridEvent } from '../types';
 import { terminalLanguage } from '../services/terminal';
+import {applyCompletedTasks, nextUnfinishedTask} from '../services/taskProgress';
 import { evaluateCodeLocally, shuffledQuiz } from '../services/localEvaluation';
 import { getNextLevelThreshold, getAllTasks, getCoursesWithProgress, buyItem, equipItem, saveTaskProgress, getTaskAttempts, saveTaskAttempts, getHiddenCoursesForStudent, getStreak, recordActivity, StreakData } from '../services/mockBackend';
 import { fbCompleteTask } from '../services/firebase';
@@ -148,6 +149,9 @@ const StudentDashboard: React.FC<StudentDashboardProps> = ({ currentUser: propUs
   const [pendingCompletion, setPendingCompletion] = useState<{task:Task; autoAdvance:boolean} | null>(null);
   const [savingCompletion, setSavingCompletion] = useState(false);
   const rewardedTaskIds = useRef<Set<string>>(new Set());
+  const acknowledgedProgress = useRef({userId:propUser.id, ids:new Set(propUser.completedTaskIds ?? [])});
+  if(acknowledgedProgress.current.userId !== propUser.id) acknowledgedProgress.current={userId:propUser.id,ids:new Set(propUser.completedTaskIds ?? [])};
+  for(const id of propUser.completedTaskIds ?? []) acknowledgedProgress.current.ids.add(id);
 
   // Profile State
   const [currentUser, setCurrentUser] = useState<User | null>(propUser);
@@ -235,8 +239,10 @@ const StudentDashboard: React.FC<StudentDashboardProps> = ({ currentUser: propUs
               const allTasks = await getAllTasks(propUser.id);
               const hidden = await getHiddenCoursesForStudent(propUser.id);
               if (cancelled) return;
-              setTasks(allTasks);
-              setCourses(getCoursesWithProgress(allTasks, hidden));
+              for(const task of allTasks) if(task.status==='completed') acknowledgedProgress.current.ids.add(task.id);
+              const refreshed=applyCompletedTasks(allTasks,acknowledgedProgress.current.ids);
+              setTasks(refreshed);
+              setCourses(getCoursesWithProgress(refreshed, hidden));
           } catch { if (!cancelled) addToast('Не удалось загрузить задания. Обновите страницу.', 'error'); }
       };
       void refresh();
@@ -527,9 +533,9 @@ const StudentDashboard: React.FC<StudentDashboardProps> = ({ currentUser: propUs
           }
           setCurrentUser(savedUser);
           setLastXpAwarded(awarded);
-          const updatedTasks = tasks.map(t => ({ ...t, status: savedUser.completedTaskIds?.includes(t.id) ? 'completed' as const : t.status }));
-          const courseTasks = updatedTasks.filter(t => t.courseId === task.courseId);
-          const next = courseTasks[courseTasks.findIndex(t => t.id === task.id) + 1];
+          for(const id of savedUser.completedTaskIds ?? []) acknowledgedProgress.current.ids.add(id);
+          const updatedTasks = applyCompletedTasks(tasks,acknowledgedProgress.current.ids);
+          const next = nextUnfinishedTask(updatedTasks,task);
           if (next?.status === 'locked') next.status = 'open';
           setTasks(updatedTasks);
           setCourses(previous => getCoursesWithProgress(updatedTasks, COURSES.filter(c => !previous.some(p => p.id === c.id)).map(c => c.id)));
@@ -585,12 +591,8 @@ const StudentDashboard: React.FC<StudentDashboardProps> = ({ currentUser: propUs
 
   const handleNextTask = () => {
     if (!activeTask) return;
-    const courseTasks = tasks.filter(t => t.courseId === activeTask.courseId);
-    const currentIndex = courseTasks.findIndex(t => t.id === activeTask.id);
-
-    // If next task exists in THIS course
-    if (currentIndex !== -1 && currentIndex < courseTasks.length - 1) {
-        const nextTask = courseTasks[currentIndex + 1];
+    const nextTask = nextUnfinishedTask(applyCompletedTasks(tasks,acknowledgedProgress.current.ids),activeTask);
+    if (nextTask) {
         setActiveTask(nextTask);
         if (window.innerWidth < 768) {
              if (['grid', 'html', 'terminal'].includes(nextTask.type)) setTaskTab('info');
@@ -667,7 +669,7 @@ const StudentDashboard: React.FC<StudentDashboardProps> = ({ currentUser: propUs
                onCourse={(id, resume) => {
                  playSound('click'); setActiveCourseId(id);
                  const courseTasks = tasks.filter(t => t.courseId === id);
-                 setActiveTask(courseTasks.find(t => t.status === 'open') || courseTasks[0] || null);
+                 setActiveTask(courseTasks.find(t => t.status !== 'completed') || null);
                  setLessonStage('explanation'); setShowMobileSidebar(!resume);
                  if (sidebarRef.current) sidebarRef.current.scrollTop = 0;
                }} />}
@@ -1025,7 +1027,7 @@ const StudentDashboard: React.FC<StudentDashboardProps> = ({ currentUser: propUs
       {/* 0. EMPTY TASK STATE */}
       {!activeTask && (
           <div className={`${!showMobileSidebar ? 'flex' : 'hidden'} md:flex flex-1 items-center justify-center text-gray-600 bg-black`}>
-              Выберите задачу в меню слева
+              {filteredTasks.length > 0 && filteredTasks.every(t => t.status === 'completed') ? 'Курс завершён! В меню можно выбрать урок для повторения.' : 'Выберите задачу в меню слева'}
           </div>
       )}
 
@@ -1547,15 +1549,15 @@ const StudentDashboard: React.FC<StudentDashboardProps> = ({ currentUser: propUs
       )}
 
       {/* --- MISSION COMPLETE BANNER (compact, doesn't block LIVE FEED) --- */}
-      {missionSuccess && activeTask && (
+      {(missionSuccess || activeTask?.status === 'completed') && activeTask && (
           <div className="academy-completion">
                <div className="bg-[#0a0a10] border border-cyber-neonYellow/50 rounded-lg p-4 shadow-[0_0_40px_rgba(252,238,10,0.15)] flex items-center gap-4">
                    <Suspense fallback={<Trophy size={32} className="text-cyber-neonYellow shrink-0" />}><BigCharacter3D skin={currentUser.equipped.mascotSkin} mood="celebrate" className="mentor-completion-character" /></Suspense>
                    <div className="flex-1 min-w-0">
-                       <h2 className="text-sm font-bold text-white">Задание выполнено</h2>
+                       <h2 className="text-sm font-bold text-white">{missionSuccess ? 'Задание выполнено' : 'Урок уже пройден — можно повторить или идти дальше'}</h2>
                        {activeTask.lesson && <p className="text-sm text-gray-300 mt-2">{activeTask.lesson.reflection}</p>}
                        <div className="text-cyber-neonBlue font-mono text-xs mt-0.5">
-                           {lastXpAwarded ? (() => {
+                           {missionSuccess && lastXpAwarded ? (() => {
                                const attempts = attemptCount[activeTask.id] || 0;
                                const multiplier = rewardMultiplier(attempts);
                                const rewardPercent = Math.round(multiplier * 100);

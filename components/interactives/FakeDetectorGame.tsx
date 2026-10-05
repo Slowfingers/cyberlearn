@@ -90,6 +90,7 @@ export const resolveFakeCases = (task: Task): CaseItem[] => {
 
 export const FakeDetectorGame: React.FC<{ task: Task; onComplete: () => void }> = ({ task, onComplete }) => {
   const cases = resolveFakeCases(task);
+  const verification=task.fakeDetectorConfig?.decisionMode==='verification';
   const timer = useRef<ReturnType<typeof setTimeout> | null>(null);
   useEffect(() => () => {if(timer.current) clearTimeout(timer.current);}, []);
   const [currentIdx, setCurrentIdx] = useState(0);
@@ -155,7 +156,7 @@ export const FakeDetectorGame: React.FC<{ task: Task; onComplete: () => void }> 
           </div>
           <div>
             <h2 className="text-base md:text-xl font-bold text-emerald-300">Кибер-Детектив: Правда или Опасный Фейк?</h2>
-            <p className="text-xs text-slate-300">Изучи карточку и реши: это безопасно или это ловушка?</p>
+            <p className="text-xs text-slate-300">{verification ? 'Изучи сообщение: оно подтверждено или его ещё нужно проверить?' : 'Изучи карточку и реши: это безопасно или это ловушка?'}</p>
           </div>
         </div>
 
@@ -287,7 +288,7 @@ export const FakeDetectorGame: React.FC<{ task: Task; onComplete: () => void }> 
                 className="py-3.5 px-4 bg-rose-600 hover:bg-rose-500 text-white rounded-2xl font-bold uppercase text-xs md:text-sm flex flex-col items-center justify-center gap-2 shadow-lg shadow-rose-600/30 active:scale-95 transition-all"
               >
                 <ShieldAlert size={28} />
-                <span>🚨 ФЕЙК / ОПАСНО!</span>
+                <span>{verification ? 'Нужна проверка' : '🚨 ФЕЙК / ОПАСНО!'}</span>
               </button>
 
               <button
@@ -295,7 +296,7 @@ export const FakeDetectorGame: React.FC<{ task: Task; onComplete: () => void }> 
                 className="py-3.5 px-4 bg-emerald-600 hover:bg-emerald-500 text-white rounded-2xl font-bold uppercase text-xs md:text-sm flex flex-col items-center justify-center gap-2 shadow-lg shadow-emerald-600/30 active:scale-95 transition-all"
               >
                 <ShieldCheck size={28} />
-                <span>🛡️ ПРАВДА / БЕЗОПАСНО</span>
+                <span>{verification ? 'Есть подтверждение' : '🛡️ ПРАВДА / БЕЗОПАСНО'}</span>
               </button>
             </div>
           )}

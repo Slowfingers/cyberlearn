@@ -262,6 +262,7 @@ export interface Task {
 
   // fake_detector: карточки-кейсы «правда или фейк/опасно»
   fakeDetectorConfig?: {
+      decisionMode?: 'verification';
       cases?: {
           id: string;
           icon: string;
@@ -281,6 +282,8 @@ export interface Task {
   aiTrainerConfig?: {
       categoryNames?: { cat: string; dog: string }; // подписи двух корзин
       cards?: { id: string; name: string; icon: string; category: 'cat' | 'dog' }[];
+      testCards?: { id: string; name: string; icon: string; category: 'cat' | 'dog' }[];
+      review?: {question:string;options:string[];correctIndex:number;explanation:string};
       targetClass?: string;
       samplesNeeded?: number;
   };
