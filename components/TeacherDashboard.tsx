@@ -5,7 +5,7 @@ import { FolderFilter, TeacherSupport } from './ClassFolders';
 import React, { useState, useEffect, useCallback } from 'react';
 import { Classroom, User, StudentProgress, Task } from '../types';
 import { createClassroom, getClassStudents, createTaskForClass, updateClassroom, deleteClassroom } from '../services/mockBackend';
-import { fbResetStudentPassword, LOCAL_SERVER } from '../services/firebase';
+import { fbResetStudentPassword, LOCAL_SERVER, callServer } from '../services/firebase';
 import { validateMap } from '../functions/domain.mjs';
 import { COURSES } from '../constants';
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts';
@@ -181,6 +181,29 @@ const TeacherDashboard: React.FC<TeacherDashboardProps> = ({
               addToast('Данные обновлены', 'info');
           } catch { addToast('Не удалось обновить данные', 'error'); }
       }
+  };
+
+  const endClassSession = async () => {
+    if (!currentClass || classActionPending || !confirm(`Завершить сеанс класса «${currentClass.name}»? Все ученики выйдут из аккаунтов. Прогресс сохранится; позже они смогут войти снова.`)) return;
+    setClassActionPending(true);
+    try {
+      await callServer('endClassSession', {classId: currentClass.id});
+      addToast('Сеанс завершён. Ученики выйдут в течение 15 секунд.', 'success');
+    } catch(e) { addToast(e instanceof Error ? e.message : 'Не удалось завершить сеанс', 'error'); }
+    finally { setClassActionPending(false); }
+  };
+
+  const removeStudent = async (student: StudentProgress) => {
+    if (!currentClass || classActionPending || !confirm(`Убрать ${student.name} из класса «${currentClass.name}»? Ученик выйдет на всех устройствах. При новом входе по коду будет создан новый профиль.`)) return;
+    const classId = currentClass.id;
+    setClassActionPending(true);
+    try {
+      await callServer('removeClassStudent', {classId, studentId: student.studentId});
+      setStudents(list => list.filter(s => s.studentId !== student.studentId));
+      setSelectedStudent(s => s?.studentId === student.studentId ? null : s);
+      addToast('Ученик удалён из класса', 'success');
+    } catch(e) { addToast(e instanceof Error ? e.message : 'Не удалось убрать ученика', 'error'); }
+    finally { setClassActionPending(false); }
   };
 
   const moveClassroom = (idx: number, direction: 'up' | 'down') => {
@@ -573,8 +596,9 @@ const TeacherDashboard: React.FC<TeacherDashboardProps> = ({
 
                             {/* SORTABLE STUDENT TABLE */}
                             <div className="bg-cyber-panel border border-gray-800 flex flex-col rounded mb-6">
-                                <div className="p-4 border-b border-gray-800 flex justify-between items-center">
+                                <div className="p-4 border-b border-gray-800 flex flex-wrap gap-3 justify-between items-center">
                                     <h3 className="text-white font-bold font-sans flex items-center gap-2"><Users size={16} className="text-cyber-neonBlue" /> СПИСОК ГРУППЫ</h3>
+                                    {LOCAL_SERVER && <button disabled={classActionPending} onClick={endClassSession} className="flex items-center gap-2 text-sm text-cyber-neonYellow min-h-11 disabled:opacity-50"><LogOut size={16}/>Завершить сеанс класса</button>}
                                     <button onClick={refreshStudents} className="text-gray-500 hover:text-white flex items-center gap-1 text-xs">
                                         <RefreshCw size={14} /> <span className="hidden sm:inline">Обновить</span>
                                     </button>
@@ -620,7 +644,7 @@ const TeacherDashboard: React.FC<TeacherDashboardProps> = ({
                                                     onClick={() => { playSound('click'); setSelectedStudent(student); }}
                                                     className="hover:bg-cyber-neonBlue/5 transition-colors cursor-pointer"
                                                 >
-                                                    <td className="p-3 text-white font-bold break-words leading-tight">{student.name}</td>
+                                                    <td className="p-3 text-white font-bold break-words leading-tight">{student.name}{LOCAL_SERVER && <button disabled={classActionPending} onClick={e=>{e.stopPropagation();void removeStudent(student);}} className="flex gap-1 items-center text-xs text-red-400 min-h-11 disabled:opacity-50" aria-label={`Удалить ${student.name} из класса`}><Trash2 size={14}/>Убрать из класса</button>}</td>
                                                     <td className="p-3 whitespace-nowrap text-cyber-neonYellow">{student.level}</td>
                                                     <td className="p-3 whitespace-nowrap text-cyber-neonBlue">{student.totalXP}</td>
                                                     <td className="p-3 whitespace-nowrap">{student.tasksCompleted}/{student.totalTasks}</td>

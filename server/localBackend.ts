@@ -123,6 +123,28 @@ export async function localCall<T>(operation: string, data: Record<string, unkno
     case 'createFolder': { if(user.role!=='teacher') throw new Error('Нет доступа.'); const name=String(data.name ?? '').trim().slice(0,100); if(!name) throw new Error('Укажи название папки.'); state.folders=[...new Set([...(state.folders ?? []),name])]; changed=true; result=state.folders; break; }
     case 'raiseHand': { if(user.role!=='student'||!user.classId||!state.classes[user.classId]) throw new Error('Нет класса.'); user.helpRequestedAt = data.raised ? (user.helpRequestedAt ?? new Date().toISOString()) : undefined; user.helpTaskId = data.raised ? String(data.taskId ?? '').slice(0,100) : undefined; changed=true; result=user; break; }
     case 'resolveHand': { const student=state.users[String(data.studentId)]; if(!student?.classId) throw new Error('Ученик не найден.'); owned(student.classId); student.helpRequestedAt=undefined; student.helpTaskId=undefined; changed=true; break; }
+    case 'endClassSession': {
+      const cls = owned(String(data.classId));
+      const ids = new Set(Object.values(state.users).filter(s => s.role === 'student' && s.classId === cls.id).map(s => s.id));
+      const sessions = readSessions();
+      for (const key of Object.keys(sessions)) if (ids.has(sessions[key].uid)) delete sessions[key];
+      saveSessions(sessions);
+      for (const id of ids) { delete state.users[id].helpRequestedAt; delete state.users[id].helpTaskId; }
+      result = true; changed = true; break;
+    }
+    case 'removeClassStudent': {
+      const cls = owned(String(data.classId));
+      const student = state.users[String(data.studentId)];
+      if (!student || student.role !== 'student' || student.classId !== cls.id) throw new Error('Ученик не найден в этом классе.');
+      cls.studentIds = cls.studentIds.filter(id => id !== student.id);
+      delete student.classId; delete student.helpRequestedAt; delete student.helpTaskId;
+      // Keep the old profile/progress, but remove membership and revoke every device.
+      for (const key of Object.keys(state.credentials)) if (state.credentials[key].uid === student.id) delete state.credentials[key];
+      const sessions = readSessions();
+      for (const key of Object.keys(sessions)) if (sessions[key].uid === student.id) delete sessions[key];
+      saveSessions(sessions);
+      result = true; changed = true; break;
+    }
     case 'listClassrooms': result = Object.values(state.classes).filter(cls => user.role === 'teacher' ? cls.teacherId === user.id : cls.id === user.classId); break;
     case 'listUsers': {
       if (user.role !== 'teacher') throw new Error('Нет доступа.');

@@ -9,9 +9,19 @@ export async function serverCall<T>(operation:string,data:Record<string,unknown>
  return result.data;
 }
 export function observeServer(callback:(user:User|null,error?:unknown)=>void) {
- let cancelled=false;
- const refresh=()=>serverCall<User|null>('getUser').then(user=>{if(!cancelled)callback(user);}).catch(()=>{if(!cancelled)callback(null);});
- void refresh(); window.addEventListener('cyberlearn-session',refresh);
- return ()=>{cancelled=true;window.removeEventListener('cyberlearn-session',refresh);};
+ let cancelled=false, pending=false, previous:string|undefined;
+ const refresh=async()=>{
+  if(cancelled || pending)return;
+  pending=true;
+  try {
+   const user=await serverCall<User|null>('getUser'), serialized=JSON.stringify(user);
+   if(!cancelled && serialized!==previous){previous=serialized;callback(user);}
+  } catch(error) {if(!cancelled && previous===undefined)callback(null,error);}
+  finally {pending=false;}
+ };
+ const onVisible=()=>{if(document.visibilityState==='visible')void refresh();};
+ void refresh(); const timer=window.setInterval(refresh,15000);
+ window.addEventListener('cyberlearn-session',refresh);window.addEventListener('focus',refresh);document.addEventListener('visibilitychange',onVisible);
+ return ()=>{cancelled=true;window.clearInterval(timer);window.removeEventListener('cyberlearn-session',refresh);window.removeEventListener('focus',refresh);document.removeEventListener('visibilitychange',onVisible);};
 }
 export function sessionChanged(){window.dispatchEvent(new Event('cyberlearn-session'));}
