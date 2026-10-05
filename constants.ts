@@ -63,6 +63,8 @@ export const COSMETICS: CosmeticItem[] = [
   { id: 'skin_sparky', type: 'mascotSkin', name: 'Спарки', value: 'sparky', unlockLevel: 1, cost: 0 },
   { id: 'skin_cat', type: 'mascotSkin', name: 'Кибер-Кот', value: 'cat', unlockLevel: 3, cost: 300 },
   { id: 'skin_prof', type: 'mascotSkin', name: 'Профессор', value: 'prof', unlockLevel: 5, cost: 600 },
+  { id: 'skin_lyra', type: 'mascotSkin', name: 'Лира', value: 'lyra', unlockLevel: 4, cost: 500 },
+  { id: 'skin_moss', type: 'mascotSkin', name: 'Мосс', value: 'moss', unlockLevel: 2, cost: 200 },
   { id: 'skin_astro', type: 'mascotSkin', name: 'Астро', value: 'astro', unlockLevel: 7, cost: 900 },
 ];
 

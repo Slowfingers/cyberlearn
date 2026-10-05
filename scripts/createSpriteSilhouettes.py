@@ -14,12 +14,14 @@ def simplify(points, tolerance=1.5):
  return simplify(points[:index+1])[:-1]+simplify(points[index:]) if distance>tolerance else [a,b]
 
 result={}
-for skin in ['sparky','cat','astro','prof'] + [p.stem for p in Path('public/avatar/street').glob('*.png')]:
+mentors=['sparky','cat','astro','prof','lyra','moss']
+for skin in mentors + [p.stem for p in Path('public/avatar/street').glob('*.png')]:
  result[skin]={}
  for kind in (['idle','movement'] if skin in ['sparky','cat','astro','prof'] else ['idle']):
-  image=Image.open(f"public/avatar/{'mentors' if skin in ['sparky','cat','astro','prof'] else 'street'}/{skin}"+('-movements-v2' if kind=='movement' else '')+'.png').getchannel('A')
-  w=image.width//6;h=image.height//(2 if kind=='movement' else 1); paths=[]
-  for row in range(2 if kind=='movement' else 1):
+  image=Image.open(f"public/avatar/{'mentors' if skin in mentors else 'street'}/{skin}"+('-movements-v2' if kind=='movement' else '')+'.png').getchannel('A')
+  rows_count=3 if skin in ['lyra','moss'] else 2 if kind=='movement' else 1
+  w=image.width//6;h=image.height//rows_count; paths=[]
+  for row in range(rows_count):
    for col in range(6):
     values=list(image.crop((col*w,row*h,(col+1)*w,(row+1)*h)).getdata()); seen=bytearray(w*h);largest=[]
     for i,a in enumerate(values):
@@ -58,5 +60,5 @@ for skin in ['sparky','cat','astro','prof'] + [p.stem for p in Path('public/avat
      polygon=simplify(contour)
      commands.append('M'+'L'.join(f'{x} {y}' for x,y in polygon[:-1])+'z')
     paths.append(''.join(commands))
-  result[skin][kind]={'width':w,'height':h,'paths':paths}
+  result[skin][kind]={'width':w,'height':h,'rows':rows_count,'paths':paths}
 Path('components/spriteSilhouettes.ts').write_text('// Principal-silhouette clipping paths exclude adjacent frame fragments without changing source art.\nexport const SPRITE_SILHOUETTES = '+json.dumps(result,separators=(',',':'))+' as const;\n')

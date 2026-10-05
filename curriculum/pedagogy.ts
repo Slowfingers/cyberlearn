@@ -384,8 +384,8 @@ export function reviseLessons(tasks: Task[]): Task[] {
       if (task.type === 'grid') workedExample += ' В этой среде: ' + gridCommands(task).slice(0, 3).map(({code, meaning}) => `${code} — ${meaning}`).join('; ') + '.';
     }
     if (task.binaryConfig?.bitsCount === 5) explanation += ' В этой практике пять разрядов с весами 16, 8, 4, 2 и 1. Новый разряд слева весит вдвое больше предыдущего: 8 × 2 = 16.';
-    if(task.courseId==='course_grade5') {
-      if(['grid','spreadsheet','wireframe_builder','network_route','tree_search','sorting','circuit_builder','ai_kids_trainer'].includes(task.type)) task.title=task.id==='g5_l57'?'Условие: проверяем границу':concept;
+    if(['course_grade5','course_grade6'].includes(task.courseId)) {
+      if((['grid','spreadsheet','wireframe_builder','network_route','tree_search','sorting','circuit_builder','ai_kids_trainer'].includes(task.type) || task.courseId==='course_grade6' && ['typing','process_manager','hanoi','ai_neuron'].includes(task.type))) task.title=task.id==='g5_l57'?'Условие: проверяем границу':concept;
       if(['g5_l31','g5_l32','g5_l60'].includes(task.id)) {
         goal=task.id==='g5_l31'?'Подпиши примеры для двух учебных наборов.':task.id==='g5_l32'?'Подпиши предметы на разных фонах и объясни, зачем нужно разнообразие.':'Подпиши учебные и новые проверочные примеры. Объясни, зачем их разделили.';
         steps=['Прочитай подписи и правило двух наборов.','Разложи карточки и проверь разметку.',task.id==='g5_l31'?'Ошибочную карточку можно вернуть и переложить.':'Пройди проверку новых примеров или ответь на итоговый вопрос.'];

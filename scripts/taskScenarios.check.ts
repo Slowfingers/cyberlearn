@@ -6,7 +6,7 @@ import {getTreeScenario} from '../services/treeScenario';
 import {renderToStaticMarkup} from 'react-dom/server';
 import React from 'react';
 import {TypingGame} from '../components/interactives/TypingGame';
-import {ProcessManagerGame} from '../components/interactives/ProcessManagerGame';
+import {ProcessManagerGame,getProcessScenario} from '../components/interactives/ProcessManagerGame';
 import {SpreadsheetGame} from '../components/interactives/SpreadsheetGame';
 import {SortingGame} from '../components/interactives/SortingGame';
 import {BinaryTreeGame} from '../components/interactives/BinaryTreeGame';
@@ -39,6 +39,7 @@ for(const task of MOCK_TASKS){
  if(task.type==='ai_kids_trainer'&&task.aiTrainerConfig?.cards){const cards=task.aiTrainerConfig.cards;check(cards.length>0&&cards.every(c=>['cat','dog'].includes(c.category))&&new Set(cards.map(c=>c.id)).size===cards.length,'карточки без допустимых категорий');scenarios++;}
  if(task.aiTrainerConfig?.testCards){const cfg=task.aiTrainerConfig;const cards=cfg.testCards!;check(cards.length>0&&cards.every(c=>['cat','dog'].includes(c.category))&&new Set([...cfg.cards!,...cards].map(c=>c.id)).size===cfg.cards!.length+cards.length,'проверочные примеры повторяют учебные или не имеют категории');}
  if(task.aiTrainerConfig?.review){const review=task.aiTrainerConfig.review;check(review.question&&review.explanation&&review.options.length>=2&&new Set(review.options).size===review.options.length&&review.correctIndex>=0&&review.correctIndex<review.options.length,'невалидный проверочный вопрос');}
+ if(task.type==='process_manager'){const {targets,processes}=getProcessScenario(task);check(targets.length>0&&targets.every(name=>processes.some(p=>p.name===name&&!p.isCritical)),'процессная цель отсутствует или системная');scenarios++;}
  if(task.type==='file_organizer'){
   const {folders,files}=getFileScenario(task);
   check(folders.length>0&&files.length>0,'нет папок или файлов');

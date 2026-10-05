@@ -5,17 +5,20 @@ import StudentDashboard from '../components/StudentDashboard';
 import {MOCK_TASKS} from '../constants';
 import type {User} from '../types';
 import '../index.css';
-const initial:User={id:'audit_grade5',name:'Проверка прогресса',role:'student',xp:0,currency:0,level:1,inventory:['av_1'],achievements:[],equipped:{avatar:'av_1',droneColor:'#00f3ff',mascotSkin:'skin_sparky'},completedTaskIds:MOCK_TASKS.filter(t=>t.courseId==='course_grade5'&&!['g5_l20','g5_l46'].includes(t.id)).map(t=>t.id)};
+const grade=new URLSearchParams(window.location.search).get('grade')==='6'?'6':'5';
+const courseId=`course_grade${grade}`,remaining=grade==='6'?['g6_m1_l1','g6_m1_l3']:['g5_l20','g5_l46'];
+const total=MOCK_TASKS.filter(t=>t.courseId===courseId).length;
+const initial:User={id:`audit_grade${grade}`,name:'Проверка прогресса',role:'student',xp:0,currency:0,level:1,inventory:['av_1'],achievements:[],equipped:{avatar:'av_1',droneColor:'#00f3ff',mascotSkin:'skin_sparky'},completedTaskIds:MOCK_TASKS.filter(t=>t.courseId===courseId&&!remaining.includes(t.id)).map(t=>t.id)};
 let user=structuredClone(initial),stale=false,notify=()=>{};
-let report='Подготовлено: 68 из 70';
+let report=`Подготовлено: ${total-2} из ${total}`;
 const originalFetch=window.fetch.bind(window);
 window.fetch=async(input,options)=>{
  if(String(input)!=='/api/local')return originalFetch(input,options);
  const data=JSON.parse(String(options?.body??'{}'));let result:unknown=null;
  switch(data.operation){
-  case 'getUser':result=structuredClone(stale?initial:user);if(stale){stale=false;report='Старый ответ с 68 уроками получен';notify();}break;
-  case 'listTasks':result=[{...MOCK_TASKS.find(t=>t.id==='g5_l20')!,title:'Старая копия урока'}];break;
-  case 'completeTask':{const awarded=!user.completedTaskIds!.includes(data.taskId);if(awarded)user={...user,completedTaskIds:[...user.completedTaskIds!,data.taskId],xp:user.xp+100};result={user:structuredClone(user),awarded};report=`Сохранено: ${user.completedTaskIds!.length} из 70`;notify();break;}
+  case 'getUser':result=structuredClone(stale?initial:user);if(stale){stale=false;report=`Старый ответ с ${total-2} уроками получен`;notify();}break;
+  case 'listTasks':result=[{...MOCK_TASKS.find(t=>t.id===remaining[0])!,title:'Старая копия урока'}];break;
+  case 'completeTask':{const awarded=!user.completedTaskIds!.includes(data.taskId);if(awarded)user={...user,completedTaskIds:[...user.completedTaskIds!,data.taskId],xp:user.xp+100};result={user:structuredClone(user),awarded};report=`Сохранено: ${user.completedTaskIds!.length} из ${total}`;notify();break;}
   case 'listUsers':case 'listClassrooms':case 'listSubmissions':result=[];break;
   case 'recordAttempt':case 'incrementSwitches':break;
   default:return new Response(JSON.stringify({error:`Неизвестная операция теста: ${data.operation}`}),{status:400,headers:{'Content-Type':'application/json'}});

@@ -4,6 +4,10 @@ import { SPRITE_SILHOUETTES } from './spriteSilhouettes';
 
 export const AVATAR_NAMES = ['Орион', 'Киберлиса', 'Байт', 'Луна', 'Полярный кот', 'Пиксель', 'Нова', 'Неоновый волк', 'Спутник', 'Вега', 'Панда', 'Кварк', 'Комета', 'Рысь', 'Атлас', 'Аврора', 'Дракон', 'Импульс', 'Солярис', 'Фенек', 'Титан', 'Зенит', 'Сова', 'Космо'];
 export const STREET_AVATARS = [
+    { value: 'street_flux', name: 'Флюкс', role: 'Крутит световой диск', cost: 350, unlockLevel: 2 },
+    { value: 'street_riff', name: 'Рифф', role: 'Играет на синтезаторе', cost: 450, unlockLevel: 3 },
+    { value: 'street_patch', name: 'Патч', role: 'Настраивает инструменты', cost: 300, unlockLevel: 2 },
+    { value: 'street_kite', name: 'Кайт', role: 'Раскрывает крылья и взлетает', cost: 550, unlockLevel: 4 },
     { value: 'street_frost', name: 'Фрост', role: 'Ледяной райдер', cost: 200, unlockLevel: 1 },
     { value: 'street_akira', name: 'Акира', role: 'Гонщица мегаполиса', cost: 300, unlockLevel: 2 },
     { value: 'street_rex', name: 'Рекс', role: 'Король танцпола', cost: 400, unlockLevel: 3 },
@@ -28,7 +32,7 @@ export default function ShopAvatar({ avatarId = '2', frameId, scale = 2, classNa
     const frame = Math.max(0, Math.min(12, Number(frameId?.replace('frame_', '')) || 0));
     const [rim, rimDark] = PALETTES[(Math.max(1, frame) - 1) % PALETTES.length];
     const fill = (name: string) => `url(#${uid}-${name})`;
-    return <svg viewBox="0 0 160 160" width={48 * scale} height={48 * scale} role="img" aria-label={`${street?.name || AVATAR_NAMES[index]}${frame ? `, рамка ${FRAME_NAMES[frame - 1]}` : ''}`} className={`shrink-0 ${className}`}>
+    return <svg viewBox="0 0 160 160" width={48 * scale} height={48 * scale} role="img" aria-label={`${street?.name || AVATAR_NAMES[index]}${frame ? `, рамка ${FRAME_NAMES[frame - 1]}` : ''}`} data-character={street?.value} className={`shrink-0 ${className}`}>
         <defs>
             <radialGradient id={`${uid}-bg`} cx="35%" cy="20%" r="90%"><stop stopColor={dark} /><stop offset="1" stopColor="#080e20" /></radialGradient>
             <linearGradient id={`${uid}-shell`} x2="0.8" y2="1"><stop stopColor="#f8fafc" /><stop offset="0.4" stopColor={light} /><stop offset="1" stopColor={dark} /></linearGradient>

@@ -26,7 +26,7 @@ const NODES: NodeData[] = [
   { id: 'client', label: 'Клиент (ПК)', x: 50, y: 140, status: 'online' },
   { id: 'rA', label: 'Роутер A', x: 170, y: 70, status: 'online' },
   { id: 'rB', label: 'Роутер B', x: 170, y: 210, status: 'online' },
-  { id: 'rC', label: 'DNS Узел C', x: 310, y: 90, status: 'online' },
+  { id: 'rC', label: 'Роутер C', x: 310, y: 90, status: 'online' },
   { id: 'rD', label: 'Шлюз D', x: 310, y: 210, status: 'overloaded' },
   { id: 'server', label: 'Сервер Матрицы', x: 440, y: 140, status: 'online' },
 ];

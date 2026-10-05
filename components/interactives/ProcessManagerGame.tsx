@@ -22,14 +22,20 @@ interface ProcessManagerGameProps {
 const INITIAL_PROCESSES: Process[] = [
   { id: 101, name: 'system_kernel.sys', isRogue: false, isCritical: true, cpu: 2, ramMb: 128, status: 'Критический', description: 'Ядро операционной системы. Управляет драйверами и ресурсами.' },
   { id: 204, name: 'window_manager.srv', isRogue: false, isCritical: true, cpu: 4, ramMb: 96, status: 'Работает', description: 'Графическая оболочка рабочего стола.' },
-  { id: 312, name: 'miner_stealth_x64.tmp', isRogue: true, isCritical: false, cpu: 48, ramMb: 210, status: 'Утечка памяти', description: 'Вредоносный фоновый скрипт майнинга. Нагружает процессор на максимум!' },
-  { id: 405, name: 'infinite_loop_leak.exe', isRogue: true, isCritical: false, cpu: 35, ramMb: 180, status: 'Завис', description: 'Скрипт с бесконечным циклом без задержки. Пожирает оперативную память.' },
-  { id: 510, name: 'zombie_crawler.bin', isRogue: true, isCritical: false, cpu: 25, ramMb: 140, status: 'Утечка памяти', description: 'Зомби-процесс сетевого сканера. Не отвечает на запросы пользователя.' },
+  { id: 312, name: 'miner_stealth_x64.tmp', isRogue: true, isCritical: false, cpu: 48, ramMb: 210, status: 'Утечка памяти', description: 'Фоновая программа. В учебной ситуации её работу нужно остановить.' },
+  { id: 405, name: 'infinite_loop_leak.exe', isRogue: true, isCritical: false, cpu: 35, ramMb: 180, status: 'Завис', description: 'Работающий скрипт с циклом.' },
+  { id: 510, name: 'zombie_crawler.bin', isRogue: true, isCritical: false, cpu: 25, ramMb: 140, status: 'Утечка памяти', description: 'Сетевой сканер.' },
   { id: 118, name: 'audio_engine.daemon', isRogue: false, isCritical: false, cpu: 1, ramMb: 32, status: 'Работает', description: 'Аудиодрайвер для воспроизведения звуков.' },
 ];
 
+export function getProcessScenario(task:Task) {
+  const targets=task.processConfig?.targetKillNames ?? INITIAL_PROCESSES.filter(p=>p.isRogue).map(p=>p.name);
+  return {targets,processes:INITIAL_PROCESSES.map(p=>({...p,isRogue:targets.includes(p.name)}))};
+}
+
 export const ProcessManagerGame: React.FC<ProcessManagerGameProps> = ({ task, onComplete }) => {
-  const [processes, setProcesses] = useState<Process[]>(INITIAL_PROCESSES);
+  const scenario=getProcessScenario(task);
+  const [processes, setProcesses] = useState<Process[]>(scenario.processes);
   const [warningMsg, setWarningMsg] = useState('');
   const [completed, setCompleted] = useState(false);
 
@@ -46,7 +52,7 @@ export const ProcessManagerGame: React.FC<ProcessManagerGameProps> = ({ task, on
   }, [task.id]);
 
   const resetGame = () => {
-    setProcesses(INITIAL_PROCESSES);
+    setProcesses(scenario.processes);
     setWarningMsg('');
     setCompleted(false);
   };
@@ -62,10 +68,11 @@ export const ProcessManagerGame: React.FC<ProcessManagerGameProps> = ({ task, on
 
     if (!p.isRogue) {
       playSound('error');
-      setWarningMsg(`⚠️ Внимание: Процесс "${p.name}" полезный и не потребляет лишних ресурсов.`);
+      setWarningMsg(`Процесс «${p.name}» не указан для завершения. Оставь его работать.`);
+      return;
     } else {
       playSound('success');
-      setWarningMsg(`✅ Ликвидирован вредоносный процесс: "${p.name}". Память освобождена!`);
+      setWarningMsg(`Завершён указанный процесс: "${p.name}". Память освобождена!`);
     }
 
     const updated = processes.filter(proc => proc.id !== p.id);
@@ -102,6 +109,7 @@ export const ProcessManagerGame: React.FC<ProcessManagerGameProps> = ({ task, on
         </button>
       </div>
 
+<p className="mb-4 text-sm text-gray-200">В этой учебной ситуации заверши только: {scenario.targets.join(', ')}. Остальные процессы оставь работать. Высокая нагрузка сама по себе не означает, что программу нужно закрыть.</p>
       {/* Real-time System Telemetry Gauges */}
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
         {/* CPU Gauge */}
@@ -124,7 +132,7 @@ export const ProcessManagerGame: React.FC<ProcessManagerGameProps> = ({ task, on
             />
           </div>
           <div className="text-[10px] text-gray-500 font-mono mt-1.5">
-            {usedCpu > 70 ? '⚠️ Процессор перегревается из-за зависших потоков!' : '✓ Штатная нагрузка'}
+            {usedCpu > 70 ? 'Высокая нагрузка. Сверь процессы с условием.' : '✓ Штатная нагрузка'}
           </div>
         </div>
 
@@ -148,7 +156,7 @@ export const ProcessManagerGame: React.FC<ProcessManagerGameProps> = ({ task, on
             />
           </div>
           <div className="text-[10px] text-gray-500 font-mono mt-1.5">
-            Осталось нейтрализовать паразитных процессов: <span className="text-cyber-neonYellow font-bold">{rogueCount}</span>
+            Осталось завершить по условию: <span className="text-cyber-neonYellow font-bold">{rogueCount}</span>
           </div>
         </div>
       </div>
@@ -173,13 +181,10 @@ export const ProcessManagerGame: React.FC<ProcessManagerGameProps> = ({ task, on
 
         <div className="flex-1 divide-y divide-gray-900 overflow-y-auto">
           {processes.map(proc => {
-            const isDanger = proc.isRogue;
             return (
               <div
                 key={proc.id}
-                className={`process-row px-4 py-3 grid grid-cols-12 gap-2 items-center text-xs font-mono hover:bg-gray-900/40 transition-colors ${
-                  isDanger ? 'bg-red-950/15' : ''
-                }`}
+                className={`process-row px-4 py-3 grid grid-cols-12 gap-2 items-center text-xs font-mono hover:bg-gray-900/40 transition-colors`}
               >
                 <div className="col-span-2 text-gray-500">#{proc.id}</div>
                 <div className="col-span-4">
@@ -204,7 +209,8 @@ export const ProcessManagerGame: React.FC<ProcessManagerGameProps> = ({ task, on
                 <div className="col-span-2 flex justify-center">
                   <button
                     onClick={() => handleKillProcess(proc)}
-                    disabled={proc.isCritical}
+                    aria-label={`Завершить ${proc.name}`}
+                    disabled={proc.isCritical || completed}
                     className={`px-2.5 py-1 rounded text-[11px] font-bold flex items-center gap-1 transition-all ${
                       proc.isCritical
                         ? 'bg-gray-900 text-gray-600 cursor-not-allowed border border-gray-800'
@@ -228,16 +234,11 @@ export const ProcessManagerGame: React.FC<ProcessManagerGameProps> = ({ task, on
             <div>
               <div className="font-bold text-sm text-cyber-neonGreen uppercase">СИСТЕМА СТАБИЛИЗИРОВАНА!</div>
               <div className="text-xs text-gray-300">
-                Все утечки памяти устранены. CPU и RAM вернулись к оптимальным показателям!
+                Указанные процессы завершены. Остальные оставлены работать.
               </div>
             </div>
           </div>
-          <button
-            onClick={onComplete}
-            className="px-5 py-2 bg-cyber-neonGreen text-black font-bold uppercase rounded-lg text-xs hover:bg-white transition-colors"
-          >
-            ПРОТОКОЛ ВЫПОЛНЕН (+{task.xpReward} XP)
-          </button>
+
         </div>
       )}
     </div>

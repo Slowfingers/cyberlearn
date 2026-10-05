@@ -939,3 +939,13 @@ body { margin:0; background:#0b111d; font-family:system-ui,-apple-system,'Segoe 
 .assessment-option button {padding:14px 8px;min-width:0;}
 .assessment-option button::before {border-image-width:14px 10px;}
 @media(max-width:360px) {.academy-shop-grid {grid-template-columns:minmax(0,1fr);}.academy-modal [data-cosmetic-id]>button {max-width:220px;}.street-shop-preview {height:170px;}}
+
+/* Character-specific pacing; poses are drawn in each source atlas. */
+[data-character="street_flux"] .street-avatar-strip {animation-duration:2.1s;}
+[data-character="street_riff"] .street-avatar-strip {animation-duration:1.8s;}
+[data-character="street_patch"] .street-avatar-strip {animation-duration:3.6s;}
+[data-character="street_kite"] .street-avatar-strip {animation-duration:2.8s;}
+.mentor-character[data-character="lyra"] .street-avatar-strip {animation-duration:3.3s;}
+.mentor-character[data-character="moss"] .street-avatar-strip {animation-duration:4.2s;}
+.mentor-character[data-character="lyra"] .mentor-movement-strip {animation-duration:1.8s;}
+.mentor-character[data-character="moss"] .mentor-movement-strip {animation-duration:2.2s;}

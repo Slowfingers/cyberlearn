@@ -37,21 +37,21 @@ const ids = [...pair.matchAll(/ id="([^"]+)"/g)].map(match => match[1]);
 assert.equal(new Set(ids).size, ids.length);
 console.log(`cosmetics.check: ${avatars.length} avatars × 13 frame states, legacy ownership IDs and unique SVG references OK`);
 
-assert.equal(SHOP_COSMETICS.filter(item => item.type === 'avatar').length, 10);
+assert.equal(SHOP_COSMETICS.filter(item => item.type === 'avatar').length, STREET_AVATARS.length);
 assert.ok(SHOP_COSMETICS.filter(item => item.type === 'avatar').every(item => item.value.startsWith('street_')));
 for (const mentor of COSMETICS.filter(item => item.type === 'mascotSkin')) {
     const png = readFileSync(new URL('../public/avatar/mentors/' + mentor.value + '.png', import.meta.url));
-    assert.equal(png.readUInt32BE(16), png.readUInt32BE(20) * 3);
+    assert.equal(png.readUInt32BE(16), png.readUInt32BE(20) * (['lyra','moss'].includes(mentor.value) ? 1 : 3));
     assert.equal(resolveMentorSkin(mentor.id), mentor.value);
     const html = renderToStaticMarkup(React.createElement(BigCharacter3D, { skin: mentor.id }));
     assert.ok(html.includes(mentor.name));
     assert.ok(html.includes('/avatar/mentors/' + mentor.value + '.png'));
 }
 assert.equal(resolveMentorSkin('unknown'), 'sparky');
-console.log('Shop hides retired portraits; all four mentor IDs resolve to valid sprite assets.');
+console.log('Shop hides retired portraits; all mentor IDs resolve to valid sprite assets.');
 
 for (const [skin, sets] of Object.entries(SPRITE_SILHOUETTES)) {
-    assert.equal(sets.idle.paths.length, 6, `${skin}: all idle frames must be masked`);
+    assert.equal(sets.idle.paths.length, 6 * sets.idle.rows, `${skin}: all idle frames must be masked`);
     for (const path of sets.idle.paths) assert.ok(path.startsWith('M') && !/NaN|undefined/.test(path));
     if ('movement' in sets) {
         assert.equal(sets.movement.paths.length, 12, `${skin}: both reaction rows must be masked`);
@@ -62,10 +62,21 @@ for (const [skin, sets] of Object.entries(SPRITE_SILHOUETTES)) {
         }
     }
 }
-console.log('All 14 sprite sets have per-frame silhouette clips, including both mentor reaction rows.');
+console.log('All sprite sets have per-frame silhouette clips, including both mentor reaction rows.');
 
 const isolatedStrip = renderToStaticMarkup(React.createElement(ShopAvatar, { avatarId: 'street_nova', fullBody: true }));
 assert.equal((isolatedStrip.match(/<image /g) || []).length, 6, 'Every frame needs its own isolated viewport');
 assert.ok(/<rect width="362" height="724"/.test(isolatedStrip), 'A fixed clip must bound the animated strip');
 assert.ok(/<g clip-path="url\(#[^)]*-viewport\)"><g class="street-avatar-strip"/.test(isolatedStrip), 'The viewport stays outside the animated group');
 console.log('Sprite viewport remains fixed while six separately masked cells move inside it.');
+
+for (const skin of ['lyra', 'moss'] as const) {
+    assert.equal(SPRITE_SILHOUETTES[skin].idle.rows, 3);
+    for (const [mood, offset] of [['idle', 0], ['talking', -724], ['thinking', -724], ['celebrate', -1448]] as const) {
+        const html = renderToStaticMarkup(React.createElement(BigCharacter3D, {skin, mood}));
+        assert.ok(html.includes(`y="${offset}"`), `${skin} ${mood}: correct atlas row`);
+        assert.ok(html.includes('height="2172"'), 'Three rows preserve portrait proportions');
+        assert.ok(!html.includes('-movements-v2'), 'New mentors use their own complete atlas');
+    }
+}
+console.log('New mentors: idle, teaching, support and celebration select the correct drawn frames.');

@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { Task } from '../../types';
 import { playSound } from '../../utils/sound';
 import { Brain, CheckCircle, Sliders, Cpu, Sparkles, RotateCcw } from 'lucide-react';
@@ -31,6 +31,8 @@ export const NeuronLabGame: React.FC<NeuronLabGameProps> = ({ task, onComplete }
   const [w1, setW1] = useState<number>(0);
   const [w2, setW2] = useState<number>(0);
   const [bias, setBias] = useState<number>(-1);
+  const finished=useRef(false);
+  const [error,setError]=useState('');
   const [completed, setCompleted] = useState<boolean>(false);
 
   useEffect(() => {
@@ -38,6 +40,7 @@ export const NeuronLabGame: React.FC<NeuronLabGameProps> = ({ task, onComplete }
   }, [task.id]);
 
   const resetGame = () => {
+    finished.current=false;setError('');
     setW1(0);
     setW2(0);
     setBias(-1);
@@ -55,14 +58,11 @@ export const NeuronLabGame: React.FC<NeuronLabGameProps> = ({ task, onComplete }
   const correctCount = results.filter(r => r.isCorrect).length;
   const accuracy = Math.round((correctCount / samples.length) * 100);
 
-  // Check completion
-  useEffect(() => {
-    if (correctCount === samples.length && !completed) {
-      setCompleted(true);
-      playSound('success');
-      onComplete();
-    }
-  }, [correctCount, completed]);
+  const checkModel=()=>{
+    if(finished.current)return;
+    if(correctCount!==samples.length){setError('Не все ответы совпали. Найди ошибочный пример, пересчитай сумму и измени один параметр.');playSound('error');return;}
+    finished.current=true;setCompleted(true);setError('');playSound('success');onComplete();
+  };
 
   return (
     <div className="workshop-legacy flex flex-col h-full bg-gray-950 p-4 md:p-6 overflow-y-auto">
@@ -120,7 +120,9 @@ export const NeuronLabGame: React.FC<NeuronLabGameProps> = ({ task, onComplete }
               <span className="font-bold text-cyber-neonBlue">{w1 > 0 ? `+${w1}` : w1}</span>
             </div>
             <input
-              type="range"
+              aria-label="Вес первого признака"
+              disabled={completed}
+              type = "range"
               min="-5"
               max="5"
               step="1"
@@ -140,7 +142,9 @@ export const NeuronLabGame: React.FC<NeuronLabGameProps> = ({ task, onComplete }
               <span className="font-bold text-cyber-neonPink">{w2 > 0 ? `+${w2}` : w2}</span>
             </div>
             <input
-              type="range"
+              aria-label="Вес второго признака"
+              disabled={completed}
+              type = "range"
               min="-5"
               max="5"
               step="1"
@@ -160,7 +164,9 @@ export const NeuronLabGame: React.FC<NeuronLabGameProps> = ({ task, onComplete }
               <span className="font-bold text-cyber-neonYellow">{bias > 0 ? `+${bias}` : bias}</span>
             </div>
             <input
-              type="range"
+              aria-label="Смещение"
+              disabled={completed}
+              type = "range"
               min="-5"
               max="5"
               step="1"
@@ -216,24 +222,21 @@ export const NeuronLabGame: React.FC<NeuronLabGameProps> = ({ task, onComplete }
         </div>
       </div>
 
+<p role="alert" className="text-rose-300">{error}</p>
+      {!completed && <button className="workshop-primary" onClick={checkModel}>Проверить модель</button>}
       {/* Victory Banner */}
       {completed && (
         <div className="p-4 bg-cyber-neonGreen/15 border border-cyber-neonGreen rounded-xl flex items-center justify-between text-white animate-fade-in">
           <div className="flex items-center gap-3">
             <CheckCircle className="text-cyber-neonGreen" size={26} />
             <div>
-              <div className="font-bold text-sm text-cyber-neonGreen uppercase">НЕЙРОН УСПЕШНО ОБУЧЕН!</div>
+              <div className="font-bold text-sm text-cyber-neonGreen uppercase">ПРИМЕРЫ ПРОВЕРЕНЫ!</div>
               <div className="text-xs text-gray-300">
-                Точность инференса достигла 100%. Математическая модель готова к боевой классификации!
+                Все учебные ответы совпали. Для применения нужны отдельные новые примеры.
               </div>
             </div>
           </div>
-          <button
-            onClick={onComplete}
-            className="px-5 py-2 bg-cyber-neonGreen text-black font-bold uppercase rounded-lg text-xs hover:bg-white transition-colors"
-          >
-            СОХРАНИТЬ ВЕСА (+{task.xpReward} XP)
-          </button>
+
         </div>
       )}
     </div>

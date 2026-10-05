@@ -10,7 +10,7 @@ export function SpriteStrip({ skin, movement = false, row = 0, className, href }
     const clip = `${id}-frame-${index}`;
     return <svg key={index} x={index*362} width="362" height="724" viewBox="0 0 362 724" overflow="hidden">
       <defs><clipPath id={clip} clipPathUnits="userSpaceOnUse"><path d={data.paths[row*6+index]} transform={`scale(${362/data.width} ${724/data.height})`}/></clipPath></defs>
-      <g clipPath={`url(#${clip})`}><image href={href} x={-index*362} y={-row*724} width="2172" height={movement ? 1448 : 724}/></g>
+      <g clipPath={`url(#${clip})`}><image href={href} x={-index*362} y={-row*724} width="2172" height={data.rows * 724}/></g>
     </svg>;
   })}</g></g></>;
 }
