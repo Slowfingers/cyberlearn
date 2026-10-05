@@ -1,4 +1,6 @@
 import { CLEAR_EXPLANATIONS } from './clearExplanations';
+import { LESSON_PROGRESSIONS, PROGRESSION_REFLECTIONS } from './lessonProgressions';
+import { PROGRESSION_QUESTIONS } from './progressionQuestions';
 import { QUIZ_TITLES } from './quizTitles';
 import { Task } from '../types';
 import { cleanLessonTitle } from '../utils/theoryText';
@@ -303,8 +305,8 @@ export function reviseLessons(tasks: Task[]): Task[] {
     const key = task.type === 'wireframe_builder' ? 'wireframe' : task.type === 'ai_neuron' ? 'neuron' : task.type === 'spreadsheet' ? (task.spreadsheetConfig?.formulaType === 'if' ? 'ifformula' : task.spreadsheetConfig?.formulaType === 'multiply' ? 'multiply' : 'spreadsheet') : mappedKey;
     const card = cards[key ?? ''];
     if (!card) throw new Error(`Нет методической карточки: ${task.id}, ${key}`);
-    const [concept, originalExplanation, example, reflection] = card;
-    const explanation = CLEAR_EXPLANATIONS[key!] ?? originalExplanation;
+    let [concept, originalExplanation, example, reflection] = card;
+    let explanation = CLEAR_EXPLANATIONS[key!] ?? originalExplanation;
     task.title = titles[task.id] ?? (task.type === 'quiz' ? QUIZ_TITLES[task.id] ?? concept : cleanLessonTitle(task.title)).replace(/Экзамен модуля:\s*/i, 'Проверяем себя: ');
     task.module = units.find(([, keys]) => keys.includes(topicOverrides[task.id]?.[1] ?? (key === 'wireframe' ? 'design' : key === 'neuron' ? 'ai' : key) ?? ''))?.[0] ?? task.module;
     if (task.sortingConfig) task.sortingConfig = { ...task.sortingConfig, algorithm: 'bubble' };
@@ -364,7 +366,13 @@ export function reviseLessons(tasks: Task[]): Task[] {
     if (task.type === 'ai_neuron') {
       workedExample = 'Модель умножает признаки на веса, складывает результаты и добавляет смещение. Например, при признаках 1 и 0, весах 2 и 1, смещении −1 получаем 1 × 2 + 0 × 1 − 1 = 1. Сумма больше нуля — класс 1; иначе — класс 0. Это учебная модель.';
     }
-    task.lesson = { topic: key, concept, explanation, example: workedExample, goal, steps: [...steps], success, reflection, starterCode, commands: task.type === 'grid' ? gridCommands(task) : undefined };
+    const progression = LESSON_PROGRESSIONS[task.id];
+    if (progression) {
+      [concept, explanation, workedExample] = progression;
+      reflection = PROGRESSION_REFLECTIONS[task.id] ?? reflection;
+      if (task.type === 'grid') workedExample += ' В этой среде: ' + gridCommands(task).slice(0, 3).map(({code, meaning}) => `${code} — ${meaning}`).join('; ') + '.';
+    }
+    task.lesson = { topic: key, concept, explanation, example: workedExample, goal, steps: [...steps], success, reflection, starterCode, mentorQuestion: PROGRESSION_QUESTIONS[task.id], commands: task.type === 'grid' ? gridCommands(task) : undefined };
     // Короткое описание рассказывает о действии, а не перечисляет стандарты.
     task.description = goal;
     const safe = (text: string) => text.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');

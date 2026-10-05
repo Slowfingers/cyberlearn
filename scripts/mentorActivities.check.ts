@@ -3,7 +3,7 @@ import React from 'react';
 import { renderToStaticMarkup } from 'react-dom/server';
 import { MOCK_TASKS } from '../constants';
 import { CLEAR_EXPLANATIONS } from '../curriculum/clearExplanations';
-import { MENTOR_QUESTIONS } from '../curriculum/mentorActivities';
+import { MENTOR_QUESTIONS, getMentorQuestion } from '../curriculum/mentorActivities';
 import { BigMascotTheoryStory } from '../components/BigMascotTheoryStory';
 for (const [topic, activity] of Object.entries(MENTOR_QUESTIONS)) {
 
@@ -13,6 +13,11 @@ for (const [topic, activity] of Object.entries(MENTOR_QUESTIONS)) {
   assert.ok(activity.options.every(option => option.feedback.length > 20));
 }
 for (const task of MOCK_TASKS) {
+  const activity = getMentorQuestion(task);
+  assert.equal(activity.options.length, 3, task.id);
+  assert.ok(activity.correct >= 0 && activity.correct < 3, task.id);
+  assert.equal(new Set(activity.options.map(option => option.text)).size, 3, task.id);
+  assert.ok(activity.options.every(option => option.feedback.length > 20), task.id);
   assert.ok(task.lesson?.topic, `Missing topic: ${task.id}`);
   assert.ok(task.lesson!.mentorQuestion ?? MENTOR_QUESTIONS[task.lesson!.topic!], `Missing question: ${task.id}`);
   assert.ok(task.lesson!.mentorQuestion ? task.lesson!.explanation : CLEAR_EXPLANATIONS[task.lesson!.topic!], `Missing clear explanation: ${task.id}`);
