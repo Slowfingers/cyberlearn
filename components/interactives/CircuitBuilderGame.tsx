@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useRef, useEffect } from 'react';
 import { Task } from '../../types';
 import { playSound } from '../../utils/sound';
 import { Zap, Lightbulb, CheckCircle2, RotateCcw, Sparkles, BookOpen, X, Star, HelpCircle, ArrowRight } from 'lucide-react';
@@ -20,7 +20,7 @@ const CHALLENGES: GateChallenge[] = [
     nameRu: '«И» (AND)',
     rule: 'Ток идёт (1) ТОЛЬКО когда ОБА рубильника включены (1 и 1). Если хоть один выключен — цепь разомкнута (0).',
     analogy: 'Как вход в космический корабль: нужен ключ капитана И ключ штурмана одновременно!',
-    targetStateDesc: 'Включи оба рубильника (А=1 и В=1), чтобы зажечь лампочку!',
+    targetStateDesc: 'Настрой входы так, чтобы лампочка загорелась.',
     isTargetMet: (a, b) => a === true && b === true
   },
   {
@@ -29,8 +29,8 @@ const CHALLENGES: GateChallenge[] = [
     nameRu: '«ИЛИ» (OR)',
     rule: 'Ток идёт (1), если включен ХОТЯ БЫ ОДИН рубильник (или оба). Лампочка не горит (0) только когда оба выключены.',
     analogy: 'Как звонок у двери дома: можно нажать кнопку у калитки ИЛИ кнопку у крыльца — звонок зазвенит!',
-    targetStateDesc: 'Включи только один рубильник (А=1, В=0 или А=0, В=1) и убедись, что свет горит!',
-    isTargetMet: (a, b) => (a && !b) || (!a && b)
+    targetStateDesc: 'Настрой входы так, чтобы лампочка загорелась.',
+    isTargetMet: (a, b) => a || b
   },
   {
     id: 'xor',
@@ -38,7 +38,7 @@ const CHALLENGES: GateChallenge[] = [
     nameRu: '«XOR» (Сложение по модулю 2)',
     rule: 'Ток идёт (1), когда рубильники в РАЗНЫХ положениях! Если оба выключены (0,0) или оба включены (1,1) — свет гаснет (0).',
     analogy: 'Переключатель люстры в коридоре: вошёл — щёлкнул снизу (свет горит), поднялся наверх — щёлкнул вторым (свет погас)!',
-    targetStateDesc: 'Сделай так, чтобы рубильники были в РАЗНЫХ положениях (один ВКЛ, второй ВЫКЛ)!',
+    targetStateDesc: 'Настрой входы так, чтобы лампочка загорелась.',
     isTargetMet: (a, b) => (a && !b) || (!a && b)
   },
   {
@@ -47,7 +47,7 @@ const CHALLENGES: GateChallenge[] = [
     nameRu: '«NAND» (Отрицание И)',
     rule: 'Инвертор: выдаёт 1 всегда, КРОМЕ случая, когда оба рубильника включены (1,1). Основа flash-памяти в SSD и смартфонах!',
     analogy: 'Аварийный предохранитель: свет горит штатно, но если сработали ОБА датчика перегрузки — питание аварийно отключается!',
-    targetStateDesc: 'Включи ОБА рубильника, чтобы аварийно разомкнуть цепь и погасить свет!',
+    targetStateDesc: 'Настрой входы так, чтобы лампочка погасла.',
     isTargetMet: (a, b) => a === true && b === true
   }
 ];
@@ -63,11 +63,22 @@ export const resolveCircuitGates = (task: Task): GateChallenge[] => {
   const found = ids
     .map(g => CHALLENGES.find(c => c.id === g.toLowerCase()))
     .filter((c): c is GateChallenge => !!c);
-  return found.length > 0 ? found : CHALLENGES;
+  const selected = found.length > 0 ? found : CHALLENGES;
+  const output = cfg?.expectedOutput ?? cfg?.targetOutput;
+  return typeof output !== 'boolean' ? selected : selected.map(challenge => ({...challenge,
+    targetStateDesc: output ? 'Настрой входы так, чтобы лампочка загорелась.' : 'Настрой входы так, чтобы лампочка погасла.',
+    isTargetMet: (a:boolean,b:boolean) => {
+      const actual = challenge.id === 'and' ? a && b : challenge.id === 'or' ? a || b : challenge.id === 'xor' ? a !== b : !(a && b);
+      return actual === output;
+    }
+  }));
 };
 
 export const CircuitBuilderGame: React.FC<{ task: Task; onComplete: () => void }> = ({ task, onComplete }) => {
   const challenges = resolveCircuitGates(task);
+  const transition = useRef(false);
+  const timer = useRef<ReturnType<typeof setTimeout> | null>(null);
+  useEffect(() => () => {if(timer.current) clearTimeout(timer.current);}, []);
   const [levelIdx, setLevelIdx] = useState(0);
   const [switchA, setSwitchA] = useState(false);
   const [switchB, setSwitchB] = useState(false);
@@ -92,6 +103,7 @@ export const CircuitBuilderGame: React.FC<{ task: Task; onComplete: () => void }
   const isGoalMet = currentChallenge.isTargetMet(switchA, switchB);
 
   const toggleSwitchA = () => {
+    if (transition.current || completed) return;
     playSound('click');
     const nextA = !switchA;
     setSwitchA(nextA);
@@ -99,6 +111,7 @@ export const CircuitBuilderGame: React.FC<{ task: Task; onComplete: () => void }
   };
 
   const toggleSwitchB = () => {
+    if (transition.current || completed) return;
     playSound('click');
     const nextB = !switchB;
     setSwitchB(nextB);
@@ -107,19 +120,21 @@ export const CircuitBuilderGame: React.FC<{ task: Task; onComplete: () => void }
 
   const checkProgress = (a: boolean, b: boolean) => {
     if (currentChallenge.isTargetMet(a, b)) {
+      transition.current = true;
       playSound('hit');
       setStars(prev => prev + 1);
 
       if (levelIdx + 1 < challenges.length) {
-        setTimeout(() => {
+        timer.current = setTimeout(() => {
           setLevelIdx(prev => prev + 1);
           setSwitchA(false);
           setSwitchB(false);
+          transition.current = false;
         }, 1200);
       } else {
         playSound('success');
         setCompleted(true);
-        setTimeout(() => {
+        timer.current = setTimeout(() => {
           onComplete();
         }, 1800);
       }
@@ -242,7 +257,7 @@ export const CircuitBuilderGame: React.FC<{ task: Task; onComplete: () => void }
                   </div>
                 </div>
                 <button
-                  onClick={toggleSwitchA}
+                  onClick={toggleSwitchA} aria-label="Рубильник A" aria-pressed={switchA} disabled={completed}
                   className={`px-4 py-2 rounded-xl text-xs font-bold font-mono transition-all ${
                     switchA ? 'bg-cyan-400 text-black shadow-lg scale-105' : 'bg-slate-800 text-slate-300 hover:bg-slate-700'
                   }`}
@@ -264,7 +279,7 @@ export const CircuitBuilderGame: React.FC<{ task: Task; onComplete: () => void }
                   </div>
                 </div>
                 <button
-                  onClick={toggleSwitchB}
+                  onClick={toggleSwitchB} aria-label="Рубильник B" aria-pressed={switchB} disabled={completed}
                   className={`px-4 py-2 rounded-xl text-xs font-bold font-mono transition-all ${
                     switchB ? 'bg-cyan-400 text-black shadow-lg scale-105' : 'bg-slate-800 text-slate-300 hover:bg-slate-700'
                   }`}

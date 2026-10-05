@@ -1217,7 +1217,7 @@ const StudentDashboard: React.FC<StudentDashboardProps> = ({ currentUser: propUs
                 <button onClick={() => setLessonStage('explanation')} className="text-sm text-cyan-300 px-3 py-2">К объяснению</button>
             </div>
             <PracticeSurface goal={getTaskPracticeGoal(activeTask!)}><Suspense fallback={<LessonLoader />}>
-                <HanoiGame task={activeTask!} onComplete={() => handleTaskCompletion(activeTask!)} />
+                <HanoiGame key={activeTask!.id} task={activeTask!} onComplete={() => handleTaskCompletion(activeTask!)} />
             </Suspense></PracticeSurface>
         </div>
       )}
@@ -1242,7 +1242,7 @@ const StudentDashboard: React.FC<StudentDashboardProps> = ({ currentUser: propUs
           const wrap = (game: React.ReactNode) => (
               <div className={`${!showMobileSidebar ? 'flex' : 'hidden'} md:flex flex-1 flex-col bg-black relative overflow-hidden`}>
                   {header}
-                  <PracticeSurface goal={getTaskPracticeGoal(t)}><Suspense fallback={<LessonLoader />}>{game}</Suspense></PracticeSurface>
+                  <PracticeSurface goal={getTaskPracticeGoal(t)}><Suspense key={t.id} fallback={<LessonLoader />}>{game}</Suspense></PracticeSurface>
               </div>
           );
 

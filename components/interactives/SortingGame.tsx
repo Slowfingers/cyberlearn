@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { Task } from '../../types';
 import { playSound } from '../../utils/sound';
 import { ArrowUpDown, RotateCcw, CheckCircle, Sparkles, HelpCircle, Layers, BookOpen, X, Lightbulb, Play, AlertCircle } from 'lucide-react';
@@ -9,6 +9,8 @@ interface SortingGameProps {
 }
 
 export const SortingGame: React.FC<SortingGameProps> = ({ task, onComplete }) => {
+  const timer = useRef<ReturnType<typeof setTimeout> | null>(null);
+  useEffect(() => () => {if(timer.current) clearTimeout(timer.current);}, []);
   const isGrade3 = task.courseId === 'course_grade3' || task.id.startsWith('g3_');
   const initialData = task.sortingConfig?.numbers || (isGrade3 ? [12, 5, 28, 9, 3] : [42, 15, 88, 7, 33, 21]);
   const [array, setArray] = useState<number[]>(initialData);
@@ -25,6 +27,7 @@ export const SortingGame: React.FC<SortingGameProps> = ({ task, onComplete }) =>
   }, [task.id]);
 
   const resetGame = () => {
+    if(timer.current) clearTimeout(timer.current);
     setArray([...initialData]);
     setCurrentIndex(0);
     setPassNumber(1);
@@ -113,7 +116,7 @@ export const SortingGame: React.FC<SortingGameProps> = ({ task, onComplete }) =>
           type: 'success',
           msg: '🎉 Ура! Все элементы выстроились по возрастанию! Алгоритм завершен!'
         });
-        setTimeout(() => {
+        timer.current = setTimeout(() => {
           onComplete();
         }, 1200);
       } else {
@@ -296,13 +299,13 @@ export const SortingGame: React.FC<SortingGameProps> = ({ task, onComplete }) =>
             className="py-4 px-4 bg-cyber-neonYellow hover:bg-white text-black font-bold uppercase text-xs md:text-sm font-mono rounded-2xl transition-all shadow-[0_0_20px_rgba(252,238,10,0.25)] flex items-center justify-center gap-2.5 active:scale-98"
           >
             <ArrowUpDown size={18} />
-            <span>Поменять местами: {left} &gt; {right}</span>
+            <span>Поменять местами</span>
           </button>
           <button
             onClick={handleStudentKeep}
             className="py-4 px-4 bg-slate-900 hover:bg-slate-800 text-white font-bold uppercase text-xs md:text-sm font-mono rounded-2xl transition-all border border-slate-700 flex items-center justify-center gap-2.5 active:scale-98"
           >
-            <span>Оставить порядок: {left} ≤ {right} ➔</span>
+            <span>Оставить порядок ➔</span>
           </button>
         </div>
       ) : (

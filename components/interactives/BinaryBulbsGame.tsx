@@ -1,4 +1,4 @@
-import React, { useState, useMemo } from 'react';
+import React, { useState, useMemo, useRef, useEffect } from 'react';
 import { WorkshopArt } from './WorkshopArt';
 import { Task } from '../../types';
 import { playSound } from '../../utils/sound';
@@ -12,44 +12,56 @@ const ROUNDS = [
   { target: 15, formula: '8 + 4 + 2 + 1', hint: 'Зажги ВСЕ 4 лампочки сразу!' },
 ];
 
+export function getBinaryScenario(task: Task) {
+  const bitCount = task.binaryConfig?.bitsCount ?? 4;
+  const weights = Array.from({length: bitCount}, (_, i) => 2 ** (bitCount - i - 1));
+  const rounds: {target:number}[] = task.binaryConfig?.rounds?.length ? task.binaryConfig.rounds
+    : task.binaryConfig?.targetNumber !== undefined ? [{target:task.binaryConfig.targetNumber}] : ROUNDS;
+  return {weights, rounds};
+}
 export const BinaryBulbsGame: React.FC<{ task: Task; onComplete: () => void }> = ({ task, onComplete }) => {
-  const rounds: { target: number; formula: string; hint: string }[] =
-    task.binaryConfig?.rounds?.length ? task.binaryConfig.rounds : ROUNDS;
+  const {weights, rounds}=getBinaryScenario(task);
+  const transition = useRef(false);
+  const timer = useRef<ReturnType<typeof setTimeout> | null>(null);
+  useEffect(() => () => { if(timer.current) clearTimeout(timer.current); }, []);
   const showHex = task.binaryConfig?.showHex === true;
   const [currentRoundIdx, setCurrentRoundIdx] = useState(0);
-  const [bits, setBits] = useState<[number, number, number, number]>([0, 0, 0, 0]); // weights: 8, 4, 2, 1
+  const [bits, setBits] = useState<number[]>(weights.map(() => 0)); // weights: 8, 4, 2, 1
   const [stars, setStars] = useState(0);
   const [completed, setCompleted] = useState(false);
   const [showGuide, setShowGuide] = useState(false);
 
   const currentRound = rounds[currentRoundIdx];
   const toHex = (n: number) => n.toString(16).toUpperCase();
-  const weights = [8, 4, 2, 1];
+
 
   const currentSum = useMemo(() => {
-    return bits[0] * 8 + bits[1] * 4 + bits[2] * 2 + bits[3] * 1;
+    return bits.reduce((sum, bit, i) => sum + bit * weights[i], 0);
   }, [bits]);
 
   const toggleBit = (index: number) => {
+    if (transition.current || completed) return;
     playSound('click');
-    const newBits = [...bits] as [number, number, number, number];
+    const newBits = [...bits];
     newBits[index] = newBits[index] === 1 ? 0 : 1;
     setBits(newBits);
 
-    const newSum = newBits[0] * 8 + newBits[1] * 4 + newBits[2] * 2 + newBits[3] * 1;
+    const newSum = newBits.reduce((sum, bit, i) => sum + bit * weights[i], 0);
     if (newSum === currentRound.target) {
+      transition.current = true;
       playSound('hit');
       setStars(prev => prev + 1);
 
       if (currentRoundIdx + 1 < rounds.length) {
-        setTimeout(() => {
+        timer.current = setTimeout(() => {
           setCurrentRoundIdx(prev => prev + 1);
-          setBits([0, 0, 0, 0]);
+          setBits(weights.map(() => 0));
+          transition.current = false;
         }, 1000);
       } else {
         playSound('success');
         setCompleted(true);
-        setTimeout(() => {
+        timer.current = setTimeout(() => {
           onComplete();
         }, 1500);
       }
@@ -112,23 +124,11 @@ export const BinaryBulbsGame: React.FC<{ task: Task; onComplete: () => void }> =
             Когда выключатель выключен — это <strong className="text-white">0</strong>. Когда включен и течет ток — это <strong className="text-amber-400">1</strong>.
           </p>
 
-          <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 text-xs mb-3">
-            <div className="p-2 bg-slate-900/80 border border-amber-500/30 rounded-lg text-center">
-              <span className="font-bold text-amber-400 block text-sm">+8</span>
-              <span className="text-[10px] text-slate-400">Лампочка №4</span>
-            </div>
-            <div className="p-2 bg-slate-900/80 border border-amber-500/30 rounded-lg text-center">
-              <span className="font-bold text-amber-400 block text-sm">+4</span>
-              <span className="text-[10px] text-slate-400">Лампочка №3</span>
-            </div>
-            <div className="p-2 bg-slate-900/80 border border-amber-500/30 rounded-lg text-center">
-              <span className="font-bold text-amber-400 block text-sm">+2</span>
-              <span className="text-[10px] text-slate-400">Лампочка №2</span>
-            </div>
-            <div className="p-2 bg-slate-900/80 border border-amber-500/30 rounded-lg text-center">
-              <span className="font-bold text-amber-400 block text-sm">+1</span>
-              <span className="text-[10px] text-slate-400">Лампочка №1</span>
-            </div>
+          <div className="grid grid-cols-2 sm:grid-cols-3 gap-2 text-xs mb-3">
+            {weights.map((weight, i) => <div key={weight} className="p-2 bg-slate-900/80 border border-amber-500/30 rounded-lg text-center">
+              <span className="font-bold text-amber-400 block text-sm">+{weight}</span>
+              <span className="text-[10px] text-slate-400">Разряд {weights.length-i}</span>
+            </div>)}
           </div>
 
           <div className="p-2.5 bg-black/40 rounded-xl text-[11px] text-amber-200/90 font-mono space-y-1 border border-amber-500/20">
@@ -156,7 +156,7 @@ export const BinaryBulbsGame: React.FC<{ task: Task; onComplete: () => void }> =
 
       {/* 4 Interactive Bulbs */}
       <div className="flex-1 flex flex-col justify-center items-center max-w-2xl mx-auto w-full">
-        <div className="binary-switch-grid grid grid-cols-4 gap-2.5 md:gap-6 w-full">
+        <div className={`binary-switch-grid grid ${weights.length > 4 ? 'grid-cols-5' : 'grid-cols-4'} gap-2.5 md:gap-6 w-full`}>
           {weights.map((weight, idx) => {
             const isOn = bits[idx] === 1;
             return (
@@ -194,6 +194,7 @@ export const BinaryBulbsGame: React.FC<{ task: Task; onComplete: () => void }> =
                 {/* Interactive Toggle Button */}
                 <button
                   onClick={() => toggleBit(idx)}
+                  aria-label={`Лампочка с весом ${weight}`} aria-pressed={isOn} disabled={completed}
                   className={`w-full py-2 md:py-2.5 rounded-xl font-bold text-xs uppercase tracking-wider transition-all transform active:scale-95 shadow-md flex items-center justify-center gap-1 ${
                     isOn
                       ? 'bg-amber-500 hover:bg-amber-400 text-black shadow-amber-500/20'
@@ -212,7 +213,7 @@ export const BinaryBulbsGame: React.FC<{ task: Task; onComplete: () => void }> =
           <div className="flex items-center gap-2 text-sm md:text-base font-mono">
             <span className="text-slate-400">Сумма:</span>
             <span className="font-bold text-cyan-300">
-              {bits[0] * 8} + {bits[1] * 4} + {bits[2] * 2} + {bits[3] * 1}
+              {bits.map((bit, i) => bit * weights[i]).join(' + ')}
             </span>
             <span className="text-slate-400">=</span>
             <span className={`text-xl font-extrabold px-3 py-1 rounded-xl transition-all ${

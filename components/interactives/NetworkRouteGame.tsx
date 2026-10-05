@@ -42,13 +42,27 @@ const EDGES: EdgeData[] = [
   { from: 'rD', to: 'server', latencyMs: 80 }, // DDoS lag
 ];
 
-export const NetworkRouteGame: React.FC<NetworkRouteGameProps> = ({ task, onComplete }) => {
+export function getNetworkScenario(task:Task) {
   const cfg = task.networkConfig;
-  const nodes = cfg?.nodes?.length ? cfg.nodes : NODES;
-  const edges = cfg?.edges?.length ? cfg.edges : EDGES;
+  const legacy = cfg && /^[A-F]$/.test(cfg.startNode) && !cfg.nodes?.length;
+  const legacyNodes:NodeData[]=[
+    {id:'A',label:'Клиент A',x:50,y:140,status:'online'},
+    {id:'B',label:'Роутер B',x:170,y:70,status:'online'},
+    {id:'C',label:'Узел C',x:310,y:70,status:'online'},
+    {id:'D',label:'Сервер D',x:440,y:140,status:'online'},
+    {id:'E',label:'Узел E',x:170,y:210,status:'overloaded'},
+    {id:'F',label:'Сервер F',x:310,y:210,status:'online'},
+  ];
+  const legacyEdges:EdgeData[]=[{from:'A',to:'B',latencyMs:10},{from:'B',to:'C',latencyMs:12},{from:'C',to:'D',latencyMs:12},{from:'A',to:'E',latencyMs:15},{from:'E',to:'F',latencyMs:15},{from:'B',to:'F',latencyMs:10},{from:'F',to:'D',latencyMs:15}];
+  const nodes = cfg?.nodes?.length ? cfg.nodes : legacy ? legacyNodes : NODES;
+  const edges = cfg?.edges?.length ? cfg.edges : legacy ? legacyEdges : EDGES;
   const startNode = cfg?.startNode || 'client';
   const endNode = cfg?.endNode || 'server';
   const maxLatency = cfg?.maxLatencyMs ?? 50;
+  return {nodes,edges,startNode,endNode,maxLatency};
+}
+export const NetworkRouteGame: React.FC<NetworkRouteGameProps> = ({ task, onComplete }) => {
+  const {nodes,edges,startNode,endNode,maxLatency}=getNetworkScenario(task);
 
   const [selectedPath, setSelectedPath] = useState<string[]>([startNode]);
   const [completed, setCompleted] = useState<boolean>(false);
@@ -151,7 +165,7 @@ export const NetworkRouteGame: React.FC<NetworkRouteGameProps> = ({ task, onComp
           </div>
           <div>
             <div className="text-[10px] font-mono text-gray-400 uppercase tracking-widest">МАРШРУТИЗАЦИЯ В ИНТЕРНЕТЕ // ТЕОРИЯ ГРАФОВ</div>
-            <h2 className="text-base md:text-lg font-bold text-white">Кратчайший Путь Пакета (Алгоритм Дейкстры)</h2>
+            <h2 className="text-base md:text-lg font-bold text-white">Маршрут пакета по сети</h2>
           </div>
         </div>
 
@@ -174,7 +188,7 @@ export const NetworkRouteGame: React.FC<NetworkRouteGameProps> = ({ task, onComp
       <div className="bg-gray-900/80 border border-cyber-neonBlue/30 rounded-xl p-3.5 mb-4 text-xs font-mono text-gray-200 flex items-center justify-between">
         <div className="flex items-center gap-2">
           <Radio size={16} className="text-cyber-neonBlue" />
-          <span>Кликай по промежуточным узлам графа, чтобы передать пакет от Клиента к Серверу с минимальной задержкой (цель ≤ {maxLatency} мс)!</span>
+          <span>Соедини «{nodes.find(n=>n.id===startNode)?.label}» и «{nodes.find(n=>n.id===endNode)?.label}». Задержка пути должна быть не больше {maxLatency} мс.</span>
         </div>
         <div className="text-xs text-cyber-neonYellow font-bold">
           Путь: {selectedPath.join(' ➔ ')}
@@ -251,6 +265,8 @@ export const NetworkRouteGame: React.FC<NetworkRouteGameProps> = ({ task, onComp
               <g
                 key={node.id}
                 onClick={() => handleNodeClick(node.id)}
+                role="button" tabIndex={completed ? -1 : 0} aria-label={node.label}
+                onKeyDown={event => {if(event.key === "Enter" || event.key === " "){event.preventDefault();handleNodeClick(node.id);}}}
                 className="cursor-pointer group"
               >
                 <circle
@@ -299,9 +315,9 @@ export const NetworkRouteGame: React.FC<NetworkRouteGameProps> = ({ task, onComp
           <div className="flex items-center gap-3">
             <CheckCircle className="text-cyber-neonGreen" size={26} />
             <div>
-              <div className="font-bold text-sm text-cyber-neonGreen uppercase">ОПТИМАЛЬНЫЙ МАРШРУТ ПОСТРОЕН!</div>
+              <div className="font-bold text-sm text-cyber-neonGreen uppercase">ПАКЕТ ДОСТАВЛЕН!</div>
               <div className="text-xs text-gray-300">
-                Пакет успешно доставлен за минимальные <span className="font-bold text-white">{currentTotalLatency} мс</span> в обход перегруженного роутера D!
+                Задержка маршрута — <span className="font-bold text-white">{currentTotalLatency} мс</span>. Она не превышает ограничение {maxLatency} мс; перегруженные узлы не использованы.
               </div>
             </div>
           </div>

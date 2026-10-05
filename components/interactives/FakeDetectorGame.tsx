@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useRef, useEffect } from 'react';
 import { Task } from '../../types';
 import { playSound } from '../../utils/sound';
 import { ShieldCheck, ShieldAlert, Sparkles, CheckCircle2, RotateCcw, Award, BookOpen, HelpCircle, X } from 'lucide-react';
@@ -90,6 +90,8 @@ export const resolveFakeCases = (task: Task): CaseItem[] => {
 
 export const FakeDetectorGame: React.FC<{ task: Task; onComplete: () => void }> = ({ task, onComplete }) => {
   const cases = resolveFakeCases(task);
+  const timer = useRef<ReturnType<typeof setTimeout> | null>(null);
+  useEffect(() => () => {if(timer.current) clearTimeout(timer.current);}, []);
   const [currentIdx, setCurrentIdx] = useState(0);
   const [score, setScore] = useState(0);
   const [feedback, setFeedback] = useState<{ isCorrect: boolean; text: string } | null>(null);
@@ -119,6 +121,7 @@ export const FakeDetectorGame: React.FC<{ task: Task; onComplete: () => void }> 
   };
 
   const handleNext = () => {
+    if (!feedback?.isCorrect || completed) return;
     playSound('click');
     setFeedback(null);
     setShowHint(false);
@@ -127,13 +130,14 @@ export const FakeDetectorGame: React.FC<{ task: Task; onComplete: () => void }> 
     } else {
       playSound('success');
       setCompleted(true);
-      setTimeout(() => {
+      timer.current = setTimeout(() => {
         onComplete();
       }, 1500);
     }
   };
 
   const handleReset = () => {
+    if(timer.current) clearTimeout(timer.current);
     setCurrentIdx(0);
     setScore(0);
     setFeedback(null);
@@ -269,10 +273,10 @@ export const FakeDetectorGame: React.FC<{ task: Task; onComplete: () => void }> 
               <p className="text-xs leading-relaxed">{feedback.text}</p>
               
               <button
-                onClick={handleNext}
+                onClick={() => feedback.isCorrect ? handleNext() : setFeedback(null)}
                 className="mt-3 w-full py-2.5 bg-white text-black font-bold uppercase rounded-xl text-xs hover:bg-slate-200 transition-colors shadow-lg"
               >
-                {currentIdx + 1 < cases.length ? 'СЛЕДУЮЩЕЕ ДЕЛО ➡️' : 'ЗАВЕРШИТЬ РАССЛЕДОВАНИЕ 🏆'}
+                {!feedback.isCorrect ? 'Попробовать ещё раз' : currentIdx + 1 < cases.length ? 'СЛЕДУЮЩЕЕ ДЕЛО ➡️' : 'ЗАВЕРШИТЬ РАССЛЕДОВАНИЕ 🏆'}
               </button>
             </div>
           ) : (

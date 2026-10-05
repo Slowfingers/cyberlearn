@@ -142,7 +142,8 @@ export const PhishingInspectorGame: React.FC<PhishingInspectorGameProps> = ({ ta
           <div className="flex items-center gap-2">
             <span className="text-gray-500 w-20">От кого:</span>
             <div
-              onClick={() => handleInspect('sender')}
+              onClick={() => handleInspect('sender')} role="button" tabIndex={0} aria-label="Проверить отправителя"
+              onKeyDown={event => {if(event.key === 'Enter' || event.key === ' '){event.preventDefault();handleInspect('sender');}}}
               className={`px-2 py-1 rounded cursor-pointer transition-all ${
                 threats.find(t => t.id === 'sender')?.found
                   ? 'bg-red-950/80 text-red-400 border border-red-500 line-through'
@@ -155,7 +156,7 @@ export const PhishingInspectorGame: React.FC<PhishingInspectorGameProps> = ({ ta
 
           <div className="flex items-center gap-2">
             <span className="text-gray-500 w-20">Кому:</span>
-            <span className="text-gray-400">student_engineer_6@school.edu</span>
+            <span className="text-gray-400">student@school.example</span>
           </div>
 
           <div className="flex items-center gap-2">
@@ -171,7 +172,8 @@ export const PhishingInspectorGame: React.FC<PhishingInspectorGameProps> = ({ ta
 
           {/* Urgency Trigger */}
           <div
-            onClick={() => handleInspect('urgency')}
+            onClick={() => handleInspect('urgency')} role="button" tabIndex={0} aria-label="Проверить срочную просьбу"
+              onKeyDown={event => {if(event.key === 'Enter' || event.key === ' '){event.preventDefault();handleInspect('urgency');}}}
             className={`p-3 rounded-lg cursor-pointer transition-all ${
               threats.find(t => t.id === 'urgency')?.found
                 ? 'bg-red-950/60 border border-red-500 text-red-300'
@@ -182,13 +184,14 @@ export const PhishingInspectorGame: React.FC<PhishingInspectorGameProps> = ({ ta
           </div>
 
           <p>
-            Для отмены блокировки подтвердите пароль в официальной форме:
+            Ссылка, которую предлагает письмо:
           </p>
 
           {/* Spoofed Hyperlink */}
           <div>
             <div
-              onClick={() => handleInspect('hidden_link')}
+              onClick={() => handleInspect('hidden_link')} role="button" tabIndex={0} aria-label="Проверить ссылку"
+              onKeyDown={event => {if(event.key === 'Enter' || event.key === ' '){event.preventDefault();handleInspect('hidden_link');}}}
               className={`inline-flex items-center gap-1 px-3 py-2 rounded-lg cursor-pointer transition-all ${
                 threats.find(t => t.id === 'hidden_link')?.found
                   ? 'bg-red-950/60 border border-red-500 text-red-400'
@@ -205,14 +208,15 @@ export const PhishingInspectorGame: React.FC<PhishingInspectorGameProps> = ({ ta
             </div>
           </div>
 
-          <p className="text-gray-400 text-[11px]">
+          {threats.some(t => t.id === 'attachment') && <><p className="text-gray-400 text-[11px]">
             Также обязательно запустите прикрепленный файл для обновления сертификата безопасности браузера.
           </p>
 
           {/* Dangerous Attachment */}
           <div className="pt-2">
             <div
-              onClick={() => handleInspect('attachment')}
+              onClick={() => handleInspect('attachment')} role="button" tabIndex={0} aria-label="Проверить вложение"
+              onKeyDown={event => {if(event.key === 'Enter' || event.key === ' '){event.preventDefault();handleInspect('attachment');}}}
               className={`inline-flex items-center gap-3 p-3 rounded-xl cursor-pointer transition-all ${
                 threats.find(t => t.id === 'attachment')?.found
                   ? 'bg-red-950/80 border border-red-500 text-red-400'
@@ -225,7 +229,7 @@ export const PhishingInspectorGame: React.FC<PhishingInspectorGameProps> = ({ ta
                 <div className="text-[10px] text-gray-400">Размер: 4.8 МБ • Исполняемый файл приложения</div>
               </div>
             </div>
-          </div>
+          </div></>}
         </div>
       </div>
 
@@ -237,7 +241,7 @@ export const PhishingInspectorGame: React.FC<PhishingInspectorGameProps> = ({ ta
             <div>
               <div className="font-bold text-sm text-cyber-neonGreen uppercase">ФИШИНГОВАЯ АТАКА НЕЙТРАЛИЗОВАНА!</div>
               <div className="text-xs text-gray-300">
-                Ты выявил все {threats.length} вектора угрозы: поддельный домен, психологическую спешку, фишинговую ссылку и вирусное вложение!
+                Ты нашёл все признаки опасности в этом письме: {threats.map(t => t.label.toLowerCase()).join(", ")}.
               </div>
             </div>
           </div>
@@ -259,7 +263,7 @@ export const PhishingInspectorGame: React.FC<PhishingInspectorGameProps> = ({ ta
                   : 'bg-gray-900/40 border-gray-800 text-gray-500'
               }`}
             >
-              {t.found ? '✓ ' : `Угроза #${idx + 1}: `}{t.label}
+              {t.found ? `✓ ${t.label}` : `Признак ${idx + 1} ещё не найден`}
             </div>
           ))}
         </div>

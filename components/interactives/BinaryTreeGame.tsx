@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { Task } from '../../types';
+import {getTreeScenario, type PositionedNode as TreeNode} from '../../services/treeScenario';
 import { playSound } from '../../utils/sound';
 import { GitBranch, CheckCircle, RotateCcw, Zap, Compass } from 'lucide-react';
 
@@ -8,38 +9,10 @@ interface BinaryTreeGameProps {
   onComplete: () => void;
 }
 
-interface TreeNode {
-  val: number;
-  left?: TreeNode;
-  right?: TreeNode;
-  x: number;
-  y: number;
-}
-
-const TREE_DATA: TreeNode = {
-  val: 50,
-  x: 250,
-  y: 50,
-  left: {
-    val: 25,
-    x: 130,
-    y: 130,
-    left: { val: 12, x: 70, y: 210 },
-    right: { val: 37, x: 190, y: 210 }
-  },
-  right: {
-    val: 75,
-    x: 370,
-    y: 130,
-    left: { val: 63, x: 310, y: 210 },
-    right: { val: 90, x: 430, y: 210 }
-  }
-};
-
 export const BinaryTreeGame: React.FC<BinaryTreeGameProps> = ({ task, onComplete }) => {
-  const target = task.treeConfig?.target || 63;
-  const [currentNode, setCurrentNode] = useState<TreeNode>(TREE_DATA);
-  const [visitedPath, setVisitedPath] = useState<number[]>([TREE_DATA.val]);
+  const {root, nodes, target} = getTreeScenario(task);
+  const [currentNode, setCurrentNode] = useState<TreeNode>(root);
+  const [visitedPath, setVisitedPath] = useState<number[]>([root.val]);
   const [steps, setSteps] = useState<number>(0);
   const [completed, setCompleted] = useState<boolean>(false);
   const [hintMsg, setHintMsg] = useState<string>('Сравнивай цель с текущим узлом. Если цель МЕНЬШЕ — иди влево, если БОЛЬШЕ — иди вправо!');
@@ -49,8 +22,8 @@ export const BinaryTreeGame: React.FC<BinaryTreeGameProps> = ({ task, onComplete
   }, [task.id]);
 
   const resetGame = () => {
-    setCurrentNode(TREE_DATA);
-    setVisitedPath([TREE_DATA.val]);
+    setCurrentNode(root);
+    setVisitedPath([root.val]);
     setSteps(0);
     setCompleted(false);
     setHintMsg('Сравнивай цель с текущим узлом. Меньше — влево, больше — вправо!');
@@ -154,29 +127,8 @@ export const BinaryTreeGame: React.FC<BinaryTreeGameProps> = ({ task, onComplete
       {/* Interactive SVG Tree View */}
       <div className="flex-1 bg-black border border-gray-800 rounded-xl p-4 flex items-center justify-center min-h-[300px] relative overflow-hidden">
         <svg viewBox="0 0 500 280" className="w-full max-w-xl h-auto select-none">
-          {/* Edges */}
-          {/* Root to 25 and 75 */}
-          <line x1="250" y1="50" x2="130" y2="130" stroke={visitedPath.includes(25) ? '#00ff41' : '#374151'} strokeWidth="3" />
-          <line x1="250" y1="50" x2="370" y2="130" stroke={visitedPath.includes(75) ? '#00ff41' : '#374151'} strokeWidth="3" />
-          
-          {/* 25 to 12 and 37 */}
-          <line x1="130" y1="130" x2="70" y2="210" stroke={visitedPath.includes(12) ? '#00ff41' : '#374151'} strokeWidth="2.5" />
-          <line x1="130" y1="130" x2="190" y2="210" stroke={visitedPath.includes(37) ? '#00ff41' : '#374151'} strokeWidth="2.5" />
-
-          {/* 75 to 63 and 90 */}
-          <line x1="370" y1="130" x2="310" y2="210" stroke={visitedPath.includes(63) ? '#00ff41' : '#374151'} strokeWidth="2.5" />
-          <line x1="370" y1="130" x2="430" y2="210" stroke={visitedPath.includes(90) ? '#00ff41' : '#374151'} strokeWidth="2.5" />
-
-          {/* Nodes Rendering */}
-          {[
-            { val: 50, x: 250, y: 50 },
-            { val: 25, x: 130, y: 130 },
-            { val: 75, x: 370, y: 130 },
-            { val: 12, x: 70, y: 210 },
-            { val: 37, x: 190, y: 210 },
-            { val: 63, x: 310, y: 210 },
-            { val: 90, x: 430, y: 210 },
-          ].map(node => {
+          {nodes.flatMap(node => [node.left,node.right].filter(Boolean).map(child => <line key={`${node.val}-${child!.val}`} x1={node.x} y1={node.y} x2={child!.x} y2={child!.y} stroke={visitedPath.includes(child!.val)?'#00ff41':'#374151'} strokeWidth="3"/>))}
+          {nodes.map(node => {
             const isCurrent = currentNode.val === node.val;
             const isVisited = visitedPath.includes(node.val);
             const isTargetNode = node.val === target;
@@ -221,7 +173,7 @@ export const BinaryTreeGame: React.FC<BinaryTreeGameProps> = ({ task, onComplete
                 : 'bg-gray-900 text-gray-600 cursor-not-allowed border border-gray-800'
             }`}
           >
-            ◀ ВЛЕВО ({target} &lt; {currentNode.val})
+            ◀ ВЛЕВО
           </button>
           <button
             onClick={() => handleNavigate('right')}
@@ -232,7 +184,7 @@ export const BinaryTreeGame: React.FC<BinaryTreeGameProps> = ({ task, onComplete
                 : 'bg-gray-900 text-gray-600 cursor-not-allowed border border-gray-800'
             }`}
           >
-            ВПРАВО ({target} &gt; {currentNode.val}) ▶
+            ВПРАВО ▶
           </button>
         </div>
       ) : (

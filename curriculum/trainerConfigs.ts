@@ -1,8 +1,20 @@
 import { Task } from '../types';
+import { DEFAULT_SEARCH_TREE } from '../services/treeScenario';
 
 // Конфиги тренажёров для уроков, где в исходном курсе их не было:
 // без них один и тот же тренажёр показывал одинаковый сценарий в разных уроках.
 export const TRAINER_CONFIGS: Record<string, Partial<Task>> = {
+  g4_l33: {phishingConfig: {
+    sender:'support@robl0x-free-premium.xyz',senderName:'Подарки для игроков',subject:'Срочно! Получи бесплатные монеты!',
+    body:'Мы обещаем подарок за вход на нашу страницу. Для получения нужно сообщить пароль от игры. Это учебное письмо: ничего вводить и открывать не нужно.',
+    urgencyText:'У тебя только 5 минут! Не спрашивай взрослых, иначе подарок сгорит.',
+    linkText:'https://roblox.com/gift',linkReal:'https://robl0x-free-premium.xyz/login',
+    threats:[{id:'sender',label:'Поддельный адрес отправителя',explanation:'В слове robl0x ноль заменяет букву o. Похожее имя не делает адрес официальным.'},{id:'urgency',label:'Спешка и требование секретности',explanation:'Тебя торопят и просят не обращаться к взрослым. Остановись и проверь сообщение вместе с ними.'},{id:'hidden_link',label:'Ссылка ведёт на другой сайт',explanation:'Текст обещает roblox.com, а настоящий адрес другой. Не вводи пароль на странице из такого письма.'}]
+  }},
+  g4_l36: {aiTrainerConfig: {
+    categoryNames:{cat:'Роботы',dog:'Обычные устройства'},
+    cards:[{id:'r1',name:'Робот-пылесос',icon:'🤖',category:'cat'},{id:'r2',name:'Робот на колёсах',icon:'🤖',category:'cat'},{id:'r3',name:'Робот-манипулятор',icon:'🤖',category:'cat'},{id:'d1',name:'Настольная лампа',icon:'💡',category:'dog'},{id:'d2',name:'Обычный чайник',icon:'☕',category:'dog'},{id:'d3',name:'Фонарик',icon:'🔦',category:'dog'}]
+  }},
 
   // --- Электронные таблицы ---
   g3_m8_l1: { spreadsheetConfig: { tableData: [], targetFormula: '=B2*C2', formulaType: 'multiply' } },
@@ -14,7 +26,8 @@ export const TRAINER_CONFIGS: Record<string, Partial<Task>> = {
   g7_l15: { sortingConfig: { numbers: [34, 7, 91, 22, 58, 13], algorithm: 'bubble' } },
 
   // --- Бинарное дерево поиска ---
-  g7_l58: { treeConfig: { target: 37, tree: { value: 50 } } },
+  g7_l58: { treeConfig: { target: 37, tree: DEFAULT_SEARCH_TREE } },
+  g6_m3_tree: { treeConfig: { target: 63, tree: DEFAULT_SEARCH_TREE } },
 
   // --- Двоичные лампочки ---
   g3_m2_l5: {

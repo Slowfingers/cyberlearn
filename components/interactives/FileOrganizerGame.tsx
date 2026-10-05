@@ -12,6 +12,7 @@ interface FileItem {
   size: string;
   description: string;
   teacherHint: string;
+  folder?: string;
 }
 
 const INITIAL_FILES: FileItem[] = [
@@ -103,10 +104,18 @@ const ALL_FOLDERS: FolderType[] = ['image', 'music', 'doc', 'danger'];
 
 
 const LABELS: Record<FolderType, string> = { image: 'Рисунки', music: 'Музыка', doc: 'Документы', danger: 'Карантин' };
-const HINTS: Record<FolderType, string> = { image: '.png и .jpg — изображения.', music: '.mp3 и .wav — звук.', doc: '.docx и .txt — текст.', danger: 'Неизвестный отправитель или обещание взлома? Не запускай файл, обратись к взрослому.' };
+export function getFileScenario(task: Task) {
+  const cfg = task.fileConfig;
+  const folders: string[] = cfg?.folders?.length ? cfg.folders : ALL_FOLDERS;
+  const files: FileItem[] = cfg?.files?.length ? cfg.files.map((f: any) => ({
+    id: f.id, name: f.name, ext: f.name.includes('.') ? f.name.slice(f.name.lastIndexOf('.')) : '',
+    type: ['image','music','doc','danger'].includes(f.type) ? f.type : 'doc',
+    folder: f.targetFolder, icon: '', size: '', description: `Файл «${f.name}». Проверь расширение и назначение.`, teacherHint: '',
+  })) : INITIAL_FILES.filter(f => folders.includes(f.type)).map(f => ({...f, folder: f.type}));
+  return {folders, files};
+}
 export const FileOrganizerGame: React.FC<{ task: Task; onComplete: () => void }> = ({ task, onComplete }) => {
-  const activeFolders = ALL_FOLDERS.filter(f => !task.fileConfig?.folders?.length || task.fileConfig.folders.includes(f));
-  const files = INITIAL_FILES.filter(f => activeFolders.includes(f.type));
+  const {folders: activeFolders, files} = getFileScenario(task);
   const [placed, setPlaced] = useState<string[]>([]);
   const [selected, setSelected] = useState<string | null>(null);
   const [feedback, setFeedback] = useState('Выбери посылку и найди для неё папку.');
@@ -117,15 +126,15 @@ export const FileOrganizerGame: React.FC<{ task: Task; onComplete: () => void }>
   const suppressClick = useRef<string | null>(null);
   const reset = () => { placedRef.current.clear(); setPlaced([]); setSelected(null); setFeedback('Выбери посылку и найди для неё папку.'); setHover(null); setGhost(null); pointer.current = null; };
   useEffect(reset, [task.id]);
-  const place = (id: string | null, folder: FolderType) => {
+  const place = (id: string | null, folder: string) => {
     const file = files.find(f => f.id === id);
     if (!file || placedRef.current.has(file.id)) return;
-    if (file.type !== folder) { setFeedback(`Попробуй другую папку. ${HINTS[file.type]}`); playSound('error'); return; }
+    if (file.folder !== folder) { setFeedback('Эта папка не подходит. Сравни расширение и назначение файла с названиями папок.'); playSound('error'); return; }
     placedRef.current.add(file.id); setPlaced([...placedRef.current]); setSelected(null); playSound('hit');
     setFeedback(placedRef.current.size === files.length ? 'Все посылки доставлены! Теперь на столе порядок.' : `«${file.name}» на месте. Доставь следующую посылку!`);
     if (placedRef.current.size === files.length) { playSound('success'); onComplete(); }
   };
-  const folderAt = (x: number, y: number) => document.elementFromPoint(x, y)?.closest<HTMLElement>('[data-folder-type]')?.dataset.folderType as FolderType | undefined;
+  const folderAt = (x: number, y: number) => document.elementFromPoint(x, y)?.closest<HTMLElement>('[data-folder-type]')?.dataset.folderType;
   return <div className="workshop-game">
     <WorkshopHeader title="Бюро цифровых посылок" description="Разложи файлы по папкам. Перетаскивай или нажимай: файл → папка."><button className="workshop-icon-button" onClick={reset} aria-label="Начать заново"><RotateCcw size={19} /></button></WorkshopHeader>
     <WorkshopProgress value={placed.length} total={files.length} />
@@ -141,8 +150,8 @@ export const FileOrganizerGame: React.FC<{ task: Task; onComplete: () => void }>
       </button>)}
       {placed.length === files.length && <div className="workshop-success"><WorkshopArt />Отличная работа! Все файлы на своих местах.</div>}
     </div></div>
-    <div className="folder-grid">{activeFolders.map(folder => <button key={folder} data-folder-type={folder} className={`folder-card ${hover === folder ? 'is-hovered' : ''}`} onClick={() => place(selected, folder)} aria-label={`Папка ${LABELS[folder]}`}><WorkshopArt kind={`folder-${folder}`} /><strong>{LABELS[folder]}</strong><span>{placed.filter(id => files.find(f => f.id === id)?.type === folder).length} файлов доставлено</span></button>)}</div>
-    <details className="workshop-hint"><summary>Как выбрать папку?</summary>{activeFolders.map(f => <p key={f}><strong>{LABELS[f]}:</strong> {HINTS[f]}</p>)}</details>
+    <div className="folder-grid">{activeFolders.map(folder => <button key={folder} data-folder-type={folder} className={`folder-card ${hover === folder ? 'is-hovered' : ''}`} onClick={() => place(selected, folder)} aria-label={`Папка ${LABELS[folder] ?? folder}`}><WorkshopArt kind={`folder-${ALL_FOLDERS.includes(folder as FolderType) ? folder : "doc"}`} /><strong>{LABELS[folder] ?? folder}</strong><span>{placed.filter(id => files.find(f => f.id === id)?.folder === folder).length} файлов доставлено</span></button>)}</div>
+    <details className="workshop-hint"><summary>Как выбрать папку?</summary><p>Определи назначение файла по расширению. Затем выбери папку для такого вида работы.</p></details>
     {ghost && <div className="parcel-ghost" style={{ left: ghost.x, top: ghost.y }}><WorkshopArt kind={files.find(f => f.id === ghost.id)?.type} /></div>}
   </div>;
 };
