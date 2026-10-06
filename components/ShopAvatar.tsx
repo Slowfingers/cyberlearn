@@ -22,7 +22,7 @@ export const STREET_AVATARS = [
 export const FRAME_NAMES = ['Контур', 'Орбита', 'Микросхема', 'Кристалл', 'Затмение', 'Северное сияние', 'Солнечная корона', 'Портал', 'Звёздная карта', 'Титановый щит', 'Сверхновая', 'Галактика'];
 const PALETTES = [['#67e8f9', '#2563eb'], ['#fdba74', '#ea580c'], ['#c4b5fd', '#7c3aed'], ['#f9a8d4', '#db2777'], ['#a7f3d0', '#059669'], ['#fde68a', '#d97706'], ['#a5b4fc', '#4f46e5'], ['#fda4af', '#be123c']];
 
-export default function ShopAvatar({ avatarId = '2', frameId, scale = 2, className = '', animation = 'Idle', fullBody = false }: { avatarId?: string; frameId?: string; scale?: number; className?: string; animation?: string; fps?: number; fullBody?: boolean }) {
+export default function ShopAvatar({ avatarId = '2', frameId, scale = 2, className = '', animation = 'Idle', fullBody = false, stage = false }: { avatarId?: string; frameId?: string; scale?: number; className?: string; animation?: string; fps?: number; fullBody?: boolean; stage?: boolean }) {
     const street = STREET_AVATARS.find(item => item.value === avatarId);
     const uid = useId().replace(/:/g, '');
     const index = Math.max(0, Math.min(23, (Number(avatarId) || 2) - 2));
@@ -32,7 +32,8 @@ export default function ShopAvatar({ avatarId = '2', frameId, scale = 2, classNa
     const frame = Math.max(0, Math.min(12, Number(frameId?.replace('frame_', '')) || 0));
     const [rim, rimDark] = PALETTES[(Math.max(1, frame) - 1) % PALETTES.length];
     const fill = (name: string) => `url(#${uid}-${name})`;
-    return <svg viewBox="0 0 160 160" width={48 * scale} height={48 * scale} role="img" aria-label={`${street?.name || AVATAR_NAMES[index]}${frame ? `, рамка ${FRAME_NAMES[frame - 1]}` : ''}`} data-character={street?.value} className={`shrink-0 ${className}`}>
+    if (stage && street) return <svg viewBox="0 0 362 724" role="img" aria-label={street.name} data-character={street.value} className={className}><SpriteStrip skin={street.value.replace('street_', '') as keyof typeof SPRITE_SILHOUETTES} className="street-avatar-strip" href={`/avatar/street/${street.value.replace('street_', '')}.png`}/></svg>;
+    return <svg viewBox={stage ? '0 0 160 260' : '0 0 160 160'} width={48 * scale} height={48 * scale} role="img" aria-label={`${street?.name || AVATAR_NAMES[index]}${frame ? `, рамка ${FRAME_NAMES[frame - 1]}` : ''}`} data-character={street?.value} className={`shrink-0 ${className}`}>
         <defs>
             <radialGradient id={`${uid}-bg`} cx="35%" cy="20%" r="90%"><stop stopColor={dark} /><stop offset="1" stopColor="#080e20" /></radialGradient>
             <linearGradient id={`${uid}-shell`} x2="0.8" y2="1"><stop stopColor="#f8fafc" /><stop offset="0.4" stopColor={light} /><stop offset="1" stopColor={dark} /></linearGradient>
@@ -40,11 +41,11 @@ export default function ShopAvatar({ avatarId = '2', frameId, scale = 2, classNa
             <linearGradient id={`${uid}-rim`} x2="1" y2="1"><stop stopColor={rim} /><stop offset="0.5" stopColor={rimDark} /><stop offset="1" stopColor={rim} /></linearGradient>
             <clipPath id={`${uid}-clip`}><circle cx="80" cy="80" r="65" /></clipPath>
         </defs>
-        <circle cx="80" cy="80" r="68" fill="#080e20" />
-        <g clipPath={fill('clip')}>
-            <circle cx="80" cy="80" r="65" fill={fill('bg')} />
-            <circle cx="111" cy="42" r="30" fill="none" stroke={light} strokeOpacity="0.16" strokeWidth="12" />
-            <path d="M12 112 144 38M18 130 150 56" stroke={light} strokeOpacity="0.1" strokeWidth="2" />
+        {!stage && <circle cx="80" cy="80" r="68" fill="#080e20" />}
+        <g clipPath={stage ? undefined : fill('clip')}>
+            {stage ? <g stroke="#0f172a" strokeWidth="4"><path d="M47 144h66l-8 72H85l-5-49-5 49H55Z" fill={dark}/><path d="M54 210h24v35H40v-13l14-7Zm30 0h24v15l14 7v13H84Z" fill={fill('shell')}/><path d="M40 244h38m6 0h38" stroke={light}/><path d="M31 127 21 182l13 7 20-48m55-14 30 55-13 7-20-48" fill={fill('shell')}/></g> : <circle cx="80" cy="80" r="65" fill={fill('bg')} />}
+            {!stage && <circle cx="111" cy="42" r="30" fill="none" stroke={light} strokeOpacity="0.16" strokeWidth="12" />}
+            {!stage && <path d="M12 112 144 38M18 130 150 56" stroke={light} strokeOpacity="0.1" strokeWidth="2" />}
             {street ? <svg x={fullBody ? 43 : 18} y={fullBody ? 12 : 17} width={fullBody ? 74 : 124} height={fullBody ? 136 : 130} viewBox={fullBody ? '0 0 362 724' : '0 0 362 380'} overflow="hidden" preserveAspectRatio="xMidYMin meet">
                 <SpriteStrip skin={street.value.replace('street_', '') as keyof typeof SPRITE_SILHOUETTES} className="street-avatar-strip" href={`/avatar/street/${street.value.replace('street_', '')}.png`}/>
 
@@ -90,8 +91,8 @@ export default function ShopAvatar({ avatarId = '2', frameId, scale = 2, classNa
             <circle cx="127" cy="106" r="2" fill={light} />
             {animation !== 'Idle' && <path d="m121 30-7 13h9l-7 15 19-20h-10l7-8Z" fill="#fef08a" />}
         </g>
-        <circle cx="80" cy="80" r="67" fill="none" stroke={frame ? fill('rim') : '#475569'} strokeWidth={frame ? 4 : 1.5} />
-        {frame > 0 && <g fill="none" stroke={fill('rim')} strokeWidth="2">
+        {!stage && <circle cx="80" cy="80" r="67" fill="none" stroke={frame ? fill('rim') : '#475569'} strokeWidth={frame ? 4 : 1.5} />}
+        {!stage && frame > 0 && <g fill="none" stroke={fill('rim')} strokeWidth="2">
             {frame % 4 === 1 && <><circle cx="80" cy="80" r="73" strokeDasharray="85 14 12 14" /><path d="m70 9 10-5 10 5m-20 142 10 5 10-5" /></>}
             {frame % 4 === 2 && <><path d="M40 17 17 40v25M120 17l23 23v25M17 95v25l23 23m103-48v25l-23 23" strokeWidth="4" /><path d="M25 59v42m110-42v42" /></>}
             {frame % 4 === 3 && <><path d="m80 3 54 23 23 54-23 54-54 23-54-23L3 80l23-54Z" /><path d="m80 8 6 8-6 8-6-8Zm0 128 6 8-6 8-6-8Z" fill={rim} /></>}

@@ -951,3 +951,59 @@ body { margin:0; background:#0b111d; font-family:system-ui,-apple-system,'Segoe 
 .mentor-character[data-character="moss"] .mentor-movement-strip {animation-duration:2.2s;}
 
 .lesson-theory-copy p {white-space:pre-wrap;overflow-wrap:anywhere;}
+
+/* Player base — first screen of the shared game interface. */
+.game-home {--base-ink:#081020;--base-panel:#14253d;--base-line:#395d80;--base-accent:#83f2dc;background:radial-gradient(ellipse at 60% 0,#1c3157, #0b1326 70%);}
+.game-home .academy-home-content {max-width:1500px;padding:26px clamp(16px,3vw,40px) 40px;min-width:0;}
+.game-home .academy-nav {background:#0a1325;border-right:2px solid #233a57;}
+.game-home .academy-page-heading h1 {font-size:30px;letter-spacing:-.5px;}
+.game-home .academy-wallet {border-radius:4px;border:2px solid #806139;box-shadow:3px 3px 0 #050b18;background:#292439;}
+.player-lobby {display:grid;grid-template-columns:minmax(0,1.15fr) minmax(0,1fr);border:2px solid var(--base-line);box-shadow:5px 5px 0 var(--base-ink);background:var(--base-panel);isolation:isolate;}
+.player-stage {position:relative;min-height:480px;overflow:hidden;background:#192d50;}
+.player-scene {position:absolute;inset:0;background:url('/ui/game/player-base.svg') center bottom/cover no-repeat;}
+.player-greeting {position:relative;z-index:1;padding:24px 26px;background:linear-gradient(#0b1739c9,transparent);}
+.player-greeting h2 {font-size:clamp(22px,2.4vw,32px);font-weight:900;line-height:1.2;overflow-wrap:anywhere;text-shadow:2px 3px #0a1530;}
+.player-greeting .academy-eyebrow {display:block;color:#b0cce9;font-size:12px;}
+.player-full-avatar {position:absolute;width:180px!important;height:330px!important;left:50%;bottom:98px;transform:translateX(-50%);filter:drop-shadow(0 9px 3px #080e2499);overflow:visible;}
+.player-nameplate {position:absolute;bottom:15px;left:50%;transform:translateX(-50%);display:grid;gap:2px;text-align:center;min-width:170px;max-width:90%;padding:8px 24px;background:#101e36;border:2px solid #537da5;box-shadow:3px 3px 0 #080f21;color:#e5f4ff;}
+.player-nameplate>span {font-size:10px;letter-spacing:1px;color:#9aefe0;display:flex;align-items:center;justify-content:center;gap:5px;}
+.player-nameplate>strong {font-size:20px;font-weight:900;}
+.player-nameplate:hover {border-color:#83f2dc;}
+.player-mission {display:flex;flex-direction:column;align-items:flex-start;min-width:0;padding:32px clamp(20px,3vw,40px);background:linear-gradient(145deg,#203653,#121e34);border-left:2px solid var(--base-line);}
+.player-mission .academy-pill {color:#c9ff97;background:#294137;border:1px solid #56764a;border-radius:3px;font-size:11px;}
+.player-mission-course {font-size:11px;color:#97b6d6;margin:22px 0 8px;}
+.player-mission h2 {font-size:clamp(23px,2.5vw,34px);font-weight:900;line-height:1.18;overflow-wrap:anywhere;letter-spacing:-.5px;}
+.player-mission>p {color:#bfd0e5;font-size:14px;line-height:1.7;margin:16px 0 24px;}
+.player-mission-progress {width:100%;margin-top:auto;margin-bottom:20px;}
+.player-mission-progress>span {display:flex;justify-content:space-between;gap:10px;font-size:11px;color:#9bb5d0;margin-bottom:9px;}
+.player-mission-progress strong {color:#8aefd8;}
+.player-mission .academy-primary {width:100%;justify-content:center;font-size:15px;}
+.game-home .academy-milestones {margin:20px 0 30px;}
+.game-home .academy-milestones>div {border-radius:3px;background:#14243b;border:1px solid #385274;box-shadow:3px 3px #080f21;}
+.game-home .academy-stat-icon {border-radius:4px;}
+.game-home .academy-course {border:2px solid #3b5677;border-image:none;background:#15253d;box-shadow:4px 4px #080f21;border-radius:3px;}
+.game-home .academy-course-picture {background:linear-gradient(140deg,#253d62,#192a46);border-bottom:2px solid #3b5677;}
+.game-home .academy-course-number {background:#0b1830;color:#b9d8f5;border:1px solid #4c6b91;border-radius:2px;}
+.game-home .academy-course:hover:not(:disabled) {border-color:#83f2dc;box-shadow:4px 4px #080f21;}
+.game-home .academy-course-track {height:7px;border-radius:0;background:#071528;}
+.game-home .academy-course-track i {background:#7ae5ca;border-radius:0;}
+@media(max-width:1050px) and (min-width:761px) {.game-home {grid-template-columns:160px minmax(0,1fr);}.player-lobby {grid-template-columns:1fr;}.player-stage {min-height:410px;}.player-full-avatar {height:290px!important;bottom:83px;}.player-mission {border-left:0;border-top:2px solid var(--base-line);}}
+@media(max-width:760px) {
+ .game-home .academy-home-content {padding:18px 12px 32px;}.game-home .academy-page-heading {margin-bottom:15px;}.game-home .academy-page-heading h1 {font-size:25px;}.game-home .academy-nav {border-right:0;}
+ .player-lobby {grid-template-columns:1fr;box-shadow:3px 3px #080f21;}.player-stage {min-height:340px;}.player-greeting {padding:16px 18px;}.player-greeting h2 {font-size:23px;}.player-full-avatar {height:235px!important;width:135px!important;bottom:68px;}.player-nameplate {bottom:8px;min-width:150px;padding:5px 18px;}.player-nameplate>strong {font-size:17px;}.player-nameplate>span {font-size:9px;}
+ .player-mission {border-left:0;border-top:2px solid var(--base-line);padding:20px;}.player-mission-course {margin-top:14px;}.player-mission h2 {font-size:24px;}.player-mission>p {font-size:13px;margin:12px 0 18px;}.player-mission-progress {margin-bottom:15px;}.game-home .academy-milestones {margin:16px 0 25px;}.game-home .academy-course-picture {border-bottom:0;border-right:1px solid #3b5677;}
+}
+@media(max-width:760px) {
+ .player-stage {min-height:260px;}
+ .player-full-avatar {height:180px!important;width:110px!important;bottom:56px;}
+ .player-nameplate {padding:4px 16px;bottom:7px;}
+ .player-nameplate>span:last-child {display:none;}
+ .player-greeting h2 {max-width:130px;font-size:20px;}
+ .player-mission {padding:16px;}
+ .player-mission h2 {font-size:22px;}
+ .player-mission>p {margin:10px 0 14px;}
+ .player-mission-course {margin:10px 0 6px;}
+ .player-mission-progress {margin-bottom:12px;}
+}
+.player-greeting h2 {white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+.player-routes {scroll-margin-top:90px;}
