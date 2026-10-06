@@ -911,13 +911,18 @@ const StudentDashboard: React.FC<StudentDashboardProps> = ({ currentUser: propUs
       return cosmetic?.value || '2';
   })();
 
+  const currentCourse = courses.find(course => course.id === activeCourseId);
+  const courseDone = filteredTasks.filter(task => task.status === 'completed').length;
+  const coursePercent = filteredTasks.length ? Math.round(courseDone / filteredTasks.length * 100) : 0;
+  const resumeTask = filteredTasks.find(task => task.status === 'open');
+
   return (
-    <div className="academy-lesson flex-1 w-full relative flex flex-col md:flex-row overflow-hidden bg-black text-gray-300">
+    <div className="academy-lesson game-workspace flex-1 w-full relative flex flex-col md:flex-row overflow-hidden bg-black text-gray-300">
       <CyberToast toasts={toasts} onDismiss={dismissToast} />
 
       {/* SIDEBAR (Courses) */}
       <div className={`academy-lesson-nav ${showMobileSidebar ? 'flex' : 'hidden'} md:flex absolute md:relative inset-0 md:inset-auto md:w-64 border-r border-cyber-neonBlue/20 bg-cyber-glass backdrop-blur-md flex-col shrink-0 z-30`}>
-        <div className="h-14 flex items-center justify-between border-b border-cyber-neonBlue/20 px-3 shrink-0">
+        <div className="course-nav-toolbar h-14 flex items-center justify-between border-b border-cyber-neonBlue/20 px-3 shrink-0">
             <button
                 onClick={() => {
                     playSound('click');
@@ -926,7 +931,7 @@ const StudentDashboard: React.FC<StudentDashboardProps> = ({ currentUser: propUs
                 }}
                 className="flex items-center gap-1 text-gray-200 active:text-white py-3 pr-4 text-xs font-bold uppercase tracking-wider hover:text-cyber-neonBlue transition-colors"
             >
-                <ChevronLeft size={18} /> Курсы
+                <ChevronLeft size={18} /> На базу
             </button>
             {currentUser && (
                 <div className="flex items-center gap-2">
@@ -938,13 +943,22 @@ const StudentDashboard: React.FC<StudentDashboardProps> = ({ currentUser: propUs
         </div>
 
         <div ref={sidebarRef} className="flex-1 overflow-y-auto p-2 space-y-4 custom-scrollbar pb-6">
+            <section className="course-nav-overview" aria-label="Прогресс курса">
+              <span className="course-nav-eyebrow">Карта миссий</span>
+              <h2>{currentCourse?.title || 'Учебные работы'}</h2>
+              <p><span>Пройдено {courseDone} из {filteredTasks.length}</span><strong>{coursePercent}%</strong></p>
+              <div className="course-nav-progress" role="progressbar" aria-label="Пройдено уроков" aria-valuemin={0} aria-valuemax={filteredTasks.length || 1} aria-valuenow={courseDone}><i style={{width:`${coursePercent}%`}}/></div>
+              {resumeTask && <button className="academy-primary course-resume" onClick={() => {setActiveTask(resumeTask);setLessonStage('explanation');setShowMobileSidebar(false);setTaskTab('info');}}>Продолжить курс <ArrowRight size={16}/></button>}
+              {!resumeTask && courseDone > 0 && <span className="course-finished"><CheckCircle size={15}/> Курс пройден. Можно повторить!</span>}
+              <small>Нажми на раздел, чтобы увидеть уроки</small>
+            </section>
             {modules.map((modName, moduleIndex) => {
                 const modTasks = filteredTasks.filter(t => t.module === modName);
                 const modCompleted = modTasks.filter(t => t.status === 'completed').length;
                 const modTotal = modTasks.length;
                 const modProgress = modTotal > 0 ? Math.round((modCompleted / modTotal) * 100) : 0;
                 return (
-                <details className="academy-module" key={modName} open={activeTask?.module === modName || (!activeTask && moduleIndex === 0)}>
+                <details className="academy-module" data-completed={modCompleted === modTotal} key={modName} open={activeTask?.module === modName || (!activeTask && moduleIndex === 0)}>
                     <summary className="flex items-center justify-between gap-2 mb-2 py-2 pl-2 ml-1 border-l-2 border-gray-500 cursor-pointer">
                         <h3 className="text-[10px] font-bold text-gray-300 uppercase tracking-widest">
                             {modName}
@@ -957,9 +971,11 @@ const StudentDashboard: React.FC<StudentDashboardProps> = ({ currentUser: propUs
                         </div>
                     </summary>
                     <div className="space-y-1">
-                        {filteredTasks.filter(t => t.module === modName).map(task => (
+                        {modTasks.map(task => (
                              <div
                                 key={task.id}
+                                data-active={activeTask?.id === task.id}
+                                data-status={task.status}
                                 className={`academy-lesson-node w-full relative group text-left p-2 md:p-2 py-3 md:py-2 rounded-md flex items-center gap-3 transition-all duration-200 border border-transparent
                                     ${activeTask?.id === task.id
                                     ? 'bg-cyber-neonBlue/10 border-cyber-neonBlue/50 text-white shadow-[inset_0_0_15px_rgba(0,243,255,0.1)]'
@@ -978,6 +994,7 @@ const StudentDashboard: React.FC<StudentDashboardProps> = ({ currentUser: propUs
                                             }
                                         }
                                     }}
+                                    aria-current={activeTask?.id === task.id ? 'step' : undefined}
                                     disabled={task.status === 'locked'}
                                     className="flex-1 min-w-0 flex items-center gap-3 text-left cursor-pointer disabled:cursor-not-allowed"
                                 >
@@ -1009,7 +1026,7 @@ const StudentDashboard: React.FC<StudentDashboardProps> = ({ currentUser: propUs
 
                                     <div className="flex-1 min-w-0">
                                         <div className="text-sm md:text-sm font-bold leading-tight font-sans break-words">{task.title}</div>
-                                        <div className="text-[11px] mt-1 text-gray-400">{task.type === 'quiz' ? 'Проверяем понимание' : 'Практикуемся'}</div>
+                                        <div className="text-[11px] mt-1 text-gray-400">{task.status === 'completed' ? 'Пройдено · можно повторить' : task.status === 'locked' ? 'Пока закрыто' : activeTask?.id === task.id ? 'Ты здесь' : task.type === 'quiz' ? 'Проверяем понимание' : 'Практикуемся'}</div>
                                     </div>
                                 </button>
 
@@ -1027,7 +1044,7 @@ const StudentDashboard: React.FC<StudentDashboardProps> = ({ currentUser: propUs
       {/* 0. EMPTY TASK STATE */}
       {!activeTask && (
           <div className={`${!showMobileSidebar ? 'flex' : 'hidden'} md:flex flex-1 items-center justify-center text-gray-600 bg-black`}>
-              {filteredTasks.length > 0 && filteredTasks.every(t => t.status === 'completed') ? 'Курс завершён! В меню можно выбрать урок для повторения.' : 'Выберите задачу в меню слева'}
+              <div className="course-empty"><Trophy size={42}/><h2>{coursePercent === 100 ? 'Курс завершён!' : 'Выбери миссию'}</h2><p>{coursePercent === 100 ? 'Отличная работа. Любой урок можно пройти ещё раз — выбирай его в меню курса.' : 'Открой раздел в меню курса и выбери урок, с которого хочешь начать.'}</p><button className="academy-primary md:hidden" onClick={()=>setShowMobileSidebar(true)}>Открыть меню курса</button></div>
           </div>
       )}
 
@@ -1036,7 +1053,7 @@ const StudentDashboard: React.FC<StudentDashboardProps> = ({ currentUser: propUs
           <div className={`${!showMobileSidebar ? 'flex' : 'hidden'} md:flex flex-1 flex-col bg-black relative overflow-hidden`}>
                 <div className="flex items-center border-b border-gray-800 px-4 py-3 bg-gray-950 shrink-0 gap-3">
                     <button
-                        onClick={() => setShowMobileSidebar(true)}
+                        aria-label="Меню курса" onClick={() => setShowMobileSidebar(true)}
                         className="md:hidden flex items-center gap-2 text-gray-200 active:text-white"
                     >
                         <ChevronLeft size={20} />
@@ -1083,7 +1100,7 @@ const StudentDashboard: React.FC<StudentDashboardProps> = ({ currentUser: propUs
           <div className={`${!showMobileSidebar ? 'flex' : 'hidden'} md:flex flex-1 flex-col bg-black relative overflow-hidden`}>
               <div className="flex items-center border-b border-gray-800 px-4 py-3 bg-gray-950 shrink-0">
                   <button
-                      onClick={() => setShowMobileSidebar(true)}
+                      aria-label="Меню курса" onClick={() => setShowMobileSidebar(true)}
                       className="md:hidden flex items-center gap-2 text-gray-200 active:text-white mr-3"
                   >
                       <ChevronLeft size={20} />
@@ -1184,7 +1201,7 @@ const StudentDashboard: React.FC<StudentDashboardProps> = ({ currentUser: propUs
           <div className={`${!showMobileSidebar ? 'flex' : 'hidden'} md:flex flex-1 flex-col bg-black relative overflow-hidden`}>
               <div className="flex items-center border-b border-gray-800 px-4 py-3 bg-gray-950 shrink-0">
                   <button
-                      onClick={() => setShowMobileSidebar(true)}
+                      aria-label="Меню курса" onClick={() => setShowMobileSidebar(true)}
                       className="md:hidden flex items-center gap-2 text-gray-200 active:text-white mr-3"
                   >
                       <ChevronLeft size={20} />
@@ -1210,7 +1227,7 @@ const StudentDashboard: React.FC<StudentDashboardProps> = ({ currentUser: propUs
         <div className={`${!showMobileSidebar ? 'flex' : 'hidden'} md:flex flex-1 flex-col w-full relative overflow-hidden`}>
             <div className="flex items-center border-b border-gray-800 px-4 py-3 bg-gray-950 shrink-0">
                 <button
-                    onClick={() => setShowMobileSidebar(true)}
+                    aria-label="Меню курса" onClick={() => setShowMobileSidebar(true)}
                     className="md:hidden flex items-center gap-2 text-gray-200 active:text-white mr-3"
                 >
                     <ChevronLeft size={20} />
@@ -1231,7 +1248,7 @@ const StudentDashboard: React.FC<StudentDashboardProps> = ({ currentUser: propUs
           const header = (
               <div className="flex items-center border-b border-gray-800 px-4 py-3 bg-gray-950 shrink-0">
                   <button
-                      onClick={() => setShowMobileSidebar(true)}
+                      aria-label="Меню курса" onClick={() => setShowMobileSidebar(true)}
                       className="md:hidden flex items-center gap-2 text-gray-200 active:text-white mr-3"
                   >
                       <ChevronLeft size={20} />
@@ -1275,7 +1292,7 @@ const StudentDashboard: React.FC<StudentDashboardProps> = ({ currentUser: propUs
           <div className={`${!showMobileSidebar ? 'flex' : 'hidden'} xl:flex flex-1 flex-col min-w-0 overflow-hidden`}>
             {/* MOBILE TOP BAR (always visible for coding tasks) */}
             <div className="xl:hidden flex items-center border-b border-gray-800 px-2 py-2 bg-gray-950 shrink-0 gap-2">
-                <button onClick={() => setShowMobileSidebar(true)} className="p-2 text-gray-200 active:text-white shrink-0"><ChevronLeft size={20}/></button>
+                <button aria-label="Меню курса" onClick={() => setShowMobileSidebar(true)} className="p-2 text-gray-200 active:text-white shrink-0"><ChevronLeft size={20}/></button>
                 <span className="text-xs font-bold text-gray-300 uppercase leading-tight break-words flex-1">{activeTask.title}</span>
                   {lessonStage === 'practice' && <button onClick={() => setLessonStage('explanation')} className="text-sm text-cyan-300 px-3 py-2">К объяснению</button>}
                 <button
