@@ -13,6 +13,7 @@ import { stripStandardsPrefix } from '../utils/theoryText';
 import ShopAvatar, { STREET_AVATARS } from './ShopAvatar';
 import StudentHome from './StudentHome';
 import { PracticeSurface } from './PracticeSurface';
+import { LessonHeader } from './LessonHeader';
 import CyberToast, { ToastMessage } from './CyberToast';
 import { Play, RotateCcw, CheckCircle, Lock, BookOpen, Zap, ArrowRight, ChevronLeft, Trophy, X, Bot, Code, Terminal as TerminalIcon, Cpu, Globe, Grid, LayoutList, Eye, Loader2, HelpCircle, ShoppingBag, Coins, BrainCircuit, Puzzle, Award, Flame, Activity, ArrowUpDown, GitBranch, ShieldAlert, Brain, Lightbulb, Folder, Smartphone, ShieldCheck } from 'lucide-react';
 import { playSound } from '../utils/sound';
@@ -1051,20 +1052,7 @@ const StudentDashboard: React.FC<StudentDashboardProps> = ({ currentUser: propUs
       {/* 1. EXPLANATION STAGE (Байтик + теория) — также покрывает type 'theory' */}
       {activeTask && activeTask.type !== 'assessment' && (lessonStage === 'explanation' || activeTask.type === 'theory') && (
           <div className={`${!showMobileSidebar ? 'flex' : 'hidden'} md:flex flex-1 flex-col bg-black relative overflow-hidden`}>
-                <div className="flex items-center border-b border-gray-800 px-4 py-3 bg-gray-950 shrink-0 gap-3">
-                    <button
-                        aria-label="Меню курса" onClick={() => setShowMobileSidebar(true)}
-                        className="md:hidden flex items-center gap-2 text-gray-200 active:text-white"
-                    >
-                        <ChevronLeft size={20} />
-                    </button>
-                    <div className="p-1.5 rounded bg-cyber-neonBlue/10 text-cyber-neonBlue border border-cyber-neonBlue/30 shrink-0">
-                        <BookOpen size={16} />
-                    </div>
-                    <span className="text-xs font-bold uppercase text-gray-300 tracking-widest leading-tight break-words flex-1">{activeTask.title}</span>
-                  {lessonStage === 'practice' && <button onClick={() => setLessonStage('explanation')} className="text-sm text-cyan-300 px-3 py-2">К объяснению</button>}
-
-                </div>
+                <LessonHeader title={activeTask.title} practice={false} onMenu={() => setShowMobileSidebar(true)} onExplanation={() => setLessonStage('explanation')}/>
                 <div className="flex-1 overflow-y-auto p-4 md:p-8">
                 <div className="max-w-4xl mx-auto w-full space-y-6">
                     <MascotErrorBoundary fallback={activeTask.theory ? (
@@ -1098,18 +1086,9 @@ const StudentDashboard: React.FC<StudentDashboardProps> = ({ currentUser: propUs
       {/* 2. QUIZ VIEW */}
       {activeTask?.type === 'quiz' && lessonStage === 'practice' && (
           <div className={`${!showMobileSidebar ? 'flex' : 'hidden'} md:flex flex-1 flex-col bg-black relative overflow-hidden`}>
-              <div className="flex items-center border-b border-gray-800 px-4 py-3 bg-gray-950 shrink-0">
-                  <button
-                      aria-label="Меню курса" onClick={() => setShowMobileSidebar(true)}
-                      className="md:hidden flex items-center gap-2 text-gray-200 active:text-white mr-3"
-                  >
-                      <ChevronLeft size={20} />
-                  </button>
-                  <span className="text-xs font-bold uppercase text-gray-300 tracking-widest leading-tight break-words flex-1">{activeTask.title}</span>
-                  {lessonStage === 'practice' && <button onClick={() => setLessonStage('explanation')} className="text-sm text-cyan-300 px-3 py-2">К объяснению</button>}
-              </div>
+              <LessonHeader title={activeTask.title} practice={true} onMenu={() => setShowMobileSidebar(true)} onExplanation={() => setLessonStage('explanation')}/>
               <div className="flex-1 overflow-y-auto p-4 md:p-12 flex flex-col items-center justify-start md:justify-center">
-              <div className="max-w-2xl w-full bg-[#0e0e12] border border-gray-800 p-6 md:p-12 relative shadow-2xl">
+              <div className="lesson-quiz-panel max-w-2xl w-full bg-[#0e0e12] border border-gray-800 p-6 md:p-12 relative shadow-2xl">
                   {/* Decor */}
                   <div className="absolute top-0 left-0 w-4 h-4 border-t-2 border-l-2 border-cyber-neonYellow"></div>
                   <div className="absolute bottom-0 right-0 w-4 h-4 border-b-2 border-r-2 border-cyber-neonYellow"></div>
@@ -1139,7 +1118,8 @@ const StudentDashboard: React.FC<StudentDashboardProps> = ({ currentUser: propUs
                                 key={idx}
                                 disabled={quizSubmitted}
                                 onClick={() => { playSound('click'); setQuizSelectedOption(idx); }}
-                                className={`w-full p-4 border text-left font-mono text-sm md:text-base transition-all duration-200 ${stateClass}`}
+                                aria-pressed={quizSelectedOption === idx}
+                                className={`lesson-answer w-full p-4 border text-left font-mono text-sm md:text-base transition-all duration-200 ${stateClass}`}
                             >
                                 <span className="mr-4 opacity-50">{idx + 1}.</span>
                                 {opt}
@@ -1156,7 +1136,7 @@ const StudentDashboard: React.FC<StudentDashboardProps> = ({ currentUser: propUs
                   )}
 
                   {quizSubmitted && quizIsCorrect && activeTask.lesson && <p className="mt-4 text-sm text-gray-300"><strong>Объясни своими словами: </strong>{activeTask.lesson.reflection}</p>}
-                  <div className="mt-8 pt-6 border-t border-gray-800 flex justify-between items-center">
+                  <div className="lesson-quiz-actions mt-8 pt-6 border-t border-gray-800 flex justify-between items-center">
                       <div className="text-sm">
                           {quizSubmitted && (
                               <span className={quizIsCorrect ? "text-cyber-neonGreen font-bold" : "text-red-500 font-bold"}>
@@ -1169,22 +1149,22 @@ const StudentDashboard: React.FC<StudentDashboardProps> = ({ currentUser: propUs
                           <button
                              onClick={handleQuizSubmit}
                              disabled={quizSelectedOption === null}
-                             className={`px-8 py-3 font-bold uppercase tracking-widest transition-all ${quizSelectedOption !== null ? 'bg-cyber-neonBlue text-black hover:bg-white' : 'bg-gray-800 text-gray-500 cursor-not-allowed'}`}
+                             className={`academy-primary lesson-check px-8 py-3 font-bold uppercase tracking-widest transition-all ${quizSelectedOption !== null ? 'bg-cyber-neonBlue text-black hover:bg-white' : 'bg-gray-800 text-gray-500 cursor-not-allowed'}`}
                           >
                               Проверить
                           </button>
                       ) : (
                           quizIsCorrect ? (
-                              <button
+                              !missionSuccess && <button
                                 onClick={handleNextTask}
-                                className={`${missionSuccess ? 'hidden' : 'flex'} px-6 py-3 bg-cyber-neonGreen text-black hover:bg-white border border-cyber-neonGreen font-bold uppercase items-center gap-2 text-sm md:text-base`}
+                                className={`academy-primary flex px-6 py-3 bg-cyber-neonGreen text-black hover:bg-white border border-cyber-neonGreen font-bold uppercase items-center gap-2 text-sm md:text-base`}
                               >
                                   {(tasks.filter(t => t.courseId === activeTask.courseId).findIndex(t => t.id === activeTask.id) < tasks.filter(t => t.courseId === activeTask.courseId).length - 1) ? 'Далее' : 'Завершить'} <ArrowRight size={18} />
                               </button>
                           ) : (
                               <button
                                 onClick={handleQuizRetry}
-                                className="px-6 py-3 bg-red-500/20 text-red-500 hover:bg-red-500 hover:text-black border border-red-500 font-bold uppercase flex items-center gap-2 transition-colors text-sm md:text-base"
+                                className="academy-secondary px-6 py-3 bg-red-500/20 text-red-500 hover:bg-red-500 hover:text-black border border-red-500 font-bold uppercase flex items-center gap-2 transition-colors text-sm md:text-base"
                               >
                                   <RotateCcw size={18} /> Повторить
                               </button>
@@ -1199,16 +1179,7 @@ const StudentDashboard: React.FC<StudentDashboardProps> = ({ currentUser: propUs
       {/* 3. BLOCKS (drag-and-drop) VIEW */}
       {activeTask?.type === 'blocks' && lessonStage === 'practice' && (
           <div className={`${!showMobileSidebar ? 'flex' : 'hidden'} md:flex flex-1 flex-col bg-black relative overflow-hidden`}>
-              <div className="flex items-center border-b border-gray-800 px-4 py-3 bg-gray-950 shrink-0">
-                  <button
-                      aria-label="Меню курса" onClick={() => setShowMobileSidebar(true)}
-                      className="md:hidden flex items-center gap-2 text-gray-200 active:text-white mr-3"
-                  >
-                      <ChevronLeft size={20} />
-                  </button>
-                  <span className="text-xs font-bold uppercase text-gray-300 tracking-widest leading-tight break-words flex-1">{activeTask.title}</span>
-                  {lessonStage === 'practice' && <button onClick={() => setLessonStage('explanation')} className="text-sm text-cyan-300 px-3 py-2">К объяснению</button>}
-              </div>
+              <LessonHeader title={activeTask.title} practice={true} onMenu={() => setShowMobileSidebar(true)} onExplanation={() => setLessonStage('explanation')}/>
               <Suspense fallback={<LessonLoader />}>
                   <BlockCoding
                     key={activeTask.id}
@@ -1225,16 +1196,7 @@ const StudentDashboard: React.FC<StudentDashboardProps> = ({ currentUser: propUs
       {/* 4. TOWER OF HANOI MINI GAME */}
       {isHanoiTask && lessonStage === 'practice' && (
         <div className={`${!showMobileSidebar ? 'flex' : 'hidden'} md:flex flex-1 flex-col w-full relative overflow-hidden`}>
-            <div className="flex items-center border-b border-gray-800 px-4 py-3 bg-gray-950 shrink-0">
-                <button
-                    aria-label="Меню курса" onClick={() => setShowMobileSidebar(true)}
-                    className="md:hidden flex items-center gap-2 text-gray-200 active:text-white mr-3"
-                >
-                    <ChevronLeft size={20} />
-                </button>
-                <span className="text-xs font-bold uppercase text-gray-300 tracking-widest leading-tight break-words flex-1">{activeTask?.title}</span>
-                <button onClick={() => setLessonStage('explanation')} className="text-sm text-cyan-300 px-3 py-2">К объяснению</button>
-            </div>
+            <LessonHeader title={activeTask!.title} practice={true} onMenu={() => setShowMobileSidebar(true)} onExplanation={() => setLessonStage('explanation')}/>
             <PracticeSurface goal={getTaskPracticeGoal(activeTask!)}><Suspense fallback={<LessonLoader />}>
                 <HanoiGame key={activeTask!.id} task={activeTask!} onComplete={() => handleTaskCompletion(activeTask!)} />
             </Suspense></PracticeSurface>
@@ -1245,19 +1207,7 @@ const StudentDashboard: React.FC<StudentDashboardProps> = ({ currentUser: propUs
       {activeTask && lessonStage === 'practice' && (() => {
           const t = activeTask;
           const complete = () => handleTaskCompletion(t);
-          const header = (
-              <div className="flex items-center border-b border-gray-800 px-4 py-3 bg-gray-950 shrink-0">
-                  <button
-                      aria-label="Меню курса" onClick={() => setShowMobileSidebar(true)}
-                      className="md:hidden flex items-center gap-2 text-gray-200 active:text-white mr-3"
-                  >
-                      <ChevronLeft size={20} />
-                  </button>
-                  <span className="text-xs font-bold uppercase text-gray-300 tracking-widest leading-tight break-words flex-1">{t.title}</span>
-                  <button onClick={() => setLessonStage('explanation')} className="text-sm text-cyan-300 px-3 py-2">К объяснению</button>
-                  <span className="hidden md:block text-[10px] font-mono text-gray-500 uppercase">{getTaskTypeLabel(t.type)}</span>
-              </div>
-          );
+          const header = <LessonHeader title={t.title} practice onMenu={() => setShowMobileSidebar(true)} onExplanation={() => setLessonStage('explanation')}/>;
           const wrap = (game: React.ReactNode) => (
               <div className={`${!showMobileSidebar ? 'flex' : 'hidden'} md:flex flex-1 flex-col bg-black relative overflow-hidden`}>
                   {header}
