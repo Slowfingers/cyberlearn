@@ -1120,3 +1120,37 @@ body { margin:0; background:#0b111d; font-family:system-ui,-apple-system,'Segoe 
  .spreadsheet-actions {gap:5px;}
  .spreadsheet-actions .academy-primary {width:100%;}
 }
+
+/* Keyboard and delivery lab share the same dark panel vocabulary. */
+.typing-workshop,.delivery-workshop {background:#14243b!important;border:2px solid #395473;border-radius:3px;box-shadow:4px 4px #080f21;}
+.typing-workshop .typing-toolbar {align-items:flex-start;}
+.typing-workshop .typing-toolbar h2 {font-size:18px;color:#e5f0ff;line-height:1.5;}
+.typing-workshop .typing-tool {justify-content:center;min-height:48px;font-size:11px;}
+.typing-workshop .typing-surface {border-radius:3px;border:2px solid #496d91;background:#0b172b;}
+.typing-workshop .typing-surface.is-focused {border-color:#83e5d4;}
+.typing-workshop .keyboard-board {border-radius:3px;background:#0b172b;border:2px solid #395473;}
+.typing-workshop .keycap {border-radius:3px;background:#243c5b;color:#e0eeff;border:1px solid #52799c;border-bottom:4px solid #080f21;box-shadow:0 2px #050c18;min-height:44px;}
+.typing-workshop .keycap small {color:#99b8d7;}
+.typing-workshop .keycap-next {background:#91f0d7;color:#112f36;border-color:#c4fff1;border-bottom-color:#397969;}
+.typing-workshop .keycap-next small {color:#245746;}
+.typing-workshop .keycap:hover:not(:disabled) {filter:brightness(1.2);}
+.typing-workshop .keyboard-caption button {min-height:44px;padding:8px 12px;border:1px solid #56789c;border-radius:3px;}
+.delivery-workshop .parcel-card {background:#172c47;color:#e0edfd;border:2px solid #456489;border-bottom:4px solid #080f21;border-radius:3px;}
+.delivery-workshop .parcel-card.is-selected {border-color:#91efd8;box-shadow:inset 0 0 0 1px #91efd8;}
+.delivery-workshop .parcel-extension {background:#253f5b;color:#a7efdf;border-radius:3px;}
+.delivery-workshop .parcel-name {color:#e4efff;}
+.delivery-workshop .parcel-select {color:#b0c9e5;}
+.delivery-workshop .folder-card {border-radius:3px;background:#172c47;border:2px solid #456489;}
+.delivery-workshop .folder-card strong {color:#e4efff;}
+.delivery-workshop .folder-card.is-hovered {border-color:#91efd8;background:#244953;}
+.delivery-workshop .workshop-feedback,.delivery-workshop .workshop-hint {border-radius:3px;border:1px solid #456489;background:#102039;}
+.delivery-selection {display:flex;align-items:center;justify-content:space-between;gap:12px;padding:12px;border:1px solid #75b5a9;background:#14373d;margin-bottom:16px;}
+.delivery-selection>span {font-size:12px;line-height:1.7;min-width:0;}
+.delivery-selection strong {display:block;overflow-wrap:anywhere;color:#b2ffe9;}
+.delivery-selection button {font-size:12px;flex-shrink:0;}
+@media(pointer:coarse) {.delivery-workshop .parcel-card {touch-action:pan-y;}}
+@media(max-width:760px) {.typing-workshop .typing-toolbar h2 {font-size:16px;}.delivery-selection {flex-direction:column;align-items:stretch;}.typing-workshop .keycap {font-size:11px;}.typing-workshop .keycap-wide {font-size:9px;}}
+.typing-workshop .typed-pending {color:#aec1dd;}
+.typing-workshop .typed-correct {color:#8ce8ca;}
+.typing-workshop .typing-status {color:#bed0e6;}
+@media(any-pointer:coarse) {.delivery-workshop .parcel-card {touch-action:pan-y;}}

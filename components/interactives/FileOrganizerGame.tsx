@@ -120,6 +120,7 @@ export const FileOrganizerGame: React.FC<{ task: Task; onComplete: () => void }>
   const [selected, setSelected] = useState<string | null>(null);
   const [feedback, setFeedback] = useState('Выбери посылку и найди для неё папку.');
   const [hover, setHover] = useState<string | null>(null);
+  const foldersRef = useRef<HTMLDivElement>(null);
   const placedRef = useRef(new Set<string>());
   const pointer = useRef<{ id: string; x: number; y: number; moved: boolean } | null>(null);
   const [ghost, setGhost] = useState<{ id: string; x: number; y: number } | null>(null);
@@ -128,29 +129,31 @@ export const FileOrganizerGame: React.FC<{ task: Task; onComplete: () => void }>
   useEffect(reset, [task.id]);
   const place = (id: string | null, folder: string) => {
     const file = files.find(f => f.id === id);
-    if (!file || placedRef.current.has(file.id)) return;
+    if (!file) { setFeedback('Сначала выбери файл, затем нажми на нужную папку.'); return; }
+    if (placedRef.current.has(file.id)) return;
     if (file.folder !== folder) { setFeedback('Эта папка не подходит. Сравни расширение и назначение файла с названиями папок.'); playSound('error'); return; }
     placedRef.current.add(file.id); setPlaced([...placedRef.current]); setSelected(null); playSound('hit');
     setFeedback(placedRef.current.size === files.length ? 'Все посылки доставлены! Теперь на столе порядок.' : `«${file.name}» на месте. Доставь следующую посылку!`);
     if (placedRef.current.size === files.length) { playSound('success'); onComplete(); }
   };
   const folderAt = (x: number, y: number) => document.elementFromPoint(x, y)?.closest<HTMLElement>('[data-folder-type]')?.dataset.folderType;
-  return <div className="workshop-game">
+  return <div className="workshop-game delivery-workshop">
     <WorkshopHeader title="Бюро цифровых посылок" description="Разложи файлы по папкам. Перетаскивай или нажимай: файл → папка."><button className="workshop-icon-button" onClick={reset} aria-label="Начать заново"><RotateCcw size={19} /></button></WorkshopHeader>
     <WorkshopProgress value={placed.length} total={files.length} />
     <p className="workshop-feedback" role="status">{feedback}</p>
+    {selected && <div className="delivery-selection"><span>Выбран файл <strong>{files.find(file => file.id === selected)?.name}</strong></span><button className="academy-primary" onClick={() => foldersRef.current?.scrollIntoView({block:'center'})}>Выбрать папку ↓</button></div>}
     <div className="delivery-desk"><div className="workshop-section-title">Посылки ждут доставки <span>{files.length - placed.length}</span></div><div className="parcel-grid">
       {files.filter(f => !placed.includes(f.id)).map(file => <button key={file.id} className={`parcel-card ${selected === file.id ? 'is-selected' : ''}`} aria-pressed={selected === file.id}
         onClick={() => { if (suppressClick.current === file.id) { suppressClick.current = null; return; } suppressClick.current = null; setSelected(file.id); setFeedback(file.description); }}
-        onPointerDown={e => { if (e.button !== 0) return; pointer.current = { id: file.id, x: e.clientX, y: e.clientY, moved: false }; e.currentTarget.setPointerCapture(e.pointerId); }}
+        onPointerDown={e => { if (e.button !== 0 || e.pointerType === 'touch') return; pointer.current = { id: file.id, x: e.clientX, y: e.clientY, moved: false }; e.currentTarget.setPointerCapture(e.pointerId); }}
         onPointerMove={e => { const p = pointer.current; if (!p || p.id !== file.id) return; if (Math.hypot(e.clientX-p.x, e.clientY-p.y) > 8) p.moved = true; if (p.moved) { setGhost({ id: file.id, x: e.clientX, y: e.clientY }); setHover(folderAt(e.clientX, e.clientY) || null); } }}
         onPointerUp={e => { const p = pointer.current; if (p?.moved) { suppressClick.current = file.id; const folder = folderAt(e.clientX, e.clientY); if (folder) place(file.id, folder); } pointer.current = null; setGhost(null); setHover(null); }}
         onPointerCancel={() => { pointer.current = null; setGhost(null); setHover(null); }}>
-        <WorkshopArt kind={file.type} /><span className="parcel-name">{file.name.slice(0, -file.ext.length).replaceAll('_', ' ')}</span><span className="parcel-extension">{file.ext}</span><span className="parcel-select">{selected === file.id ? 'Выбрано ✓' : 'Взять посылку'}</span>
+        <WorkshopArt kind={file.type} /><span className="parcel-name">{(file.ext ? file.name.slice(0, -file.ext.length) : file.name).replaceAll('_', ' ')}</span><span className="parcel-extension">{file.ext}</span><span className="parcel-select">{selected === file.id ? 'Выбрано ✓' : 'Взять посылку'}</span>
       </button>)}
       {placed.length === files.length && <div className="workshop-success"><WorkshopArt />Отличная работа! Все файлы на своих местах.</div>}
     </div></div>
-    <div className="folder-grid">{activeFolders.map(folder => <button key={folder} data-folder-type={folder} className={`folder-card ${hover === folder ? 'is-hovered' : ''}`} onClick={() => place(selected, folder)} aria-label={`Папка ${LABELS[folder] ?? folder}`}><WorkshopArt kind={`folder-${ALL_FOLDERS.includes(folder as FolderType) ? folder : "doc"}`} /><strong>{LABELS[folder] ?? folder}</strong><span>{placed.filter(id => files.find(f => f.id === id)?.folder === folder).length} файлов доставлено</span></button>)}</div>
+    <div ref={foldersRef} className="folder-grid">{activeFolders.map(folder => <button key={folder} data-folder-type={folder} className={`folder-card ${hover === folder ? 'is-hovered' : ''}`} onClick={() => place(selected, folder)} aria-label={`Папка ${LABELS[folder] ?? folder}`}><WorkshopArt kind={`folder-${ALL_FOLDERS.includes(folder as FolderType) ? folder : "doc"}`} /><strong>{LABELS[folder] ?? folder}</strong><span>{placed.filter(id => files.find(f => f.id === id)?.folder === folder).length} файлов доставлено</span></button>)}</div>
     <details className="workshop-hint"><summary>Как выбрать папку?</summary><p>Определи назначение файла по расширению. Затем выбери папку для такого вида работы.</p></details>
     {ghost && <div className="parcel-ghost" style={{ left: ghost.x, top: ghost.y }}><WorkshopArt kind={files.find(f => f.id === ghost.id)?.type} /></div>}
   </div>;
