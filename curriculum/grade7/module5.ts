@@ -163,8 +163,8 @@ export const MODULE5_TASKS: Task[] = [
     xpReward: 125,
     currencyReward: 40,
     status: 'open',
-    initialCode: '<div style="font-family:sans-serif; text-align:center; padding:20px; background:#0f172a; color:#38bdf8; border-radius:12px;">\n  <h2>Кибер-счетчик</h2>\n  <p id="counter" style="font-size:32px; font-weight:bold; color:#4ade80;">0</p>\n  <button onclick="document.getElementById(\'counter\').innerText = parseInt(document.getElementById(\'counter\').innerText) + 1" style="padding:10px 20px; background:#06b6d4; color:#fff; border:none; border-radius:8px; cursor:pointer; font-weight:bold;">Кликнуть +1</button>\n</div>',
-    htmlConfig: {}
+    initialCode: "<h2>Счётчик миссии</h2>\n<p id=\"counter\">0</p>\n<button id=\"add\">Добавить очко</button>\n<script>\nconst score = document.getElementById(\"counter\");\nconst add = document.getElementById(\"add\");\nadd.addEventListener(\"click\", () => {\n    score.textContent = Number(score.textContent) + 1;\n});\n</script>",
+    htmlConfig: {counter:{counterId:"counter",buttonId:"add"}}
   },
   {
     id: 'g7_l35',

@@ -132,7 +132,7 @@ export const MODULE6_TASKS: Task[] = [
       </div>
     `,
     quizData: {
-      question: 'Что произойдет при выполнении запроса: UPDATE accounts SET balance = 0; если программист случайно забыл дописать условие WHERE id = 5?',
+      question: 'В учебной таблице запрос UPDATE accounts SET balance = 0; выполняется без ограничений. Что изменится без WHERE id = 5?',
       options: [
         'Баланс обнулится у всех пользователей',
         'Обновится только первая строка таблицы',

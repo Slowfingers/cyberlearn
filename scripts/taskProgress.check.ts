@@ -1,9 +1,9 @@
 import assert from 'node:assert/strict';
 import {MOCK_TASKS} from '../constants';
 import {uniqueTaskCatalog,applyCompletedTasks,nextUnfinishedTask} from '../services/taskProgress';
-for(const grade of ['5','6']){
+for(const grade of ['5','6','7']){
 const grade5=MOCK_TASKS.filter(t=>t.courseId===`course_grade${grade}`);
-assert.equal(grade5.length,grade==='5'?70:40);
+assert.equal(grade5.length,grade==='6'?40:70);
 assert.equal(uniqueTaskCatalog(MOCK_TASKS,[{...grade5[0],title:'Старая копия'},grade5[0]]).length,MOCK_TASKS.length);
 const ids=new Set([grade5[0].id,grade5[1].id]);
 let tasks=applyCompletedTasks(grade5,ids);

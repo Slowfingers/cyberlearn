@@ -361,6 +361,27 @@ export const evaluateCodeLocally = async (code: string, task: Task): Promise<Exe
             error = "Ошибка парсинга HTML.";
         }
         
+        if (success && task.htmlConfig?.counter) {
+            const {counterId, buttonId} = task.htmlConfig.counter;
+            const parser = new DOMParser();
+            const makeProgram = (html: string) => {
+                const doc = parser.parseFromString(html, 'text/html');
+                const counter = doc.getElementById(counterId), button = doc.getElementById(buttonId);
+                if (!counter || !button) throw new Error('Сохрани счётчик и кнопку с ID из шаблона.');
+                const prefix = `const counter = {textContent:${JSON.stringify(counter.textContent?.trim())}};\nconst button = {listeners:{},addEventListener(event,fn){this.listeners[event]=fn}};\nconst document = {getElementById(id){return id===${JSON.stringify(counterId)}?counter:id===${JSON.stringify(buttonId)}?button:null}};\n`;
+                const scripts = Array.from(doc.querySelectorAll('script')).map(s=>s.textContent).join('\n');
+                const inline = button.getAttribute('onclick');
+                const handler = inline !== null ? `button.listeners.click = () => {${inline}};` : '';
+                return prefix + scripts + '\n' + handler + '\nconsole.log(counter.textContent);\nfor(let n=0;n<3;n++){button.listeners.click();console.log(counter.textContent);}';
+            };
+            try {
+                await checkTerminal(makeProgram(rawCode), {...task, initialCode:makeProgram(task.initialCode ?? '')});
+                logs.push('✓ Счёт начинается с 0 и увеличивается на 1 после каждого из трёх нажатий');
+            } catch (e) {
+                success = false;
+                error = e instanceof Error ? e.message : 'Проверь обработчик кнопки.';
+            }
+        }
         if (success && task.htmlConfig?.interaction) {
             const { inputId, buttonId, listId } = task.htmlConfig.interaction;
             const parser = new DOMParser();

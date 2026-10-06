@@ -63,6 +63,9 @@ export function getNetworkScenario(task:Task) {
 }
 export const NetworkRouteGame: React.FC<NetworkRouteGameProps> = ({ task, onComplete }) => {
   const {nodes,edges,startNode,endNode,maxLatency}=getNetworkScenario(task);
+  // Include circles and labels even when an authored map exceeds the original canvas.
+  const canvasWidth = Math.max(500, ...nodes.map(node => node.x + Math.max(32, node.label.length * 3.5) + 12));
+  const canvasHeight = Math.max(280, ...nodes.map(node => node.y + 48));
 
   const [selectedPath, setSelectedPath] = useState<string[]>([startNode]);
   const [completed, setCompleted] = useState<boolean>(false);
@@ -204,7 +207,7 @@ export const NetworkRouteGame: React.FC<NetworkRouteGameProps> = ({ task, onComp
 
       {/* Interactive Network Graph Canvas / SVG */}
       <div className="flex-1 bg-black border border-gray-800 rounded-xl p-4 flex items-center justify-center min-h-[300px] relative overflow-hidden">
-        <svg viewBox="0 0 500 280" className="w-full max-w-xl h-auto select-none">
+        <svg viewBox={`0 0 ${canvasWidth} ${canvasHeight}`} className="w-full max-w-xl h-auto select-none">
           {/* Edges */}
           {edges.map((edge, idx) => {
             const nodeFrom = nodes.find(n => n.id === edge.from)!;
@@ -307,6 +310,13 @@ export const NetworkRouteGame: React.FC<NetworkRouteGameProps> = ({ task, onComp
             );
           })}
         </svg>
+      </div>
+      <div className="grid grid-cols-2 gap-2 sm:hidden" aria-label="Выбор узла маршрута">
+        {nodes.map(node => <button key={node.id} disabled={completed}
+          onClick={() => handleNodeClick(node.id)}
+          className={`min-h-12 rounded-lg border px-3 py-2 text-sm ${selectedPath.includes(node.id) ? 'border-cyan-400 text-cyan-200 bg-cyan-950' : 'border-slate-600 text-slate-200 bg-slate-900'}`}>
+          {node.label}
+        </button>)}
       </div>
 
       {/* Victory Banner */}

@@ -226,7 +226,7 @@ export const PhishingInspectorGame: React.FC<PhishingInspectorGameProps> = ({ ta
               <FileText size={20} className="text-red-500" />
               <div>
                 <div className="font-mono text-xs font-bold">{cfg?.attachmentName || 'Инструкция_по_безопасности.pdf.exe'}</div>
-                <div className="text-[10px] text-gray-400">Размер: 4.8 МБ • Исполняемый файл приложения</div>
+                <div className="text-[10px] text-gray-400">Вложение письма • Проверь название и просьбу отправителя</div>
               </div>
             </div>
           </div></>}

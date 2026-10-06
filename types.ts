@@ -141,6 +141,7 @@ export interface Task {
   
   // For 'html' only
   htmlConfig?: {
+      counter?: { counterId: string; buttonId: string };
       interaction?: { inputId: string; buttonId: string; listId: string };
       targetTag?: string; 
       targetStyle?: string; 

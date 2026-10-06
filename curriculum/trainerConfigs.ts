@@ -22,7 +22,7 @@ export const TRAINER_CONFIGS: Record<string, Partial<Task>> = {
   g3_m8_l1: { spreadsheetConfig: { tableData: [], targetFormula: '=B2*C2', formulaType: 'multiply' } },
   g3_m8_l2: { spreadsheetConfig: { tableData: [], targetFormula: '=SUM(D2:D4)', formulaType: 'sum' } },
   // 7 класс: условное форматирование и логика выборки — сценарий с условием, а не с суммой
-  g7_l41: { spreadsheetConfig: { tableData: [], targetFormula: '=IF(B2>=60;"Зачёт";"Доработать")', formulaType: 'if' } },
+  g7_l41: { spreadsheetConfig: { tableData: [{id:'g7a',name:'Команда Искра',val1:76,val2:0},{id:'g7b',name:'Команда Неон',val1:60,val2:0},{id:'g7c',name:'Команда Вектор',val1:59,val2:0}], targetFormula: '=IF(B2>=60;"Зачёт";"Доработать")', formulaType: 'if' } },
 
   // --- Сортировка ---
   g7_l15: { sortingConfig: { numbers: [34, 7, 91, 22, 58, 13], algorithm: 'bubble' } },
@@ -71,22 +71,22 @@ export const TRAINER_CONFIGS: Record<string, Partial<Task>> = {
       endNode: 'server',
       maxLatencyMs: 60,
       nodes: [
-        { id: 'app', label: 'Браузер (HTTP)', x: 50, y: 140, status: 'online' },
-        { id: 'dns', label: 'DNS-запрос', x: 170, y: 60, status: 'online' },
-        { id: 'tcp', label: 'TCP: сборка', x: 170, y: 220, status: 'online' },
-        { id: 'udp', label: 'UDP: без гарантий', x: 300, y: 60, status: 'overloaded' },
-        { id: 'ip', label: 'IP: адресация', x: 300, y: 220, status: 'online' },
-        { id: 'eth', label: 'Ethernet / Wi-Fi', x: 420, y: 140, status: 'online' },
+        { id: 'app', label: 'Ноутбук', x: 50, y: 140, status: 'online' },
+        { id: 'rNorth', label: 'Роутер Север', x: 170, y: 60, status: 'online' },
+        { id: 'rSouth', label: 'Роутер Юг', x: 170, y: 220, status: 'online' },
+        { id: 'rBusy', label: 'Перегруженный узел', x: 300, y: 60, status: 'overloaded' },
+        { id: 'rLink', label: 'Узел связи', x: 300, y: 220, status: 'online' },
+        { id: 'rSchool', label: 'Школьный роутер', x: 420, y: 140, status: 'online' },
         { id: 'server', label: 'Веб-сервер', x: 540, y: 140, status: 'online' },
       ],
       edges: [
-        { from: 'app', to: 'dns', latencyMs: 12 },
-        { from: 'app', to: 'tcp', latencyMs: 10 },
-        { from: 'dns', to: 'udp', latencyMs: 30 },
-        { from: 'tcp', to: 'ip', latencyMs: 12 },
-        { from: 'udp', to: 'eth', latencyMs: 45 },
-        { from: 'ip', to: 'eth', latencyMs: 14 },
-        { from: 'eth', to: 'server', latencyMs: 15 },
+        { from: 'app', to: 'rNorth', latencyMs: 12 },
+        { from: 'app', to: 'rSouth', latencyMs: 10 },
+        { from: 'rNorth', to: 'rBusy', latencyMs: 30 },
+        { from: 'rSouth', to: 'rLink', latencyMs: 12 },
+        { from: 'rBusy', to: 'rSchool', latencyMs: 45 },
+        { from: 'rLink', to: 'rSchool', latencyMs: 14 },
+        { from: 'rSchool', to: 'server', latencyMs: 15 },
       ],
     },
   },
@@ -244,8 +244,8 @@ export const TRAINER_CONFIGS: Record<string, Partial<Task>> = {
   // Классификатор спама: признак 1 — много ссылок, признак 2 — КАПС и восклицательные знаки
   g7_l50: {
     neuronConfig: {
-      targetWeight1: 1,
-      targetWeight2: 1,
+      targetWeight1: 2,
+      targetWeight2: 0,
       threshold: -1,
       featureNames: { x1: 'Много ссылок', x2: 'КАПС и «!!!»' },
       samples: [

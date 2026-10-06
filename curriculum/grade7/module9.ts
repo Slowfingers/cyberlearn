@@ -70,15 +70,15 @@ export const MODULE9_TASKS: Task[] = [
       </div>
     `,
     quizData: {
-      question: 'Чем цифровой сигнал (Digital) принципиально отличается от аналогового (Analog)?',
+      question: 'Как отличается двоичный цифровой сигнал в нашей модели от плавно меняющейся аналоговой величины?',
       options: [
-        'Цифровой имеет два состояния, аналоговый меняется плавно',
+        'Два состояния вместо плавного изменения',
         'Аналоговый передаётся только по воздуху',
         'Цифровой сигнал не требует проводов',
         'Аналоговый сигнал не переносит энергию'
       ],
       correctIndex: 0,
-      explanation: 'Цифровой сигнал дискретен и кодируется уровнями логического нуля и единицы, что обеспечивает устойчивость к помехам.'
+      explanation: 'В этой двоичной модели сигнал читают как 0 или 1. Аналоговая величина, например напряжение датчика, может плавно меняться. Не любой цифровой способ использует только два уровня.'
     }
   },
   {
@@ -109,7 +109,7 @@ export const MODULE9_TASKS: Task[] = [
         </div>
       </div>
     `,
-    initialCode: 'temp = 29.5\nlight = 420\nrelay_fan = False\nrelay_lamp = False\n\nif temp > 28.0:\n    relay_fan = True\nif light < 300:\n    relay_lamp = True\n\nprint(f"СТАТУС IOT УМНОГО ДОМА: Вентилятор={\'ВКЛ\' if relay_fan else \'ВЫКЛ\'}, Освещение={\'ВКЛ\' if relay_lamp else \'ВЫКЛ\'}")',
+    initialCode: "def devices(temp, light):\n    relay_fan = False\n    relay_lamp = False\n    if temp > 28.0:\n        relay_fan = True\n    if light < 300:\n        relay_lamp = True\n    return relay_fan, relay_lamp\n\nfor temp, light in [(29.5, 420), (28, 300), (27, 299), (29, 299)]:\n    fan, lamp = devices(temp, light)\n    print(f\"Датчики {temp}, {light}: вентилятор={fan}, лампа={lamp}\")",
     terminalOutput: '> СТАТУС IOT УМНОГО ДОМА: Вентилятор=ВКЛ, Освещение=ВЫКЛ\n> Все исполнительные реле переключены корректно.'
   }
 ];
