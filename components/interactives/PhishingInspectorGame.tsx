@@ -117,7 +117,7 @@ export const PhishingInspectorGame: React.FC<PhishingInspectorGameProps> = ({ ta
       </div>
 
       {/* Detective Tip */}
-      <div className="bg-gray-900/80 border border-cyber-neonYellow/30 rounded-xl p-3.5 mb-4 text-xs font-mono text-gray-200 flex items-center justify-between">
+      <div className="phishing-instructions bg-gray-900/80 border border-cyber-neonYellow/30 rounded-xl p-3.5 mb-4 text-xs font-mono text-gray-200 flex items-center justify-between">
         <div className="flex items-center gap-2">
           <Search size={16} className="text-cyber-neonYellow" />
           <span>Кликай по подозрительным деталям в письме (адрес, текст, ссылка, файл), чтобы разоблачить фишинговую атаку!</span>
@@ -126,7 +126,7 @@ export const PhishingInspectorGame: React.FC<PhishingInspectorGameProps> = ({ ta
 
       {/* Analysis Output Box if something clicked */}
       {activeAnalysis && (
-        <div className="mb-4 p-4 bg-cyber-neonBlue/10 border border-cyber-neonBlue rounded-xl text-xs font-mono text-cyan-200 flex items-start gap-3 animate-fade-in">
+        <div className="phishing-analysis mb-4 p-4 bg-cyber-neonBlue/10 border border-cyber-neonBlue rounded-xl text-xs font-mono text-cyan-200 flex items-start gap-3 animate-fade-in">
           <AlertTriangle size={18} className="text-cyber-neonYellow shrink-0 mt-0.5" />
           <div>
             <div className="font-bold text-cyber-neonYellow uppercase mb-1">ОТЧЕТ КИБЕР-ЭКСПЕРТИЗЫ:</div>
@@ -136,7 +136,7 @@ export const PhishingInspectorGame: React.FC<PhishingInspectorGameProps> = ({ ta
       )}
 
       {/* Simulated Email Client */}
-      <div className="flex-1 bg-black border border-gray-800 rounded-xl p-5 flex flex-col mb-4 shadow-xl">
+      <div className="phishing-message flex-1 bg-black border border-gray-800 rounded-xl p-5 flex flex-col mb-4 shadow-xl">
         {/* Email Header Bar */}
         <div className="border-b border-gray-800 pb-4 mb-4 space-y-2 font-mono text-xs">
           <div className="flex items-center gap-2">
@@ -253,7 +253,7 @@ export const PhishingInspectorGame: React.FC<PhishingInspectorGameProps> = ({ ta
           </button>
         </div>
       ) : (
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-2">
+        <div className="phishing-checklist grid grid-cols-2 md:grid-cols-4 gap-2">
           {threats.map((t, idx) => (
             <div
               key={t.id}

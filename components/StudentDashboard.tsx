@@ -1053,7 +1053,7 @@ const StudentDashboard: React.FC<StudentDashboardProps> = ({ currentUser: propUs
       {activeTask && activeTask.type !== 'assessment' && (lessonStage === 'explanation' || activeTask.type === 'theory') && (
           <div className={`${!showMobileSidebar ? 'flex' : 'hidden'} md:flex flex-1 flex-col bg-black relative overflow-hidden`}>
                 <LessonHeader title={activeTask.title} practice={false} onMenu={() => setShowMobileSidebar(true)} onExplanation={() => setLessonStage('explanation')}/>
-                <div className="flex-1 overflow-y-auto p-4 md:p-8">
+                <div className="lesson-explanation-scroll flex-1 overflow-y-auto p-4 md:p-8">
                 <div className="max-w-4xl mx-auto w-full space-y-6">
                     <MascotErrorBoundary fallback={activeTask.theory ? (
                         <div className="bg-black/80 border border-gray-800 p-6 md:p-8 rounded-xl shadow-xl prose prose-invert max-w-none text-sm leading-relaxed">
@@ -1087,7 +1087,7 @@ const StudentDashboard: React.FC<StudentDashboardProps> = ({ currentUser: propUs
       {activeTask?.type === 'quiz' && lessonStage === 'practice' && (
           <div className={`${!showMobileSidebar ? 'flex' : 'hidden'} md:flex flex-1 flex-col bg-black relative overflow-hidden`}>
               <LessonHeader title={activeTask.title} practice={true} onMenu={() => setShowMobileSidebar(true)} onExplanation={() => setLessonStage('explanation')}/>
-              <div className="flex-1 overflow-y-auto p-4 md:p-12 flex flex-col items-center justify-start md:justify-center">
+              <div className="lesson-quiz-scroll flex-1 overflow-y-auto p-4 md:p-12 flex flex-col items-center justify-start md:justify-center">
               <div className="lesson-quiz-panel max-w-2xl w-full bg-[#0e0e12] border border-gray-800 p-6 md:p-12 relative shadow-2xl">
                   {/* Decor */}
                   <div className="absolute top-0 left-0 w-4 h-4 border-t-2 border-l-2 border-cyber-neonYellow"></div>
@@ -1197,7 +1197,7 @@ const StudentDashboard: React.FC<StudentDashboardProps> = ({ currentUser: propUs
       {isHanoiTask && lessonStage === 'practice' && (
         <div className={`${!showMobileSidebar ? 'flex' : 'hidden'} md:flex flex-1 flex-col w-full relative overflow-hidden`}>
             <LessonHeader title={activeTask!.title} practice={true} onMenu={() => setShowMobileSidebar(true)} onExplanation={() => setLessonStage('explanation')}/>
-            <PracticeSurface goal={getTaskPracticeGoal(activeTask!)}><Suspense fallback={<LessonLoader />}>
+            <PracticeSurface kind={activeTask!.type} goal={getTaskPracticeGoal(activeTask!)}><Suspense fallback={<LessonLoader />}>
                 <HanoiGame key={activeTask!.id} task={activeTask!} onComplete={() => handleTaskCompletion(activeTask!)} />
             </Suspense></PracticeSurface>
         </div>
@@ -1211,7 +1211,7 @@ const StudentDashboard: React.FC<StudentDashboardProps> = ({ currentUser: propUs
           const wrap = (game: React.ReactNode) => (
               <div className={`${!showMobileSidebar ? 'flex' : 'hidden'} md:flex flex-1 flex-col bg-black relative overflow-hidden`}>
                   {header}
-                  <PracticeSurface goal={getTaskPracticeGoal(t)}><Suspense key={t.id} fallback={<LessonLoader />}>{game}</Suspense></PracticeSurface>
+                  <PracticeSurface kind={t.type} goal={getTaskPracticeGoal(t)}><Suspense key={t.id} fallback={<LessonLoader />}>{game}</Suspense></PracticeSurface>
               </div>
           );
 
