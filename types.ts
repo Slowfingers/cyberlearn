@@ -156,6 +156,7 @@ export interface Task {
   terminalOutput?: string; // expected output for print-based terminal tasks
   terminalTests?: string; // Additional checks run inside the isolated Python worker.
   terminalSetup?: string; // Authored SQL fixture, recreated for every execution.
+  terminalSetupVariants?: string[]; // Additional fixtures prevent answers tied to one dataset.
 
   // For 'typing' (variant used in grades 3-5)
   typingData?: {

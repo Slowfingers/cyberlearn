@@ -350,7 +350,7 @@ const StudentDashboard: React.FC<StudentDashboardProps> = ({ currentUser: propUs
     setMissionSuccess(false);
 
     // On Mobile, switch to Visual tab to see result
-    if (window.innerWidth < 768 && activeTask.type !== 'terminal') {
+    if (window.innerWidth < 768) {
         setTaskTab('visual');
     }
 

@@ -1,6 +1,6 @@
 // No Firebase SDK or credentials are loaded in the execution worker.
 const PYODIDE_URL = 'https://cdn.jsdelivr.net/pyodide/v314.0.7/full/pyodide.mjs';
-self.onmessage = async ({ data: { language, code, reference, tests = '', setup = '' } }) => {
+self.onmessage = async ({ data: { language, code, reference, tests = '', setup = '', setupVariants = [] } }) => {
   try {
     let run;
     if (language === 'javascript') {
@@ -13,7 +13,7 @@ self.onmessage = async ({ data: { language, code, reference, tests = '', setup =
     } else {
       const { loadPyodide } = await import(PYODIDE_URL);
       const pyodide = await loadPyodide({indexURL:PYODIDE_URL.replace('pyodide.mjs','')});
-      run = async source => {
+      run = async (source, fixture = setup) => {
         const lines = [];
         pyodide.setStdout({batched:line => { lines.push(line); if (lines.join('\n').length > 20000) throw new Error('Слишком большой вывод'); }});
         pyodide.setStderr({batched:line => { throw new Error(line); }});
@@ -21,7 +21,7 @@ self.onmessage = async ({ data: { language, code, reference, tests = '', setup =
         try {
           if (language === 'sql') {
             globals.set('student_sql',source);
-            globals.set('fixture_sql', setup);
+            globals.set('fixture_sql', fixture);
             await pyodide.runPythonAsync(`
 import sqlite3
 connection = sqlite3.connect(':memory:')
@@ -57,6 +57,13 @@ connection.close()
     const withTests = source => language === 'python' && tests ? source + '\n' + tests : source;
     const expected = await run(withTests(reference));
     const output = await run(withTests(code));
+    if (language === 'sql') {
+      for (const fixture of setupVariants) {
+        if (await run(reference, fixture) !== await run(code, fixture)) {
+          throw new Error('Запрос не прошёл проверку на других строках таблицы. Используй поля и условия, а не готовые значения ответа.');
+        }
+      }
+    }
     self.postMessage({output,expected});
   } catch (error) { self.postMessage({error:String(error.message || error)}); }
 };

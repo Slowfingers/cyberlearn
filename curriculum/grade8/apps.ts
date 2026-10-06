@@ -3,19 +3,23 @@ const fixture = `CREATE TABLE mentors(id INTEGER PRIMARY KEY, name TEXT NOT NULL
 INSERT INTO mentors VALUES (1,'Искра'),(2,'Вектор');
 CREATE TABLE missions(id INTEGER PRIMARY KEY, title TEXT, mentor_id INTEGER, xp INTEGER);
 INSERT INTO missions VALUES (1,'Мост',1,40),(2,'Сигнал',1,60),(3,'Карта',2,30);`;
+const variants = [
+ fixture + "UPDATE mentors SET name='Лира' WHERE id=1; UPDATE missions SET xp=xp+7; INSERT INTO missions VALUES(4,'Радар',1,0),(5,'Архив',9,25);",
+ fixture + "DELETE FROM missions WHERE mentor_id=1; INSERT INTO mentors VALUES(3,'Мосс'); INSERT INTO missions VALUES(4,'Портал',3,120);",
+];
 export const APP_TASKS = [
 sql(38,'JOIN в SQL: соединяем таблицы',[
  'JOIN связывает строки двух таблиц по условию. Храним имя наставника один раз, а в заданиях — его ID. INNER JOIN выдаёт только строки, где совпадение найдено. Условие ON должно описывать связь полей, а не случайное совпадение имён.',
  'books.author_id ссылается на authors.id. JOIN authors ON books.author_id = authors.id добавляет имя автора к каждой книге, не переписывая имя в каждой записи книги.',
  ['Зачем связывать таблицы по ID?','Чтобы соединить соответствующие записи','Чтобы получить все возможные пары строк','Чтобы удалить одинаковые названия полей','ID задаёт связь конкретных записей; без верного условия получаются лишние пары.']],
  'Таблицы mentors(id, name), missions(id, title, mentor_id, xp). Выведи missions.title и mentors.name через JOIN по mentor_id = mentors.id. Отсортируй по missions.id. Задания: Мост→1, Сигнал→1, Карта→2; наставники 1=Искра, 2=Вектор.',
- fixture,'SELECT missions.title, mentors.name FROM missions JOIN mentors ON missions.mentor_id = mentors.id ORDER BY missions.id;'),
+ fixture,'SELECT missions.title, mentors.name FROM missions JOIN mentors ON missions.mentor_id = mentors.id ORDER BY missions.id;',variants),
 sql(39,'GROUP BY и агрегатные функции',[
  'GROUP BY собирает строки с одинаковым значением в группы. SUM суммирует значения, COUNT считает строки, AVG находит среднее. WHERE фильтрует строки до группировки, HAVING — группы после неё. В SELECT оставляем ключ группы и агрегаты.',
  'Если у команды A два результата 10 и 20, а у B один 7, запрос GROUP BY team с SUM(score) даст A→30 и B→7. Это сводка, а не отдельные строки игроков.',
  ['Чем SUM(score) отличается от COUNT(*)?','SUM складывает баллы, COUNT считает строки','Обе функции всегда дают одно число','COUNT складывает баллы каждого игрока','Количество записей и сумма значений измеряют разные свойства группы.']],
  'В missions(id, title, mentor_id, xp) задания имеют XP 40 и 60 для наставника 1, XP 30 для наставника 2. Выведи mentor_id, SUM(xp) AS total_xp. Группируй по mentor_id, сортируй по mentor_id.',
- fixture,'SELECT mentor_id, SUM(xp) AS total_xp FROM missions GROUP BY mentor_id ORDER BY mentor_id;'),
+ fixture,'SELECT mentor_id, SUM(xp) AS total_xp FROM missions GROUP BY mentor_id ORDER BY mentor_id;',variants),
 q(40,'Схема базы: нормализация без слёз',[
  'При повторении одной и той же информации легко получить противоречия. Вынеси самостоятельную сущность в отдельную таблицу и связывай её ID. Первичный ключ отличает записи; внешний ключ ссылается на другую сущность. Нормализация уменьшает лишнее повторение, но схему выбирают под задачи.',
  'В десяти книгах повторён телефон одного издательства. При смене телефона пришлось бы исправить десять строк. Таблица publishers хранит телефон один раз, а books хранит publisher_id.',
@@ -26,7 +30,7 @@ sql(41,'Индексы и проект базы данных',[
  'Часто ищем книги по author_id: индекс этого поля может ускорить поиск. Индекс каждого поля без причины увеличивает затраты хранения и изменения данных.',
  ['Почему не стоит индексировать всё подряд?','Индексы требуют места и обслуживания','Индекс автоматически удаляет все записи','Индекс запрещает любые запросы SELECT','Ускорение чтения нужно сопоставить с ценой хранения и записи.']],
  'Создай индекс idx_missions_mentor на missions(mentor_id). Затем выведи title, xp для mentor_id = 1, по id. Структура missions(id, title, mentor_id, xp); данные Мост:40, Сигнал:60, Карта:30. Покажи созданный индекс через SELECT name FROM sqlite_master WHERE type = \'index\' AND name = \'idx_missions_mentor\'.',
- fixture,'CREATE INDEX idx_missions_mentor ON missions(mentor_id); SELECT title, xp FROM missions WHERE mentor_id = 1 ORDER BY id; SELECT name FROM sqlite_master WHERE type = \'index\' AND name = \'idx_missions_mentor\';'),
+ fixture,'CREATE INDEX idx_missions_mentor ON missions(mentor_id); SELECT title, xp FROM missions WHERE mentor_id = 1 ORDER BY id; SELECT name FROM sqlite_master WHERE type = \'index\' AND name = \'idx_missions_mentor\';',variants),
 q(42,'Full-stack: экран, сервер и база',[
  'Фронтенд показывает экран и принимает действия. Бэкенд проверяет запросы и выполняет правила. База хранит данные. API — договор об обмене: какие запросы допустимы и как выглядит ответ. Учебный проект — список задач; сначала разберём путь одной операции.',
  'Пользователь нажал «Готово». Экран отправляет запрос, сервер проверяет право изменить задачу, база сохраняет статус, сервер отвечает, экран показывает результат.',
@@ -48,7 +52,7 @@ input { padding: 12px; max-width: 100%; box-sizing: border-box; }
 <ul id="task-list"></ul>
 <script>
 function normalizeTitle(text) {
-  return ''; // ТВОЙ КОД: верни text.trim()
+  return ''; // ТВОЙ КОД: убери крайние пробелы
 }
 const input = document.getElementById('task-input');
 const button = document.getElementById('add-task');
@@ -62,9 +66,9 @@ button.addEventListener('click', () => {
   input.value = '';
 });
 </script>`;
- const goal = 'Дополни normalizeTitle(text) в JavaScript: верни text.trim(). Сохрани HTML и CSS шаблона. В предпросмотре добавь обычную задачу, строку из пробелов и текст с пробелами по краям. Проверка должна получить два непустых пункта.';
+ const goal = 'Дополни normalizeTitle(text): убери пробелы с краёв, сохрани пробелы между словами. Сохрани HTML и CSS шаблона. В предпросмотре добавь обычную задачу, строку из пробелов и текст с пробелами по краям. Проверка должна получить два непустых пункта.';
  return {...task,type:'html' as const,quizData:undefined,description:goal,xpReward:120,
- initialCode:starter.replace("return ''; // ТВОЙ КОД: верни text.trim()",'return text.trim();'),
+ initialCode:starter.replace("return ''; // ТВОЙ КОД: убери крайние пробелы",'return text.trim();'),
  htmlConfig:{targetTag:'button',targetStyle:'background-color: #00f3ff;',interaction:{inputId:'task-input',buttonId:'add-task',listId:'task-list'}},
  lesson:{...task.lesson!,goal,starterCode:starter,success:'Кнопка добавляет непустые названия, очищает крайние пробелы и сохраняет понятное оформление.',
  steps:['Найди функцию normalizeTitle внутри script.','Замени пустую строку возвращаемым результатом trim().','Проверь три вида ввода в предпросмотре и нажми проверку.']}};

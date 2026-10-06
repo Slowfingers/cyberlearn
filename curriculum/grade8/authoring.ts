@@ -30,7 +30,7 @@ export function p(n:number,title:string,teaching:Teaching,goal:string,starter:st
  return {...task,initialCode:starter.replace('... # ТВОЙ КОД',solution),terminalTests:tests,
  lesson:{...task.lesson!,starterCode:starter},hint:'Сохрани имена функций и параметры из шаблона. Отступы определяют тело функции. Подсказку к правилу ищи в объяснении и примере.'};
 }
-export function sql(n:number,title:string,teaching:Teaching,goal:string,fixture:string,solution:string):Task {
+export function sql(n:number,title:string,teaching:Teaching,goal:string,fixture:string,solution:string,variants:string[] = []):Task {
  const task=base(n,title,teaching,goal,'terminal');
- return {...task,initialCode:solution,terminalSetup:fixture,lesson:{...task.lesson!,starterCode:'-- Напиши SQL-запрос по условию. Таблицы уже созданы.\n'},hint:'Используй имена таблиц и полей из условия. Сортировка результата делает порядок строк однозначным.'};
+ return {...task,initialCode:solution,terminalSetup:fixture,terminalSetupVariants:variants,lesson:{...task.lesson!,starterCode:'-- Напиши SQL-запрос по условию. Таблицы уже созданы.\n'},hint:'Используй имена таблиц и полей из условия. Сортировка результата делает порядок строк однозначным.'};
 }

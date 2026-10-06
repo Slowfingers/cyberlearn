@@ -1,7 +1,7 @@
 import assert from 'node:assert/strict';
 import {MOCK_TASKS} from '../constants';
 import {uniqueTaskCatalog,applyCompletedTasks,nextUnfinishedTask} from '../services/taskProgress';
-for(const grade of ['5','6','7']){
+for(const grade of ['5','6','7','8']){
 const grade5=MOCK_TASKS.filter(t=>t.courseId===`course_grade${grade}`);
 assert.equal(grade5.length,grade==='6'?40:70);
 assert.equal(uniqueTaskCatalog(MOCK_TASKS,[{...grade5[0],title:'Старая копия'},grade5[0]]).length,MOCK_TASKS.length);
