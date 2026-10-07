@@ -2,7 +2,7 @@ import { GameButton, GameDialog } from './GameUI';
 import AssessmentBuilder from './AssessmentBuilder';
 import { AssessmentPanel } from './AssessmentPanel';
 
-import { FolderFilter, TeacherSupport } from './ClassFolders';
+import { FolderFilter, TeacherSupport, StudentReactions } from './ClassFolders';
 import React, { useState, useEffect, useCallback } from 'react';
 import { Classroom, User, StudentProgress, Task } from '../types';
 import { createClassroom, getClassStudents, createTaskForClass, updateClassroom, deleteClassroom } from '../services/mockBackend';
@@ -645,7 +645,7 @@ const TeacherDashboard: React.FC<TeacherDashboardProps> = ({
                                                     onClick={() => { playSound('click'); setSelectedStudent(student); }}
                                                     className="hover:bg-cyber-neonBlue/5 transition-colors cursor-pointer"
                                                 >
-                                                    <td className="p-3 text-white font-bold break-words leading-tight">{student.name}</td>
+                                                    <td className="p-3 text-white font-bold break-words leading-tight"><div className="student-name-actions"><span>{student.name}</span>{LOCAL_SERVER&&<StudentReactions studentId={student.studentId}/>}</div></td>
                                                     <td className="p-3 whitespace-nowrap text-cyber-neonYellow">{student.level}</td>
                                                     <td className="p-3 whitespace-nowrap text-cyber-neonBlue">{student.totalXP}</td>
                                                     <td className="p-3 whitespace-nowrap">{student.tasksCompleted}/{student.totalTasks}</td>

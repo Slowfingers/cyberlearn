@@ -1433,3 +1433,14 @@ body { margin:0; background:#0b111d; font-family:system-ui,-apple-system,'Segoe 
 .student-remove-icon {display:inline-flex;align-items:center;justify-content:center;width:44px;height:44px;padding:0;border:1px solid transparent;border-radius:3px;color:#9aacbf;background:transparent;cursor:pointer;}
 .student-remove-icon:hover,.student-remove-icon:focus-visible {color:#fda4af;background:#ef444415;border-color:#fb718555;outline:2px solid transparent;}
 .student-remove-icon:disabled {opacity:.4;cursor:wait;}
+.student-name-actions {display:flex;align-items:center;gap:8px;}.student-name-actions>span {min-width:0;overflow-wrap:anywhere;}
+.student-reactions {position:relative;flex-shrink:0;}.reaction-picker-toggle {width:40px;height:40px;border:1px solid #4b647b;border-radius:3px;background:#203449;color:#92e5ea;font-size:24px;cursor:pointer;}
+.reaction-picker {display:flex;position:absolute;top:100%;left:0;z-index:50;gap:3px;background:#16263b;border:1px solid #65d8e0;padding:6px;box-shadow:0 8px 24px #0008;}.reaction-picker button {width:40px;height:44px;font-size:25px;background:transparent;border:0;cursor:pointer;}.reaction-picker button:hover,.reaction-picker button:focus-visible {background:#36516b;}.reaction-status {font-size:10px;font-weight:400;}
+.teacher-feedback-pop {position:fixed;z-index:100;top:80px;left:50%;transform:translateX(-50%);width:min(380px,calc(100vw - 32px));padding:20px 28px;text-align:center;background:#162c46;border:2px solid #7ce8e0;box-shadow:0 10px 40px #0009;color:#eef8ff;animation:feedback-enter .35s ease-out;pointer-events:auto;}
+.feedback-emoji {display:block;font-size:56px;line-height:1.2;margin-bottom:10px;}.teacher-feedback-pop p {font-size:13px;line-height:1.5;margin-top:8px;}.teacher-feedback-pop>button {position:absolute;right:4px;top:4px;width:32px;height:32px;background:transparent;color:#fff;border:0;font-size:24px;cursor:pointer;}
+.reaction-burst {position:absolute;inset:0;pointer-events:none;overflow:hidden;}.reaction-burst i {position:absolute;left:50%;top:40%;font-style:normal;color:#ffe07a;transform:rotate(calc(var(--ray)*45deg));animation:reaction-spark 1s ease-out both;}
+@keyframes reaction-spark {from {opacity:1;translate:0 0;}to {opacity:0;transform:rotate(calc(var(--ray)*45deg)) translateY(-110px);}}
+@keyframes feedback-enter {from {opacity:0;translate:0 -15px;}to {opacity:1;translate:0 0;}}
+@media(prefers-reduced-motion:reduce) {.teacher-feedback-pop,.reaction-burst i {animation:none;}.reaction-burst {display:none;}}
+/* Keep the reaction chooser inside the table's scrollable bounds. */
+.reaction-picker {position:static;flex-wrap:wrap;max-width:150px;margin-top:4px;}

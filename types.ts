@@ -43,6 +43,7 @@ export interface User {
   name: string;
   role: Role;
   classId?: string;
+  teacherFeedback?: {id:string; kind:'help'|'reaction'; emoji?:string; at:number}[];
   helpRequestedAt?: string;
   helpTaskId?: string;
   xp: number;

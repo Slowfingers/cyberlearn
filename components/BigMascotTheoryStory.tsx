@@ -34,7 +34,7 @@ export const BigMascotTheoryStory: React.FC<Props> = ({ task, onStartPractice, p
   const story = getStoryContent(task);
   const mentorName = MENTOR_NAMES[resolveMentorSkin(mascotSkinItemId)];
   const sentences = (lesson?.explanation ?? story.theoryGroups.flat().map(block => block.text).join(' ')).split(/(?<=[.!?])\s+(?=[А-ЯЁA-Z])/).filter(Boolean);
-  const chunks = task.courseId === 'course_grade3' ? sentences.reduce<string[]>((blocks,sentence,i)=>{if(i%2===0)blocks.push(sentence);else blocks[blocks.length-1]+=' '+sentence;return blocks;},[]) : sentences;
+  const chunks = ['course_grade3','course_grade4'].includes(task.courseId) ? sentences.reduce<string[]>((blocks,sentence,i)=>{if(i%2===0)blocks.push(sentence);else blocks[blocks.length-1]+=' '+sentence;return blocks;},[]) : sentences;
   const [stage, setStage] = useState(0);
   const [chunk, setChunk] = useState(0);
   const [speaking, setSpeaking] = useState(false);

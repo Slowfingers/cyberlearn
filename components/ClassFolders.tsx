@@ -1,5 +1,5 @@
 import {GameButton} from './GameUI';
-import React,{useEffect,useState} from 'react';
+import React,{useEffect,useState,useRef} from 'react';
 import { callServer } from '../services/firebase';
 import type {Classroom,User} from '../types';
 export function FolderFilter({value,onChange}:{value:string;onChange:(value:string)=>void}) {
@@ -18,7 +18,17 @@ export function TeacherSupport({classes,current,onUpdated}:{classes:Classroom[];
  </section>;
 }
 export function RaiseHand() {
+ const [feedback,setFeedback]=useState<NonNullable<User['teacherFeedback']>>([]);
  const [raised,setRaised]=useState(false);const [pending,setPending]=useState(false);const [error,setError]=useState('');
  useEffect(()=>{let alive=true;const refresh=()=>callServer<User>('getUser').then(u=>{if(alive)setRaised(Boolean(u.helpRequestedAt));}).catch(()=>{});void refresh();const timer=setInterval(refresh,4000);return()=>{alive=false;clearInterval(timer);};},[]);
- return <div className="raise-hand"><GameButton size="compact" disabled={pending} aria-pressed={raised} onClick={async()=>{setPending(true);try{const user=await callServer<User>('raiseHand',{raised:!raised});setRaised(Boolean(user.helpRequestedAt));setError('');}catch(e){setError((e as Error).message);}finally{setPending(false);}}}>{raised?'✋ Жду учителя · отменить':'✋ Поднять руку'}</GameButton>{error&&<span role="alert">{error}</span>}</div>;
+ useEffect(()=>{let alive=true;let busy=false;const poll=async()=>{if(busy)return;busy=true;try{const items=await callServer<NonNullable<User['teacherFeedback']>>('receiveFeedback');if(alive&&items.length)setFeedback(q=>[...q,...items].slice(-20));}catch{}finally{busy=false;}};const timer=setInterval(poll,3000);return()=>{alive=false;clearInterval(timer);};},[]);
+ const current=feedback[0];
+ useEffect(()=>{if(!current)return;const timer=setTimeout(()=>setFeedback(q=>q.slice(1)),5500);return()=>clearTimeout(timer);},[current?.id]);
+ return <div className="raise-hand">{current&&<div key={current.id} className="teacher-feedback-pop" role="status"><div className="reaction-burst" aria-hidden="true">{Array.from({length:8},(_,i)=><i key={i} style={{'--ray':i} as React.CSSProperties}>✦</i>)}</div><span className="feedback-emoji">{current.kind==='help'?'🤝':current.emoji}</span><strong>{current.kind==='help'?'Помощь оказана!':'Реакция учителя'}</strong><p>{current.kind==='help'?'Спасибо, что воспользовались услугами нашей фирмы. Служба спасения домашних заданий всегда на связи.':current.emoji==='💩'?'Вот это поворот! Попробуем ещё раз?':'Сообщение принято. Продолжаем миссию!'}</p><button type="button" aria-label="Закрыть уведомление" onClick={()=>setFeedback(q=>q.slice(1))}>×</button></div>}<GameButton size="compact" disabled={pending} aria-pressed={raised} onClick={async()=>{setPending(true);try{const user=await callServer<User>('raiseHand',{raised:!raised});setRaised(Boolean(user.helpRequestedAt));setError('');}catch(e){setError((e as Error).message);}finally{setPending(false);}}}>{raised?'✋ Жду учителя · отменить':'✋ Поднять руку'}</GameButton>{error&&<span role="alert">{error}</span>}</div>;
+}
+
+export function StudentReactions({studentId}:{studentId:string}) {
+ const [open,setOpen]=useState(false);const [pending,setPending]=useState(false);const [status,setStatus]=useState('');const ref=useRef<HTMLDivElement>(null);
+ useEffect(()=>{if(!open)return;const close=(e:PointerEvent)=>{if(!ref.current?.contains(e.target as Node))setOpen(false);};const key=(e:KeyboardEvent)=>{if(e.key==='Escape')setOpen(false);};document.addEventListener('pointerdown',close);document.addEventListener('keydown',key);return()=>{document.removeEventListener('pointerdown',close);document.removeEventListener('keydown',key);};},[open]);
+ return <div className="student-reactions" ref={ref} onClick={e=>e.stopPropagation()}><button type="button" className="reaction-picker-toggle" aria-label="Отправить реакцию ученику" aria-expanded={open} onClick={()=>{setOpen(!open);setStatus('');}}>☺</button>{open&&<div className="reaction-picker" aria-label="Реакции">{[['😄','Всё хорошо'],['👏','Отличная работа'],['🔥','Огонь'],['💪','Ты справишься'],['💩','Попробуй ещё раз']].map(([emoji,label])=><button key={emoji} type="button" title={label} aria-label={label} disabled={pending} onClick={async()=>{setPending(true);try{await callServer('sendReaction',{studentId,emoji});setStatus('Отправлено');setOpen(false);}catch(e){setStatus((e as Error).message);}finally{setPending(false);}}}>{emoji}</button>)}</div>}{status&&<span className="reaction-status" role="status">{status}</span>}</div>;
 }
