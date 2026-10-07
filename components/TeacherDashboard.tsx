@@ -633,7 +633,7 @@ const TeacherDashboard: React.FC<TeacherDashboardProps> = ({
                                                     </th>
                                                 ))}
                                                 <th className="p-3 whitespace-nowrap">Активность</th>
-                                                <th className="p-3 whitespace-nowrap">Прогресс</th>
+                                                <th className="p-3 whitespace-nowrap">Прогресс</th>{LOCAL_SERVER && <th className="p-3"><span className="sr-only">Действия</span></th>}
                                             </tr>
                                         </thead>
                                         <tbody className="divide-y divide-gray-800">
@@ -645,7 +645,7 @@ const TeacherDashboard: React.FC<TeacherDashboardProps> = ({
                                                     onClick={() => { playSound('click'); setSelectedStudent(student); }}
                                                     className="hover:bg-cyber-neonBlue/5 transition-colors cursor-pointer"
                                                 >
-                                                    <td className="p-3 text-white font-bold break-words leading-tight">{student.name}{LOCAL_SERVER && <GameButton size="compact" disabled={classActionPending} onClick={e=>{e.stopPropagation();void removeStudent(student);}} className="flex gap-1 items-center text-xs text-red-400 min-h-11 disabled:opacity-50" aria-label={`Удалить ${student.name} из класса`}><Trash2 size={14}/>Убрать из класса</GameButton>}</td>
+                                                    <td className="p-3 text-white font-bold break-words leading-tight">{student.name}</td>
                                                     <td className="p-3 whitespace-nowrap text-cyber-neonYellow">{student.level}</td>
                                                     <td className="p-3 whitespace-nowrap text-cyber-neonBlue">{student.totalXP}</td>
                                                     <td className="p-3 whitespace-nowrap">{student.tasksCompleted}/{student.totalTasks}</td>
@@ -675,6 +675,7 @@ const TeacherDashboard: React.FC<TeacherDashboardProps> = ({
                                                             <span className="text-[10px] text-gray-500">{pct}%</span>
                                                         </div>
                                                     </td>
+                                                    {LOCAL_SERVER && <td className="p-2"><button type="button" disabled={classActionPending} onClick={e=>{e.stopPropagation();void removeStudent(student);}} className="student-remove-icon" title="Убрать из класса" aria-label={`Удалить ${student.name} из класса`}><Trash2 size={17}/></button></td>}
                                                 </tr>
                                                 );
                                             })}

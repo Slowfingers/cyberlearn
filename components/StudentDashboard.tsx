@@ -712,8 +712,10 @@ const StudentDashboard: React.FC<StudentDashboardProps> = ({ currentUser: propUs
     <div className="academy-lesson game-workspace flex-1 w-full relative flex flex-col md:flex-row overflow-hidden bg-black text-gray-300">
       <CyberToast toasts={toasts} onDismiss={dismissToast} />
 
+      {/* Course drawer never reduces the practice workspace. */}
+      {showMobileSidebar && <button className="lesson-nav-backdrop" aria-label="Закрыть меню курса" onClick={() => setShowMobileSidebar(false)} />}
       {/* SIDEBAR (Courses) */}
-      <div className={`academy-lesson-nav ${showMobileSidebar ? 'flex' : 'hidden'} md:flex absolute md:relative inset-0 md:inset-auto md:w-64 border-r border-cyber-neonBlue/20 bg-cyber-glass backdrop-blur-md flex-col shrink-0 z-30`}>
+      <div className={`academy-lesson-nav ${showMobileSidebar ? 'is-open' : ''} flex absolute inset-y-0 left-0 border-r border-cyber-neonBlue/20 bg-cyber-glass backdrop-blur-md flex-col shrink-0 z-30`}>
         <div className="course-nav-toolbar h-14 flex items-center justify-between border-b border-cyber-neonBlue/20 px-3 shrink-0">
             <GameButton size="compact"
                 onClick={() => {
@@ -734,6 +736,7 @@ const StudentDashboard: React.FC<StudentDashboardProps> = ({ currentUser: propUs
             )}
         </div>
 
+        <GameButton size="compact" className="lesson-nav-close" onClick={() => setShowMobileSidebar(false)} aria-label="Скрыть меню курса"><ChevronLeft size={18}/> Скрыть меню</GameButton>
         <div ref={sidebarRef} className="flex-1 overflow-y-auto p-2 space-y-4 custom-scrollbar pb-6">
             <section className="course-nav-overview" aria-label="Прогресс курса">
               <span className="course-nav-eyebrow">Карта миссий</span>
@@ -832,17 +835,17 @@ const StudentDashboard: React.FC<StudentDashboardProps> = ({ currentUser: propUs
         </div>
       </div>
 
-      {activeTask?.type === 'assessment' && <div className={`${!showMobileSidebar ? 'flex' : 'hidden'} md:flex flex-1 min-h-0 overflow-y-auto flex-col`}><button className="academy-secondary m-3 self-start" onClick={()=>setActiveCourseId(null)}>← К работам и курсам</button><AssessmentPlayer key={activeTask.id} task={activeTask}/></div>}
+      {activeTask?.type === 'assessment' && <div className={`flex flex-1 min-h-0 overflow-y-auto flex-col`}><LessonHeader title={activeTask.title} practice onMenu={() => setShowMobileSidebar(true)}/><button className="academy-secondary m-3 self-start" onClick={()=>setActiveCourseId(null)}>← К работам и курсам</button><AssessmentPlayer key={activeTask.id} task={activeTask}/></div>}
       {/* 0. EMPTY TASK STATE */}
       {!activeTask && (
-          <div className={`${!showMobileSidebar ? 'flex' : 'hidden'} md:flex flex-1 items-center justify-center text-gray-600 bg-black`}>
-              <div className="course-empty"><Trophy size={42}/><h2>{coursePercent === 100 ? 'Курс завершён!' : 'Выбери миссию'}</h2><p>{coursePercent === 100 ? 'Отличная работа. Любой урок можно пройти ещё раз — выбирай его в меню курса.' : 'Открой раздел в меню курса и выбери урок, с которого хочешь начать.'}</p><button className="academy-primary md:hidden" onClick={()=>setShowMobileSidebar(true)}>Открыть меню курса</button></div>
+          <div className={`flex flex-1 items-center justify-center text-gray-600 bg-black`}>
+              <div className="course-empty"><Trophy size={42}/><h2>{coursePercent === 100 ? 'Курс завершён!' : 'Выбери миссию'}</h2><p>{coursePercent === 100 ? 'Отличная работа. Любой урок можно пройти ещё раз — выбирай его в меню курса.' : 'Открой раздел в меню курса и выбери урок, с которого хочешь начать.'}</p><button className="academy-primary" onClick={()=>setShowMobileSidebar(true)}>Открыть меню курса</button></div>
           </div>
       )}
 
       {/* 1. EXPLANATION STAGE (Байтик + теория) — также покрывает type 'theory' */}
       {activeTask && activeTask.type !== 'assessment' && (lessonStage === 'explanation' || activeTask.type === 'theory') && (
-          <div className={`${!showMobileSidebar ? 'flex' : 'hidden'} md:flex flex-1 flex-col bg-black relative overflow-hidden`}>
+          <div className={`flex flex-1 flex-col bg-black relative overflow-hidden`}>
                 <LessonHeader title={activeTask.title} practice={false} onMenu={() => setShowMobileSidebar(true)} onExplanation={() => setLessonStage('explanation')}/>
                 <div className="lesson-explanation-scroll flex-1 overflow-y-auto p-4 md:p-8">
                 <div className="max-w-4xl mx-auto w-full space-y-6">
@@ -876,7 +879,7 @@ const StudentDashboard: React.FC<StudentDashboardProps> = ({ currentUser: propUs
 
       {/* 2. QUIZ VIEW */}
       {activeTask?.type === 'quiz' && lessonStage === 'practice' && (
-          <div className={`${!showMobileSidebar ? 'flex' : 'hidden'} md:flex flex-1 flex-col bg-black relative overflow-hidden`}>
+          <div className={`flex flex-1 flex-col bg-black relative overflow-hidden`}>
               <LessonHeader title={activeTask.title} practice={true} onMenu={() => setShowMobileSidebar(true)} onExplanation={() => setLessonStage('explanation')}/>
               <div className="lesson-quiz-scroll flex-1 overflow-y-auto p-4 md:p-12 flex flex-col items-center justify-start md:justify-center">
               <div className="lesson-quiz-panel max-w-2xl w-full bg-[#0e0e12] border border-gray-800 p-6 md:p-12 relative shadow-2xl">
@@ -969,7 +972,7 @@ const StudentDashboard: React.FC<StudentDashboardProps> = ({ currentUser: propUs
 
       {/* 3. BLOCKS (drag-and-drop) VIEW */}
       {activeTask?.type === 'blocks' && lessonStage === 'practice' && (
-          <div className={`${!showMobileSidebar ? 'flex' : 'hidden'} md:flex flex-1 flex-col bg-black relative overflow-hidden`}>
+          <div className={`flex flex-1 flex-col bg-black relative overflow-hidden`}>
               <LessonHeader title={activeTask.title} practice={true} onMenu={() => setShowMobileSidebar(true)} onExplanation={() => setLessonStage('explanation')}/>
               <Suspense fallback={<LessonLoader />}>
                   <BlockCoding
@@ -986,7 +989,7 @@ const StudentDashboard: React.FC<StudentDashboardProps> = ({ currentUser: propUs
 
       {/* 4. TOWER OF HANOI MINI GAME */}
       {isHanoiTask && lessonStage === 'practice' && (
-        <div className={`${!showMobileSidebar ? 'flex' : 'hidden'} md:flex flex-1 flex-col w-full relative overflow-hidden`}>
+        <div className={`flex flex-1 flex-col w-full relative overflow-hidden`}>
             <LessonHeader title={activeTask!.title} practice={true} onMenu={() => setShowMobileSidebar(true)} onExplanation={() => setLessonStage('explanation')}/>
             <PracticeSurface kind={activeTask!.type} goal={getTaskPracticeGoal(activeTask!)}><Suspense fallback={<LessonLoader />}>
                 <HanoiGame key={activeTask!.id} task={activeTask!} onComplete={() => handleTaskCompletion(activeTask!)} />
@@ -1000,7 +1003,7 @@ const StudentDashboard: React.FC<StudentDashboardProps> = ({ currentUser: propUs
           const complete = () => handleTaskCompletion(t);
           const header = <LessonHeader title={t.title} practice onMenu={() => setShowMobileSidebar(true)} onExplanation={() => setLessonStage('explanation')}/>;
           const wrap = (game: React.ReactNode) => (
-              <div className={`${!showMobileSidebar ? 'flex' : 'hidden'} md:flex flex-1 flex-col bg-black relative overflow-hidden`}>
+              <div className={`flex flex-1 flex-col bg-black relative overflow-hidden`}>
                   {header}
                   <PracticeSurface kind={t.type} goal={getTaskPracticeGoal(t)}><Suspense key={t.id} fallback={<LessonLoader />}>{game}</Suspense></PracticeSurface>
               </div>
@@ -1030,7 +1033,7 @@ const StudentDashboard: React.FC<StudentDashboardProps> = ({ currentUser: propUs
 
       {/* 6. CODE/TERMINAL TASK VIEW */}
       {isCodingTask && activeTask && lessonStage === 'practice' && (
-          <div className={`${!showMobileSidebar ? 'flex' : 'hidden'} lg:flex ui-code-workspace flex-1 flex-col min-w-0 overflow-hidden`}>
+          <div className={`flex ui-code-workspace flex-1 flex-col min-w-0 overflow-hidden`}>
             {/* MOBILE TOP BAR (always visible for coding tasks) */}
             <div className="lg:hidden flex items-center border-b border-gray-800 px-2 py-2 bg-gray-950 shrink-0 gap-2">
                 <GameButton size="compact" aria-label="Меню курса" onClick={() => setShowMobileSidebar(true)} className="p-2 text-gray-200 active:text-white shrink-0"><ChevronLeft size={20}/></GameButton>

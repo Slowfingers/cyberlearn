@@ -1407,3 +1407,29 @@ body { margin:0; background:#0b111d; font-family:system-ui,-apple-system,'Segoe 
 .academy-app :is(.academy-primary,.mentor-primary,.workshop-primary):disabled {filter:saturate(.35);}
 /* Keep the platform under the feet when the character stage changes aspect ratio. */
 .player-scene {background-size:100% 100%;}
+
+/* A sliding course drawer leaves the full width available to every task. */
+.game-workspace .academy-lesson-nav {width:min(340px, calc(100% - 48px));position:absolute;inset:0 auto 0 0;display:flex;transform:translateX(-100%);visibility:hidden;transition:transform .22s ease,visibility .22s;z-index:40;}
+.game-workspace .academy-lesson-nav.is-open {transform:translateX(0);visibility:visible;}
+.lesson-nav-backdrop {position:absolute;inset:0;z-index:35;background:#02061799;border:0;}
+.lesson-nav-close {margin:8px 12px;align-self:flex-end;}
+.lesson-menu-toggle {display:flex;}
+.academy-lesson:has(.academy-completion) {grid-template-columns:minmax(0,1fr);}
+.academy-lesson:has(.academy-completion)>div:not(.academy-lesson-nav):not(.academy-completion),.academy-lesson .academy-completion {grid-column:1;}
+@media(prefers-reduced-motion:reduce) {.game-workspace .academy-lesson-nav {transition:none;}}
+
+/* Login transmission: brief accents, with stable readable text underneath. */
+.academy-welcome {position:relative;isolation:isolate;overflow-x:hidden;}
+.academy-welcome::before {content:'';position:absolute;inset:0;z-index:-1;pointer-events:none;background:radial-gradient(ellipse at 18% 35%,#25d6ed20,transparent 48%),radial-gradient(ellipse at 90% 65%,#8565ed1c,transparent 45%);animation:welcome-atmosphere 12s ease-in-out infinite alternate;}
+.welcome-glitch {position:relative;display:inline-block;}
+.welcome-glitch::before,.welcome-glitch::after {content:attr(data-text);position:absolute;inset:0;pointer-events:none;opacity:0;}
+.welcome-glitch::before {color:#67e8f9;animation:welcome-glitch-cyan 7s infinite;}
+.welcome-glitch::after {color:#f694dc;animation:welcome-glitch-pink 7s infinite;}
+.academy-welcome-brand .academy-brand-mark {box-shadow:0 0 22px #38d9ec35;}
+@keyframes welcome-glitch-cyan {0%,89%,94%,100% {opacity:0;transform:none;}90%,92% {opacity:.85;transform:translateX(-3px);clip-path:inset(15% 0 62%);}91%,93% {opacity:.8;transform:translateX(3px);clip-path:inset(65% 0 12%);}}
+@keyframes welcome-glitch-pink {0%,89%,94%,100% {opacity:0;transform:none;}90%,92% {opacity:.8;transform:translateX(3px);clip-path:inset(64% 0 15%);}91%,93% {opacity:.7;transform:translateX(-2px);clip-path:inset(20% 0 65%);}}
+@keyframes welcome-atmosphere {to {opacity:.55;}}
+@media(prefers-reduced-motion:reduce) {.welcome-glitch::before,.welcome-glitch::after {display:none;}}
+.student-remove-icon {display:inline-flex;align-items:center;justify-content:center;width:44px;height:44px;padding:0;border:1px solid transparent;border-radius:3px;color:#9aacbf;background:transparent;cursor:pointer;}
+.student-remove-icon:hover,.student-remove-icon:focus-visible {color:#fda4af;background:#ef444415;border-color:#fb718555;outline:2px solid transparent;}
+.student-remove-icon:disabled {opacity:.4;cursor:wait;}

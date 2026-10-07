@@ -43,13 +43,29 @@ export default function ShopAvatar({ avatarId = '2', frameId, scale = 2, classNa
         </defs>
         {!stage && <circle cx="80" cy="80" r="68" fill="#080e20" />}
         <g clipPath={stage ? undefined : fill('clip')}>
-            {stage ? <g stroke="#0f172a" strokeWidth="4"><path d="M47 144h66l-8 72H85l-5-49-5 49H55Z" fill={dark}/><path d="M54 210h24v35H40v-13l14-7Zm30 0h24v15l14 7v13H84Z" fill={fill('shell')}/><path d="M40 244h38m6 0h38" stroke={light}/><path d="M31 127 21 182l13 7 20-48m55-14 30 55-13 7-20-48" fill={fill('shell')}/></g> : <circle cx="80" cy="80" r="65" fill={fill('bg')} />}
+            {stage && index !== 0 ? <g stroke="#0f172a" strokeWidth="4"><path d="M47 144h66l-8 72H85l-5-49-5 49H55Z" fill={dark}/><path d="M54 210h24v35H40v-13l14-7Zm30 0h24v15l14 7v13H84Z" fill={fill('shell')}/><path d="M40 244h38m6 0h38" stroke={light}/><path d="M31 127 21 182l13 7 20-48m55-14 30 55-13 7-20-48" fill={fill('shell')}/></g> : !stage && <circle cx="80" cy="80" r="65" fill={fill('bg')} />}
             {!stage && <circle cx="111" cy="42" r="30" fill="none" stroke={light} strokeOpacity="0.16" strokeWidth="12" />}
             {!stage && <path d="M12 112 144 38M18 130 150 56" stroke={light} strokeOpacity="0.1" strokeWidth="2" />}
             {street ? <svg x={fullBody ? 43 : 18} y={fullBody ? 12 : 17} width={fullBody ? 74 : 124} height={fullBody ? 136 : 130} viewBox={fullBody ? '0 0 362 724' : '0 0 362 380'} overflow="hidden" preserveAspectRatio="xMidYMin meet">
                 <SpriteStrip skin={street.value.replace('street_', '') as keyof typeof SPRITE_SILHOUETTES} className="street-avatar-strip" href={`/avatar/street/${street.value.replace('street_', '')}.png`}/>
 
-            </svg> : <>
+            </svg> : index === 0 ? <g className="orion-character" stroke="#101a32" strokeWidth="3" strokeLinejoin="round">
+                {/* Starter street explorer: simple jacket, visor and sneakers. */}
+                {stage && <g><path d="m53 140 3 79h20l4-48 5 48h21l2-79" fill="#283553"/><path d="M55 211h22v30H40v-13l15-5Zm30 0h21v12l16 6v12H85Z" fill="#e1eaf4"/><path d="M40 241h37m8 0h37" stroke="#53ddeb" strokeWidth="5"/><path d="m43 115-14 53 10 7 21-42m42-18 19 53-10 7-17-42" fill="#267ea0"/><path d="m29 168-3 12 11 7 6-13m78-6 4 12-11 7-7-13" fill="#f4bf9d"/></g>}
+                <path d="M45 151 38 123Q42 112 62 109h36q20 3 25 14l-9 32-15 8H62l-17-8Z" fill="#267ea0"/>
+                <path d="m61 108 19 17 18-17 4 48H58Z" fill="#18324b"/>
+                <path d="m44 119 14 6-7 25H43m73-31-14 6 7 25h8" fill="#42b8c6"/>
+                <path d="M80 126v30" stroke="#e1eaf4" strokeWidth="2"/>
+                <path d="m99 130 10 2-2 9-10-2Z" fill="#facc57" strokeWidth="2"/>
+                <path d="M46 62Q42 30 79 28q40 0 37 39l-5 31q-9 20-31 23-23-3-32-23Z" fill="#f4bf9d"/>
+                <path d="M44 70 39 48l13-15 10 2 6-15 16 10 18-6 18 22-3 25-12-14-14 2-8-12-15 12-15-2Z" fill="#26324f"/>
+                <path d="m45 70 70-1-3 22q-31 15-64-1Z" fill="#111e36"/>
+                <path d="M51 75h21m16 0h20" stroke="#67e8f9" strokeWidth="5" strokeLinecap="round"/>
+                <path d="m76 70 7 23" stroke="#3f6686" strokeWidth="2"/>
+                <path d="M72 104q8 5 16 0" fill="none" stroke="#9e594d" strokeWidth="2" strokeLinecap="round"/>
+                <path d="m41 69-4 2v18l7 2m74-22 5 2v18l-7 2" fill="#53ddeb"/>
+                <path d="M54 41 66 37" stroke="#607193" strokeWidth="3" strokeLinecap="round"/>
+            </g> : <>
             <path d="M28 150Q30 112 61 110H99Q130 112 132 150" fill={fill('shell')} stroke="#0f172a" strokeWidth="3" />
             <path d="m58 113 22 22 22-22 12 37H46Z" fill="#172036" />
             <path d="m72 133 8-7 8 7-8 12Z" fill={light} />
