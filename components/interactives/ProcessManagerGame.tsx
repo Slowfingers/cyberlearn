@@ -1,3 +1,4 @@
+import {GameButton} from '../GameUI';
 import React, { useState, useEffect } from 'react';
 import { Task } from '../../types';
 import { playSound } from '../../utils/sound';
@@ -88,7 +89,7 @@ export const ProcessManagerGame: React.FC<ProcessManagerGameProps> = ({ task, on
   };
 
   return (
-    <div className="workshop-legacy process-workshop flex flex-col h-full bg-gray-950 p-4 md:p-6 overflow-y-auto">
+    <div className="ui-trainer-family workshop-legacy process-workshop flex flex-col h-full bg-gray-950 p-4 md:p-6 overflow-y-auto">
       {/* Title & Instructions */}
       <div className="workshop-banner flex flex-wrap items-center justify-between gap-4 p-4 bg-black/70 border border-cyber-neonBlue/30 rounded-xl mb-4">
         <div className="flex items-center gap-3">
@@ -101,12 +102,12 @@ export const ProcessManagerGame: React.FC<ProcessManagerGameProps> = ({ task, on
           </div>
         </div>
 
-        <button
+        <GameButton size="compact"
           onClick={resetGame}
           className="flex items-center gap-1.5 px-3 py-1.5 bg-gray-900 hover:bg-gray-800 text-gray-300 border border-gray-800 rounded text-xs font-mono transition-colors"
         >
           <RotateCcw size={14} /> Перезапуск
-        </button>
+        </GameButton>
       </div>
 
 <p className="mb-4 text-sm text-gray-200">В этой учебной ситуации заверши только: {scenario.targets.join(', ')}. Остальные процессы оставь работать. Высокая нагрузка сама по себе не означает, что программу нужно закрыть.</p>
@@ -116,7 +117,7 @@ export const ProcessManagerGame: React.FC<ProcessManagerGameProps> = ({ task, on
         <div className="bg-black/80 border border-gray-800 rounded-xl p-4">
           <div className="flex justify-between items-center mb-2">
             <span className="text-xs font-mono text-gray-400 flex items-center gap-2">
-              <Cpu size={16} className={usedCpu > 70 ? 'text-red-500 animate-pulse' : 'text-cyber-neonGreen'} /> 
+              <Cpu size={16} className={usedCpu > 70 ? 'text-red-500 animate-pulse' : 'text-cyber-neonGreen'} />
               ЗАГРУЗКА ПРОЦЕССОРА (CPU)
             </span>
             <span className={`text-base font-mono font-bold ${usedCpu > 70 ? 'text-red-400' : 'text-cyber-neonGreen'}`}>
@@ -140,7 +141,7 @@ export const ProcessManagerGame: React.FC<ProcessManagerGameProps> = ({ task, on
         <div className="bg-black/80 border border-gray-800 rounded-xl p-4">
           <div className="flex justify-between items-center mb-2">
             <span className="text-xs font-mono text-gray-400 flex items-center gap-2">
-              <HardDrive size={16} className={ramPercent > 65 ? 'text-red-500 animate-pulse' : 'text-cyber-neonBlue'} /> 
+              <HardDrive size={16} className={ramPercent > 65 ? 'text-red-500 animate-pulse' : 'text-cyber-neonBlue'} />
               ОПЕРАТИВНАЯ ПАМЯТЬ (RAM)
             </span>
             <span className={`text-base font-mono font-bold ${ramPercent > 65 ? 'text-red-400' : 'text-cyber-neonBlue'}`}>
@@ -207,8 +208,8 @@ export const ProcessManagerGame: React.FC<ProcessManagerGameProps> = ({ task, on
                   {proc.ramMb} MB
                 </div>
                 <div className="col-span-2 flex justify-center">
-                  <button
-                    onClick={() => handleKillProcess(proc)}
+                  <GameButton size="compact"
+                    variant="danger" onClick={() => handleKillProcess(proc)}
                     aria-label={`Завершить ${proc.name}`}
                     disabled={proc.isCritical || completed}
                     className={`px-2.5 py-1 rounded text-[11px] font-bold flex items-center gap-1 transition-all ${
@@ -218,7 +219,7 @@ export const ProcessManagerGame: React.FC<ProcessManagerGameProps> = ({ task, on
                     }`}
                   >
                     <Trash2 size={12} /> Завершить
-                  </button>
+                  </GameButton>
                 </div>
               </div>
             );

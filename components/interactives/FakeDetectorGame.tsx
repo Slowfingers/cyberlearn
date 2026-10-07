@@ -1,3 +1,4 @@
+import {GameButton} from '../GameUI';
 import React, { useState, useRef, useEffect } from 'react';
 import { Task } from '../../types';
 import { playSound } from '../../utils/sound';
@@ -147,7 +148,7 @@ export const FakeDetectorGame: React.FC<{ task: Task; onComplete: () => void }> 
   };
 
   return (
-    <div className="workshop-legacy h-full flex flex-col bg-slate-950 p-4 select-none text-white overflow-y-auto">
+    <div className="ui-trainer-family safety-workshop workshop-legacy h-full flex flex-col bg-slate-950 p-4 select-none text-white overflow-y-auto">
       {/* Header Banner */}
       <div className="workshop-banner flex flex-wrap items-center justify-between bg-slate-900/90 border-2 border-emerald-500/40 p-3 md:p-4 rounded-2xl mb-4 shadow-lg gap-3">
         <div className="flex items-center gap-3">
@@ -162,7 +163,7 @@ export const FakeDetectorGame: React.FC<{ task: Task; onComplete: () => void }> 
 
         <div className="flex items-center gap-2">
           {/* Rules Guide Button */}
-          <button
+          <GameButton size="compact"
             onClick={() => setShowRules(!showRules)}
             className={`flex items-center gap-1.5 px-3 py-1.5 rounded-xl font-bold text-xs transition-all shadow-md ${
               showRules
@@ -172,31 +173,31 @@ export const FakeDetectorGame: React.FC<{ task: Task; onComplete: () => void }> 
           >
             <BookOpen size={14} />
             <span>Памятка Детектива</span>
-          </button>
+          </GameButton>
 
           <div className="px-3 py-1.5 bg-emerald-950/80 border border-emerald-500/50 rounded-xl text-emerald-300 font-bold text-xs">
             Дело {currentIdx + 1} из {cases.length}
           </div>
 
-          <button 
+          <GameButton size="compact"
             onClick={handleReset}
             className="p-2 bg-slate-800 hover:bg-slate-700 rounded-xl text-slate-400 hover:text-white transition-colors"
             title="Начать заново"
           >
             <RotateCcw size={16} />
-          </button>
+          </GameButton>
         </div>
       </div>
 
       {/* Rules Guide Panel (Collapsible) */}
       {showRules && (
         <div className="mb-4 bg-gradient-to-r from-emerald-950/90 via-slate-900 to-emerald-950/90 border-2 border-emerald-400/60 p-4 rounded-2xl shadow-2xl relative">
-          <button 
+          <GameButton size="compact"
             onClick={() => setShowRules(false)}
             className="absolute top-3 right-3 text-slate-400 hover:text-white p-1 rounded-lg bg-black/40"
           >
             <X size={16} />
-          </button>
+          </GameButton>
 
           <div className="flex items-center gap-2 font-bold text-emerald-300 text-sm mb-2">
             <span>🛡️</span> 4 Золотых Закона Безопасности в Интернете:
@@ -238,7 +239,7 @@ export const FakeDetectorGame: React.FC<{ task: Task; onComplete: () => void }> 
 
             {/* Clue button */}
             {!feedback && (
-              <button
+              <GameButton size="compact"
                 onClick={() => setShowHint(!showHint)}
                 className={`flex items-center gap-1 px-2.5 py-1 rounded-xl text-xs font-semibold transition-all ${
                   showHint ? 'bg-cyan-400 text-black' : 'bg-slate-800 text-cyan-300 hover:bg-slate-700'
@@ -246,7 +247,7 @@ export const FakeDetectorGame: React.FC<{ task: Task; onComplete: () => void }> 
               >
                 <HelpCircle size={14} />
                 <span>{showHint ? 'Скрыть совет' : 'Совет Учителя'}</span>
-              </button>
+              </GameButton>
             )}
           </div>
 
@@ -264,40 +265,40 @@ export const FakeDetectorGame: React.FC<{ task: Task; onComplete: () => void }> 
           {/* Feedback section if answered */}
           {feedback ? (
             <div className={`p-4 rounded-2xl border mb-4 ${
-              feedback.isCorrect 
-                ? 'bg-emerald-950/80 border-emerald-500 text-emerald-200' 
+              feedback.isCorrect
+                ? 'bg-emerald-950/80 border-emerald-500 text-emerald-200'
                 : 'bg-rose-950/80 border-rose-500 text-rose-200'
             }`}>
               <div className="font-bold text-sm mb-1">
                 {feedback.isCorrect ? '✅ ПРАВИЛЬНЫЙ ВЕРДИКТ!' : '❌ ОШИБКА ДЕТЕКТИВА!'}
               </div>
               <p className="text-xs leading-relaxed">{feedback.text}</p>
-              
-              <button
+
+              <GameButton size="compact"
                 onClick={() => feedback.isCorrect ? handleNext() : setFeedback(null)}
                 className="mt-3 w-full py-2.5 bg-white text-black font-bold uppercase rounded-xl text-xs hover:bg-slate-200 transition-colors shadow-lg"
               >
                 {!feedback.isCorrect ? 'Попробовать ещё раз' : currentIdx + 1 < cases.length ? 'СЛЕДУЮЩЕЕ ДЕЛО ➡️' : 'ЗАВЕРШИТЬ РАССЛЕДОВАНИЕ 🏆'}
-              </button>
+              </GameButton>
             </div>
           ) : (
             /* Action Buttons */
             <div className="grid grid-cols-2 gap-4">
-              <button
+              <GameButton size="compact"
                 onClick={() => handleAnswer(true)}
                 className="py-3.5 px-4 bg-rose-600 hover:bg-rose-500 text-white rounded-2xl font-bold uppercase text-xs md:text-sm flex flex-col items-center justify-center gap-2 shadow-lg shadow-rose-600/30 active:scale-95 transition-all"
               >
                 <ShieldAlert size={28} />
                 <span>{verification ? 'Нужна проверка' : '🚨 ФЕЙК / ОПАСНО!'}</span>
-              </button>
+              </GameButton>
 
-              <button
+              <GameButton size="compact"
                 onClick={() => handleAnswer(false)}
                 className="py-3.5 px-4 bg-emerald-600 hover:bg-emerald-500 text-white rounded-2xl font-bold uppercase text-xs md:text-sm flex flex-col items-center justify-center gap-2 shadow-lg shadow-emerald-600/30 active:scale-95 transition-all"
               >
                 <ShieldCheck size={28} />
                 <span>{verification ? 'Есть подтверждение' : '🛡️ ПРАВДА / БЕЗОПАСНО'}</span>
-              </button>
+              </GameButton>
             </div>
           )}
         </div>

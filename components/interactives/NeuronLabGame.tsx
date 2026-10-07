@@ -1,3 +1,4 @@
+import {GameButton} from '../GameUI';
 import React, { useState, useEffect, useRef } from 'react';
 import { Task } from '../../types';
 import { playSound } from '../../utils/sound';
@@ -65,7 +66,7 @@ export const NeuronLabGame: React.FC<NeuronLabGameProps> = ({ task, onComplete }
   };
 
   return (
-    <div className="workshop-legacy flex flex-col h-full bg-gray-950 p-4 md:p-6 overflow-y-auto">
+    <div className="ui-trainer-family workshop-legacy flex flex-col h-full bg-gray-950 p-4 md:p-6 overflow-y-auto">
       {/* Header */}
       <div className="workshop-banner flex flex-wrap items-center justify-between gap-4 p-4 bg-black/70 border border-cyber-neonBlue/30 rounded-xl mb-4">
         <div className="flex items-center gap-3">
@@ -85,13 +86,13 @@ export const NeuronLabGame: React.FC<NeuronLabGameProps> = ({ task, onComplete }
               {accuracy}% ({correctCount}/{samples.length})
             </div>
           </div>
-          <button
+          <GameButton size="compact"
             onClick={resetGame}
             className="p-2.5 bg-gray-900 hover:bg-gray-800 text-gray-300 border border-gray-800 rounded-lg transition-colors"
             title="Сброс"
           >
             <RotateCcw size={16} />
-          </button>
+          </GameButton>
         </div>
       </div>
 
@@ -223,7 +224,7 @@ export const NeuronLabGame: React.FC<NeuronLabGameProps> = ({ task, onComplete }
       </div>
 
 <p role="alert" className="text-rose-300">{error}</p>
-      {!completed && <button className="workshop-primary" onClick={checkModel}>Проверить модель</button>}
+      {!completed && <GameButton variant="primary" size="compact" className="workshop-primary" onClick={checkModel}>Проверить модель</GameButton>}
       {/* Victory Banner */}
       {completed && (
         <div className="p-4 bg-cyber-neonGreen/15 border border-cyber-neonGreen rounded-xl flex items-center justify-between text-white animate-fade-in">

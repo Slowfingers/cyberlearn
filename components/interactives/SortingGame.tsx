@@ -1,3 +1,4 @@
+import {GameButton} from '../GameUI';
 import React, { useState, useEffect, useRef } from 'react';
 import { Task } from '../../types';
 import { playSound } from '../../utils/sound';
@@ -131,7 +132,7 @@ export const SortingGame: React.FC<SortingGameProps> = ({ task, onComplete }) =>
   const maxVal = Math.max(...array, 100);
 
   return (
-    <div className="workshop-legacy flex flex-col h-full bg-gray-950 p-4 md:p-6 overflow-y-auto select-none">
+    <div className="ui-trainer-family workshop-legacy flex flex-col h-full bg-gray-950 p-4 md:p-6 overflow-y-auto select-none">
       {/* Header */}
       <div className="workshop-banner flex flex-wrap items-center justify-between gap-4 p-4 bg-black/70 border border-cyber-neonBlue/30 rounded-2xl mb-4 shadow-lg">
         <div className="flex items-center gap-3">
@@ -146,7 +147,7 @@ export const SortingGame: React.FC<SortingGameProps> = ({ task, onComplete }) =>
 
         <div className="flex items-center gap-2">
           {/* Guide Button */}
-          <button
+          <GameButton size="compact"
             onClick={() => setShowGuide(!showGuide)}
             className={`flex items-center gap-1.5 px-3 py-1.5 rounded-xl font-bold text-xs transition-all shadow-md ${
               showGuide
@@ -156,7 +157,7 @@ export const SortingGame: React.FC<SortingGameProps> = ({ task, onComplete }) =>
           >
             <BookOpen size={14} />
             <span>Шпаргалка Учителя</span>
-          </button>
+          </GameButton>
 
           <div className="bg-gray-900 border border-gray-800 px-3 py-1 rounded-xl text-center font-mono">
             <div className="text-[9px] text-gray-400">ПРОХОД</div>
@@ -170,25 +171,25 @@ export const SortingGame: React.FC<SortingGameProps> = ({ task, onComplete }) =>
             <div className="text-[9px] text-gray-400">ОБМЕНОВ</div>
             <div className="text-sm font-bold text-cyber-neonPink">{swaps}</div>
           </div>
-          <button
+          <GameButton size="compact"
             onClick={resetGame}
             className="p-2.5 bg-gray-900 hover:bg-gray-800 text-gray-300 border border-gray-800 rounded-xl transition-colors"
             title="Начать заново"
           >
             <RotateCcw size={16} />
-          </button>
+          </GameButton>
         </div>
       </div>
 
       {/* Teacher Guide Panel (Collapsible) */}
       {showGuide && (
         <div className="mb-4 bg-gradient-to-r from-cyan-950/90 via-slate-900 to-cyan-950/90 border-2 border-cyan-400/60 p-4 rounded-2xl shadow-2xl relative animate-in fade-in duration-200">
-          <button 
+          <GameButton size="compact"
             onClick={() => setShowGuide(false)}
             className="absolute top-3 right-3 text-slate-400 hover:text-white p-1 rounded-lg bg-black/40"
           >
             <X size={16} />
-          </button>
+          </GameButton>
 
           <div className="flex items-start gap-3">
             <div className="p-2 bg-cyan-400/20 text-cyan-300 rounded-xl shrink-0 mt-0.5">
@@ -219,10 +220,10 @@ export const SortingGame: React.FC<SortingGameProps> = ({ task, onComplete }) =>
       {/* Teacher Real-time Advice Banner */}
       {teacherAdvice && (
         <div className={`p-3.5 rounded-xl mb-4 border flex items-center gap-3 transition-all ${
-          teacherAdvice.type === 'warn' 
-            ? 'bg-red-950/70 border-red-500/60 text-red-200 shadow-[0_0_15px_rgba(239,68,68,0.2)]' 
-            : teacherAdvice.type === 'success' 
-            ? 'bg-emerald-950/70 border-emerald-500/60 text-emerald-200' 
+          teacherAdvice.type === 'warn'
+            ? 'bg-red-950/70 border-red-500/60 text-red-200 shadow-[0_0_15px_rgba(239,68,68,0.2)]'
+            : teacherAdvice.type === 'success'
+            ? 'bg-emerald-950/70 border-emerald-500/60 text-emerald-200'
             : 'bg-slate-900 border-slate-700 text-slate-300'
         }`}>
           {teacherAdvice.type === 'warn' ? (
@@ -294,19 +295,19 @@ export const SortingGame: React.FC<SortingGameProps> = ({ task, onComplete }) =>
       {/* Control Actions: Real Decision Making */}
       {!isSorted ? (
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-          <button
+          <GameButton size="compact"
             onClick={handleStudentSwap}
             className="py-4 px-4 bg-cyber-neonYellow hover:bg-white text-black font-bold uppercase text-xs md:text-sm font-mono rounded-2xl transition-all shadow-[0_0_20px_rgba(252,238,10,0.25)] flex items-center justify-center gap-2.5 active:scale-98"
           >
             <ArrowUpDown size={18} />
             <span>Поменять местами</span>
-          </button>
-          <button
+          </GameButton>
+          <GameButton size="compact"
             onClick={handleStudentKeep}
             className="py-4 px-4 bg-slate-900 hover:bg-slate-800 text-white font-bold uppercase text-xs md:text-sm font-mono rounded-2xl transition-all border border-slate-700 flex items-center justify-center gap-2.5 active:scale-98"
           >
             <span>Оставить порядок ➔</span>
-          </button>
+          </GameButton>
         </div>
       ) : (
         <div className="p-5 bg-cyber-neonGreen/15 border border-cyber-neonGreen rounded-2xl flex flex-wrap items-center justify-between gap-4 text-white animate-fade-in shadow-[0_0_30px_rgba(0,255,65,0.2)]">
@@ -319,12 +320,12 @@ export const SortingGame: React.FC<SortingGameProps> = ({ task, onComplete }) =>
               </div>
             </div>
           </div>
-          <button
+          <GameButton size="compact"
             onClick={onComplete}
             className="px-6 py-2.5 bg-cyber-neonGreen text-black font-bold uppercase rounded-xl text-xs hover:bg-white transition-all shadow-lg"
           >
             ЗАБРАТЬ НАГРАДУ (+{task.xpReward} XP)
-          </button>
+          </GameButton>
         </div>
       )}
     </div>

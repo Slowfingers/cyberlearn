@@ -1,3 +1,4 @@
+import {GameButton} from '../GameUI';
 import React, { useState, useEffect } from 'react';
 import { Task } from '../../types';
 import {getTreeScenario, type PositionedNode as TreeNode} from '../../services/treeScenario';
@@ -81,7 +82,7 @@ export const BinaryTreeGame: React.FC<BinaryTreeGameProps> = ({ task, onComplete
   };
 
   return (
-    <div className="workshop-legacy flex flex-col h-full bg-gray-950 p-4 md:p-6 overflow-y-auto">
+    <div className="ui-trainer-family workshop-legacy flex flex-col h-full bg-gray-950 p-4 md:p-6 overflow-y-auto">
       {/* Header */}
       <div className="workshop-banner flex flex-wrap items-center justify-between gap-4 p-4 bg-black/70 border border-cyber-neonBlue/30 rounded-xl mb-4">
         <div className="flex items-center gap-3">
@@ -103,13 +104,13 @@ export const BinaryTreeGame: React.FC<BinaryTreeGameProps> = ({ task, onComplete
             <div className="text-[9px] text-gray-400">ШАГОВ (ОПЕРАЦИЙ)</div>
             <div className="text-lg font-bold text-cyber-neonGreen">{steps}</div>
           </div>
-          <button
+          <GameButton size="compact"
             onClick={resetGame}
             className="p-2.5 bg-gray-900 hover:bg-gray-800 text-gray-300 border border-gray-800 rounded-lg transition-colors"
             title="Сброс"
           >
             <RotateCcw size={16} />
-          </button>
+          </GameButton>
         </div>
       </div>
 
@@ -164,7 +165,7 @@ export const BinaryTreeGame: React.FC<BinaryTreeGameProps> = ({ task, onComplete
       {/* Navigation Controls */}
       {!completed ? (
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mt-4">
-          <button
+          <GameButton size="compact"
             onClick={() => handleNavigate('left')}
             disabled={!currentNode.left}
             className={`py-4 px-6 rounded-xl font-mono font-bold text-xs uppercase flex items-center justify-center gap-3 transition-all ${
@@ -174,8 +175,8 @@ export const BinaryTreeGame: React.FC<BinaryTreeGameProps> = ({ task, onComplete
             }`}
           >
             ◀ ВЛЕВО
-          </button>
-          <button
+          </GameButton>
+          <GameButton size="compact"
             onClick={() => handleNavigate('right')}
             disabled={!currentNode.right}
             className={`py-4 px-6 rounded-xl font-mono font-bold text-xs uppercase flex items-center justify-center gap-3 transition-all ${
@@ -185,7 +186,7 @@ export const BinaryTreeGame: React.FC<BinaryTreeGameProps> = ({ task, onComplete
             }`}
           >
             ВПРАВО ▶
-          </button>
+          </GameButton>
         </div>
       ) : (
         <div className="mt-4 p-4 bg-cyber-neonGreen/15 border border-cyber-neonGreen rounded-xl flex items-center justify-between text-white animate-fade-in">
@@ -198,12 +199,12 @@ export const BinaryTreeGame: React.FC<BinaryTreeGameProps> = ({ task, onComplete
               </div>
             </div>
           </div>
-          <button
+          <GameButton size="compact"
             onClick={onComplete}
             className="px-5 py-2 bg-cyber-neonGreen text-black font-bold uppercase rounded-lg text-xs hover:bg-white transition-colors"
           >
             ПРИНЯТЬ НАГРАДУ (+{task.xpReward} XP)
-          </button>
+          </GameButton>
         </div>
       )}
     </div>

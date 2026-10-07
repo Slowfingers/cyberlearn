@@ -38,12 +38,20 @@ try {
  assert.ok((await call('removeClassStudent',{classId:otherClass.id,studentId:(otherStudent.result as any).id},cookie)).error);
  saved!.state.classes[otherClass.id].teacherId=(teacher.result as any).id;
  assert.ok((await call('removeClassStudent',{classId:cls.id,studentId:(otherStudent.result as any).id},cookie)).error);
+ const originalCode=saved!.state.classes[cls.id].inviteCode;
+ const legacyId=(student.result as any).id;
+ delete saved!.state.users[legacyId].classId; // Legacy membership exists only in studentIds.
  assert.equal((await call('endClassSession',{classId:cls.id},cookie)).error,undefined);
+ assert.equal(saved!.state.classes[cls.id].inviteCode,originalCode,'Ending sessions must preserve the class code');
  assert.equal((await call('getUser',{},sc)).result,null);
  assert.ok((await call('listTasks',{},sc)).error);
  assert.equal((await call('getUser',{},'cyberlearn_session='+again.token)).result,null);
  assert.ok((await call('getUser',{},otherCookie)).result);
  assert.ok((await call('getUser',{},cookie)).result);
+ saved!.state.users[legacyId].classId=cls.id;
+ const folderChange=await call('setClassFolder',{classId:cls.id,folder:'  Школа 2  '},cookie);
+ assert.equal((folderChange.result as any).folder,'Школа 2');
+ assert.equal(saved!.state.classes[cls.id].inviteCode,originalCode);
  const returned=await call('login',{role:'student',name:'Проверка',inviteCode:cls.inviteCode});
  assert.equal((returned.result as any).id,(student.result as any).id);
  const returnedAgain=await call('login',{role:'student',name:'Проверка',inviteCode:cls.inviteCode});

@@ -20,7 +20,7 @@ export function observeServer(callback:(user:User|null,error?:unknown)=>void) {
   finally {pending=false;}
  };
  const onVisible=()=>{if(document.visibilityState==='visible')void refresh();};
- void refresh(); const timer=window.setInterval(refresh,15000);
+ void refresh(); const timer=window.setInterval(refresh,3000);
  window.addEventListener('cyberlearn-session',refresh);window.addEventListener('focus',refresh);document.addEventListener('visibilitychange',onVisible);
  return ()=>{cancelled=true;window.clearInterval(timer);window.removeEventListener('cyberlearn-session',refresh);window.removeEventListener('focus',refresh);document.removeEventListener('visibilitychange',onVisible);};
 }

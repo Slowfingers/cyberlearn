@@ -5,6 +5,7 @@ import { AcademyArt } from './AcademyArt';
 import { PixelIcon } from './PixelSprite';
 import ShopAvatar, { STREET_AVATARS, AVATAR_NAMES } from './ShopAvatar';
 import { COSMETICS } from '../constants';
+import {GameButton} from './GameUI';
 
 type HomeCourse = Course & { progress: number; totalTasks: number };
 interface Props {
@@ -21,9 +22,9 @@ export default function StudentHome({ user, courses, tasks, progress, today, onC
   return <div className="academy-home game-home">
     <nav className="academy-nav" aria-label="Главная навигация">
       <span className="academy-nav-caption">CYBER / BASE</span>
-      <button className="academy-nav-item is-active" aria-current="page" onClick={() => routesRef.current?.scrollIntoView({block: 'start'})}><BookOpen size={21}/><span>Мои курсы</span></button>
-      <button className="academy-nav-item" onClick={onShop}><ShoppingBag size={21}/><span>Магазин</span></button>
-      <button className="academy-nav-item" onClick={onProfile}><UserRound size={21}/><span>Мой профиль</span></button>
+      <GameButton className="academy-nav-item is-active" aria-current="page" onClick={() => routesRef.current?.scrollIntoView({block: 'start'})}><BookOpen size={21}/><span>Мои курсы</span></GameButton>
+      <GameButton className="academy-nav-item" onClick={onShop}><ShoppingBag size={21}/><span>Магазин</span></GameButton>
+      <GameButton className="academy-nav-item" onClick={onProfile}><UserRound size={21}/><span>Мой профиль</span></GameButton>
       <div className="academy-nav-bottom"><div className="academy-player"><ShopAvatar avatarId={avatar} frameId={user.equipped.avatarFrame} scale={1}/><div><strong>{user.name}</strong><span>Уровень {user.level}</span></div></div><div className="academy-level-track" aria-label={`Опыт до нового уровня: ${Math.round(progress)}% накоплено`}><i style={{width:`${progress}%`}}/></div><p>Опыт для нового уровня</p></div>
     </nav>
     <div className="academy-home-content">
@@ -33,7 +34,7 @@ export default function StudentHome({ user, courses, tasks, progress, today, onC
           <div className="player-greeting"><span className="academy-eyebrow">С возвращением,</span><h2 title={user.name}>{user.name}!</h2></div>
           <div className="player-scene" aria-hidden="true"/>
           <ShopAvatar avatarId={avatar} stage className="player-full-avatar"/>
-          <button className="player-nameplate" onClick={onProfile}><span>УРОВЕНЬ {user.level}</span><strong>{STREET_AVATARS.find(a=>a.value===avatar)?.name || AVATAR_NAMES[Math.max(0,Math.min(23,(Number(avatar)||2)-2))]}</strong><span>Мой герой <ArrowRight size={14}/></span></button>
+          <GameButton className="player-nameplate" onClick={onProfile}><span>УРОВЕНЬ {user.level}</span><strong>{STREET_AVATARS.find(a=>a.value===avatar)?.name || AVATAR_NAMES[Math.max(0,Math.min(23,(Number(avatar)||2)-2))]}</strong><span>Мой герой <ArrowRight size={14}/></span></GameButton>
         </div>
         <div className="player-mission">
           <span className="academy-pill"><Flag size={14}/> {nextCourse?.progress === 100 ? 'Миссии завершены' : 'Следующая миссия'}</span>
@@ -41,7 +42,7 @@ export default function StudentHome({ user, courses, tasks, progress, today, onC
           <h2>{nextTask?.title || (nextCourse?.progress === 100 ? 'Все задания позади. Отличная работа!' : 'Готов к новым открытиям?')}</h2>
           <p>{nextTask?.lesson?.goal || (nextCourse ? 'Выбери знакомую миссию и проверь свои силы ещё раз.' : 'Учитель откроет курс — и здесь появится твоя первая миссия.')}</p>
           {nextCourse && <div className="player-mission-progress"><span>Маршрут пройден<strong>{nextCourse.progress}%</strong></span><div className="academy-course-track"><i style={{width:`${nextCourse.progress}%`}}/></div></div>}
-          <button className="academy-primary" disabled={!nextCourse} onClick={() => nextCourse && onCourse(nextCourse.id,true)}>{nextCourse?.progress === 100 ? 'Повторить курс' : nextCourse?.progress ? 'Продолжить урок' : 'Начать миссию'}<ArrowRight size={18}/></button>
+          <GameButton variant="primary" disabled={!nextCourse} onClick={() => nextCourse && onCourse(nextCourse.id,true)}>{nextCourse?.progress === 100 ? 'Повторить курс' : nextCourse?.progress ? 'Продолжить урок' : 'Начать миссию'}<ArrowRight size={18}/></GameButton>
         </div>
       </section>
       <div className="academy-milestones"><div><span className="academy-stat-icon mint"><CheckCircle2 size={21}/></span><strong>{completed}<small>заданий пройдено</small></strong></div><div><span className="academy-stat-icon gold"><PixelIcon kind="trophy"/></span><strong>{user.achievements.length}<small>достижений открыто</small></strong></div><div><span className="academy-stat-icon lavender"><PixelIcon kind="rocket"/></span><strong>{today}<small>заданий сегодня</small></strong></div></div>

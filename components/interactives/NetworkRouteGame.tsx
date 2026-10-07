@@ -1,3 +1,4 @@
+import {GameButton} from '../GameUI';
 import React, { useState, useEffect } from 'react';
 import { Task } from '../../types';
 import { playSound } from '../../utils/sound';
@@ -159,7 +160,7 @@ export const NetworkRouteGame: React.FC<NetworkRouteGameProps> = ({ task, onComp
   }
 
   return (
-    <div className="workshop-legacy flex flex-col h-full bg-gray-950 p-4 md:p-6 overflow-y-auto">
+    <div className="ui-trainer-family workshop-legacy flex flex-col h-full bg-gray-950 p-4 md:p-6 overflow-y-auto">
       {/* Header */}
       <div className="workshop-banner flex flex-wrap items-center justify-between gap-4 p-4 bg-black/70 border border-cyber-neonBlue/30 rounded-xl mb-4">
         <div className="flex items-center gap-3">
@@ -177,13 +178,13 @@ export const NetworkRouteGame: React.FC<NetworkRouteGameProps> = ({ task, onComp
             <div className="text-[9px] text-gray-400">СУММАРНЫЙ ПИНГ</div>
             <div className="text-lg font-bold text-cyber-neonGreen">{currentTotalLatency} мс</div>
           </div>
-          <button
+          <GameButton size="compact"
             onClick={resetGame}
             className="p-2.5 bg-gray-900 hover:bg-gray-800 text-gray-300 border border-gray-800 rounded-lg transition-colors"
             title="Сброс пути"
           >
             <RotateCcw size={16} />
-          </button>
+          </GameButton>
         </div>
       </div>
 
@@ -312,11 +313,11 @@ export const NetworkRouteGame: React.FC<NetworkRouteGameProps> = ({ task, onComp
         </svg>
       </div>
       <div className="grid grid-cols-2 gap-2 sm:hidden" aria-label="Выбор узла маршрута">
-        {nodes.map(node => <button key={node.id} disabled={completed}
+        {nodes.map(node => <GameButton size="compact" key={node.id} disabled={completed}
           onClick={() => handleNodeClick(node.id)}
           className={`min-h-12 rounded-lg border px-3 py-2 text-sm ${selectedPath.includes(node.id) ? 'border-cyan-400 text-cyan-200 bg-cyan-950' : 'border-slate-600 text-slate-200 bg-slate-900'}`}>
           {node.label}
-        </button>)}
+        </GameButton>)}
       </div>
 
       {/* Victory Banner */}
@@ -331,12 +332,12 @@ export const NetworkRouteGame: React.FC<NetworkRouteGameProps> = ({ task, onComp
               </div>
             </div>
           </div>
-          <button
+          <GameButton size="compact"
             onClick={onComplete}
             className="px-5 py-2 bg-cyber-neonGreen text-black font-bold uppercase rounded-lg text-xs hover:bg-white transition-colors"
           >
             ПОЛУЧИТЬ НАГРАДУ (+{task.xpReward} XP)
-          </button>
+          </GameButton>
         </div>
       )}
     </div>

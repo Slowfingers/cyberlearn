@@ -1,3 +1,4 @@
+import { GameButton } from './components/GameUI';
 
 import React, { useState, useEffect, lazy, Suspense } from 'react';
 import CyberLayout from './components/CyberLayout';
@@ -30,6 +31,7 @@ const App: React.FC = () => {
   useEffect(() => observeSession(async (restored, restoreError) => {
     if (restoreError) setError('Не удалось восстановить сессию. Повторите вход.');
     setUser(restored);
+    if (!restored) { setName(''); setInviteCode(''); setPassword(''); }
     try {
       if (restored?.role === 'teacher') {
         const classes = await fbGetClassrooms();
@@ -105,11 +107,9 @@ const App: React.FC = () => {
   };
 
   const onClassCreated = (newClass: Classroom) => {
-      const exists = classrooms.some(c => c.id === newClass.id);
-      const updated = exists
-          ? classrooms.map(c => c.id === newClass.id ? newClass : c)
-          : [...classrooms, newClass];
-      setClassrooms(updated);
+      setClassrooms(previous => previous.some(c => c.id === newClass.id)
+          ? previous.map(c => c.id === newClass.id ? newClass : c)
+          : [...previous, newClass]);
       setActiveClassId(newClass.id);
   };
 
@@ -128,23 +128,23 @@ const App: React.FC = () => {
 
   if (!user) {
     const student = authMode === 'student-login';
-    return <div className="academy-welcome">
+    return <div className="academy-app academy-welcome">
       <header className="academy-welcome-brand academy-brand"><span className="academy-brand-mark"><BookOpen size={23}/></span><span>Cyber<span>Learn</span><small>Академия будущего</small></span></header>
       <main className="academy-welcome-grid"><section className="academy-welcome-story"><span className="academy-pill"><Sparkles size={15}/> Для любопытных умов</span><h1>Маленькие шаги.<br/><em>Большие открытия.</em></h1><p>Преврати интерес к компьютерам в настоящие навыки. Учись через игру, решай задачи и создавай своё.</p><AcademyArt variant={0} hero/><div className="academy-welcome-features"><span>3–8 классы</span><span>Понятные объяснения</span><span>Практика в каждом курсе</span></div></section>
         <section className="academy-auth-card">
-          {authMode === 'select' ? <><span className="academy-eyebrow">ТВОЁ ПРИКЛЮЧЕНИЕ ЖДЁТ</span><h2>Рады тебя видеть!</h2><p>Выбери, как войти в академию.</p><button className="academy-primary academy-auth-action" onClick={()=>{setPassword('');setError('');setAuthMode('student-login');}}>Я ученик <ArrowRight size={19}/></button><button className="academy-secondary academy-auth-action" onClick={()=>{setPassword('');setError('');setAuthMode('teacher-login');}}><Shield size={18}/> Кабинет учителя</button><div className="academy-auth-note"><BookOpen size={20}/><span>Код класса и данные для входа подскажет учитель.</span></div></> : <>
-            <button className="academy-auth-back" onClick={()=>{setAuthMode('select');setError('');}}><ArrowLeft size={17}/> Назад</button><h2>{student ? 'Начнём приключение' : 'Вход для учителя'}</h2><p>{student ? 'Введи своё имя и код класса от учителя.' : 'Войдите, чтобы управлять классами и видеть прогресс учеников.'}</p>
+          {authMode === 'select' ? <><span className="academy-eyebrow">ТВОЁ ПРИКЛЮЧЕНИЕ ЖДЁТ</span><h2>Рады тебя видеть!</h2><p>Выбери, как войти в академию.</p><GameButton size="compact" variant="primary" className="academy-primary academy-auth-action" onClick={()=>{setPassword('');setError('');setAuthMode('student-login');}}>Я ученик <ArrowRight size={19}/></GameButton><GameButton size="compact" className="academy-secondary academy-auth-action" onClick={()=>{setPassword('');setError('');setAuthMode('teacher-login');}}><Shield size={18}/> Кабинет учителя</GameButton><div className="academy-auth-note"><BookOpen size={20}/><span>Код класса и данные для входа подскажет учитель.</span></div></> : <>
+            <GameButton size="compact" className="academy-auth-back" onClick={()=>{setAuthMode('select');setError('');}}><ArrowLeft size={17}/> Назад</GameButton><h2>{student ? 'Начнём приключение' : 'Вход для учителя'}</h2><p>{student ? 'Введи своё имя и код класса от учителя.' : 'Войдите, чтобы управлять классами и видеть прогресс учеников.'}</p>
             <form onSubmit={student ? handleStudentLogin : handleTeacherLogin} className="academy-auth-form">
               <label htmlFor="login-name">{student ? 'Твоё имя' : 'Логин учителя'}</label><input id="login-name" value={name} onChange={e=>setName(e.target.value)} autoComplete="username" placeholder={student ? 'Например, Саша' : 'Логин'} required autoFocus/>
               {student && <><label htmlFor="class-code">Код класса</label><input id="class-code" value={inviteCode} onChange={e=>setInviteCode(e.target.value.toUpperCase())} placeholder="Код от учителя" maxLength={12} required autoCapitalize="characters" autoComplete="off"/></>}
               {!student && <><label htmlFor={student ? 'student-password' : 'teacher-password'}>Пароль</label><input id={student ? 'student-password' : 'teacher-password'} type="password" value={password} onChange={e=>setPassword(e.target.value)} autoComplete="current-password" required/></>}
 
               {error && <p role="alert" className="academy-auth-error">{error}</p>}
-              <button className="academy-primary academy-auth-action" disabled={loading} type="submit">{loading ? <Loader2 className="animate-spin" size={20}/> : <>Войти <ArrowRight size={18}/></>}</button>
+              <GameButton size="compact" variant="primary" className="academy-primary academy-auth-action" disabled={loading} type="submit">{loading ? <Loader2 className="animate-spin" size={20}/> : <>Войти <ArrowRight size={18}/></>}</GameButton>
             </form>
           </>}
           {authMode === 'select' && error && <p role="alert" className="academy-auth-error">{error}</p>}
-          {LOCAL_DEMO && <aside className="academy-demo-panel"><strong>Тестовый режим</strong><p>Прогресс сохраняется в этом браузере. Код класса: TEST01.</p><div><button disabled={loading} onClick={()=>handleDemoLogin('student')}>Тестировать как ученик</button><button disabled={loading} onClick={()=>handleDemoLogin('teacher')}>Тестировать как учитель</button></div></aside>}
+          {LOCAL_DEMO && <aside className="academy-demo-panel"><strong>Тестовый режим</strong><p>Прогресс сохраняется в этом браузере. Код класса: TEST01.</p><div><GameButton size="compact" disabled={loading} onClick={()=>handleDemoLogin('student')}>Тестировать как ученик</GameButton><GameButton size="compact" disabled={loading} onClick={()=>handleDemoLogin('teacher')}>Тестировать как учитель</GameButton></div></aside>}
         </section>
       </main>
     </div>;

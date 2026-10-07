@@ -1,3 +1,4 @@
+import {GameButton} from '../GameUI';
 import React, { useState, useMemo, useRef, useEffect } from 'react';
 import { WorkshopArt } from './WorkshopArt';
 import { Task } from '../../types';
@@ -71,7 +72,7 @@ export const BinaryBulbsGame: React.FC<{ task: Task; onComplete: () => void }> =
   const isMatched = currentSum === currentRound.target;
 
   return (
-    <div className="workshop-legacy binary-workshop h-full flex flex-col bg-slate-950 p-4 select-none text-white overflow-y-auto">
+    <div className="ui-trainer-family workshop-legacy binary-workshop h-full flex flex-col bg-slate-950 p-4 select-none text-white overflow-y-auto">
       {/* Header Banner */}
       <div className="workshop-banner flex flex-wrap items-center justify-between bg-slate-900/90 border-2 border-amber-500/40 p-3 md:p-4 rounded-2xl mb-4 shadow-lg gap-3">
         <div className="flex items-center gap-3">
@@ -86,7 +87,7 @@ export const BinaryBulbsGame: React.FC<{ task: Task; onComplete: () => void }> =
 
         <div className="flex items-center gap-2">
           {/* Guide Button */}
-          <button
+          <GameButton size="compact"
             onClick={() => setShowGuide(!showGuide)}
             className={`flex items-center gap-1.5 px-3 py-1.5 rounded-xl font-bold text-xs transition-all shadow-md ${
               showGuide
@@ -96,7 +97,7 @@ export const BinaryBulbsGame: React.FC<{ task: Task; onComplete: () => void }> =
           >
             <BookOpen size={14} />
             <span>Шпаргалка Учителя</span>
-          </button>
+          </GameButton>
 
           <div className="flex items-center gap-1 px-3 py-1.5 bg-amber-950/80 border border-amber-500/40 rounded-xl text-amber-300 font-bold text-xs">
             <Star size={14} className="fill-amber-400 text-amber-400" />
@@ -108,19 +109,19 @@ export const BinaryBulbsGame: React.FC<{ task: Task; onComplete: () => void }> =
       {/* Teacher Guide Panel (Collapsible) */}
       {showGuide && (
         <div className="mb-4 bg-gradient-to-r from-amber-950/90 via-slate-900 to-amber-950/90 border-2 border-amber-400/60 p-4 rounded-2xl shadow-2xl relative">
-          <button 
+          <GameButton size="compact"
             onClick={() => setShowGuide(false)}
             className="absolute top-3 right-3 text-slate-400 hover:text-white p-1 rounded-lg bg-black/40"
           >
             <X size={16} />
-          </button>
+          </GameButton>
 
           <div className="flex items-center gap-2 font-bold text-amber-300 text-sm mb-2">
             <span>🎓</span> Объяснение от Учителя: Как работает двоичный код?
           </div>
 
           <p className="text-xs text-slate-300 mb-3 leading-relaxed">
-            Внутри микропроцессора нет пальцев. Но есть крошечные переключатели — транзисторы! 
+            Внутри микропроцессора нет пальцев. Но есть крошечные переключатели — транзисторы!
             Когда выключатель выключен — это <strong className="text-white">0</strong>. Когда включен и течет ток — это <strong className="text-amber-400">1</strong>.
           </p>
 
@@ -160,11 +161,11 @@ export const BinaryBulbsGame: React.FC<{ task: Task; onComplete: () => void }> =
           {weights.map((weight, idx) => {
             const isOn = bits[idx] === 1;
             return (
-              <div 
-                key={weight} 
+              <div
+                key={weight}
                 className={`flex flex-col items-center p-2.5 md:p-5 rounded-2xl border-2 transition-all duration-300 ${
-                  isOn 
-                    ? 'bg-amber-500/15 border-amber-400 shadow-[0_0_30px_rgba(245,158,11,0.3)] scale-105' 
+                  isOn
+                    ? 'bg-amber-500/15 border-amber-400 shadow-[0_0_30px_rgba(245,158,11,0.3)] scale-105'
                     : 'bg-slate-900/60 border-slate-800 opacity-80'
                 }`}
               >
@@ -177,7 +178,7 @@ export const BinaryBulbsGame: React.FC<{ task: Task; onComplete: () => void }> =
 
                 {/* Lightbulb Visual */}
                 <div className={`p-3 md:p-4 rounded-full mb-3 transition-all duration-300 ${
-                  isOn 
+                  isOn
                     ? 'bg-amber-400/30 text-amber-300 drop-shadow-[0_0_12px_rgba(245,158,11,0.25)]'
                     : 'bg-slate-800/80 text-slate-600'
                 }`}>
@@ -192,7 +193,7 @@ export const BinaryBulbsGame: React.FC<{ task: Task; onComplete: () => void }> =
                 </div>
 
                 {/* Interactive Toggle Button */}
-                <button
+                <GameButton size="compact"
                   onClick={() => toggleBit(idx)}
                   aria-label={`Лампочка с весом ${weight}`} aria-pressed={isOn} disabled={completed}
                   className={`w-full py-2 md:py-2.5 rounded-xl font-bold text-xs uppercase tracking-wider transition-all transform active:scale-95 shadow-md flex items-center justify-center gap-1 ${
@@ -202,7 +203,7 @@ export const BinaryBulbsGame: React.FC<{ task: Task; onComplete: () => void }> =
                   }`}
                 >
                   {isOn ? 'ВКЛ' : 'ВЫКЛ'}
-                </button>
+                </GameButton>
               </div>
             );
           })}
@@ -236,8 +237,8 @@ export const BinaryBulbsGame: React.FC<{ task: Task; onComplete: () => void }> =
               </div>
             ) : (
               <div className="text-xs text-amber-300/90 font-medium">
-                {currentSum < currentRound.target 
-                  ? `Маловато (${currentSum} < ${currentRound.target}). Включи ещё лампочку! ⬆️` 
+                {currentSum < currentRound.target
+                  ? `Маловато (${currentSum} < ${currentRound.target}). Включи ещё лампочку! ⬆️`
                   : `Многовато (${currentSum} > ${currentRound.target}). Выключи лишнюю лампу! ⬇️`}
               </div>
             )}

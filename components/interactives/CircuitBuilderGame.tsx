@@ -1,3 +1,4 @@
+import {GameButton} from '../GameUI';
 import React, { useState, useRef, useEffect } from 'react';
 import { Task } from '../../types';
 import { playSound } from '../../utils/sound';
@@ -154,7 +155,7 @@ export const CircuitBuilderGame: React.FC<{ task: Task; onComplete: () => void }
   ];
 
   return (
-    <div className="workshop-legacy circuit-workshop h-full flex flex-col bg-slate-950 p-4 select-none text-white overflow-y-auto">
+    <div className="ui-trainer-family workshop-legacy circuit-workshop h-full flex flex-col bg-slate-950 p-4 select-none text-white overflow-y-auto">
       {/* Header Banner */}
       <div className="workshop-banner flex flex-wrap items-center justify-between bg-slate-900/90 border-2 border-yellow-500/40 p-4 rounded-2xl mb-4 shadow-lg gap-3">
         <div className="flex items-center gap-3">
@@ -172,17 +173,17 @@ export const CircuitBuilderGame: React.FC<{ task: Task; onComplete: () => void }
         </div>
 
         <div className="flex items-center gap-2">
-          <button
-            onClick={() => setShowGuide(!showGuide)}
+          <GameButton size="compact"
+            onClick={() => setShowGuide(!showGuide)} aria-expanded={showGuide}
             className={`flex items-center gap-1.5 px-3 py-1.5 rounded-xl font-bold text-xs transition-all shadow-md ${
-              showGuide 
-                ? 'bg-yellow-400 text-black shadow-yellow-400/30' 
+              showGuide
+                ? 'bg-yellow-400 text-black shadow-yellow-400/30'
                 : 'bg-yellow-950/80 border border-yellow-500/50 text-yellow-300 hover:bg-yellow-900/80'
             }`}
           >
             <BookOpen size={14} />
-            <span>Шпаргалка Учителя</span>
-          </button>
+            <span>Как работает правило</span>
+          </GameButton>
 
           <div className="flex items-center gap-1 px-3 py-1.5 bg-yellow-950/80 border border-yellow-500/40 rounded-xl text-yellow-300 font-bold text-xs font-mono">
             <Star size={14} className="fill-yellow-400 text-yellow-400" />
@@ -194,12 +195,12 @@ export const CircuitBuilderGame: React.FC<{ task: Task; onComplete: () => void }
       {/* Teacher Guide Panel (Collapsible) */}
       {showGuide && (
         <div className="mb-4 bg-gradient-to-r from-yellow-950/90 via-slate-900 to-yellow-950/90 border-2 border-yellow-400/60 p-4 rounded-2xl shadow-2xl relative animate-in fade-in duration-200">
-          <button 
+          <GameButton size="compact"
             onClick={() => setShowGuide(false)}
             className="absolute top-3 right-3 text-slate-400 hover:text-white p-1 rounded-lg bg-black/40"
           >
             <X size={16} />
-          </button>
+          </GameButton>
 
           <div className="flex items-start gap-3">
             <div className="p-2 bg-yellow-400/20 text-yellow-300 rounded-xl shrink-0 mt-0.5">
@@ -224,10 +225,10 @@ export const CircuitBuilderGame: React.FC<{ task: Task; onComplete: () => void }
       {/* Main Visual Circuit Board */}
       <div className="flex-1 flex flex-col items-center justify-center max-w-4xl mx-auto w-full gap-4">
         <div className="w-full bg-slate-900/90 border-2 border-slate-700 rounded-3xl p-6 shadow-2xl relative">
-          
+
           {/* Circuit Components Grid */}
           <div className="grid grid-cols-1 md:grid-cols-12 gap-6 items-center">
-            
+
             {/* 1. Battery Power Source (3 cols) */}
             <div className="md:col-span-3 flex flex-col items-center p-4 rounded-2xl bg-slate-950 border border-slate-800 text-center">
               <div className="text-[11px] uppercase font-bold text-slate-400 mb-2">1. Источник тока</div>
@@ -260,14 +261,14 @@ export const CircuitBuilderGame: React.FC<{ task: Task; onComplete: () => void }
                     Сигнал: <span className={switchA ? 'text-cyan-300 font-bold' : 'text-slate-500'}>{switchA ? '1 (ВКЛ)' : '0 (ВЫКЛ)'}</span>
                   </div>
                 </div>
-                <button
+                <GameButton size="compact"
                   onClick={toggleSwitchA} aria-label="Рубильник A" aria-pressed={switchA} disabled={completed}
                   className={`px-4 py-2 rounded-xl text-xs font-bold font-mono transition-all ${
                     switchA ? 'bg-cyan-400 text-black shadow-lg scale-105' : 'bg-slate-800 text-slate-300 hover:bg-slate-700'
                   }`}
                 >
                   {switchA ? '1: ВКЛ' : '0: ВЫКЛ'}
-                </button>
+                </GameButton>
               </div>
 
               {/* Switch B */}
@@ -282,14 +283,14 @@ export const CircuitBuilderGame: React.FC<{ task: Task; onComplete: () => void }
                     Сигнал: <span className={switchB ? 'text-cyan-300 font-bold' : 'text-slate-500'}>{switchB ? '1 (ВКЛ)' : '0 (ВЫКЛ)'}</span>
                   </div>
                 </div>
-                <button
+                <GameButton size="compact"
                   onClick={toggleSwitchB} aria-label="Рубильник B" aria-pressed={switchB} disabled={completed}
                   className={`px-4 py-2 rounded-xl text-xs font-bold font-mono transition-all ${
                     switchB ? 'bg-cyan-400 text-black shadow-lg scale-105' : 'bg-slate-800 text-slate-300 hover:bg-slate-700'
                   }`}
                 >
                   {switchB ? '1: ВКЛ' : '0: ВЫКЛ'}
-                </button>
+                </GameButton>
               </div>
             </div>
 
@@ -297,8 +298,8 @@ export const CircuitBuilderGame: React.FC<{ task: Task; onComplete: () => void }
             <div className="md:col-span-3 flex flex-col items-center p-4 rounded-2xl bg-slate-950 border border-slate-800 text-center">
               <div className="text-[11px] uppercase font-bold text-slate-400 mb-2">3. Выходной сигнал</div>
               <div className={`w-24 h-24 rounded-full flex items-center justify-center transition-all duration-300 ${
-                isPowered 
-                  ? 'bg-yellow-400/25 border-4 border-yellow-300 shadow-[0_0_40px_rgba(250,204,21,0.8)] animate-pulse' 
+                isPowered
+                  ? 'bg-yellow-400/25 border-4 border-yellow-300 shadow-[0_0_40px_rgba(250,204,21,0.8)] animate-pulse'
                   : 'bg-slate-900 border-2 border-slate-800'
               }`}>
                 <Lightbulb size={48} className={isPowered ? 'text-yellow-300 fill-yellow-300 animate-bounce' : 'text-slate-700'} />
@@ -323,8 +324,8 @@ export const CircuitBuilderGame: React.FC<{ task: Task; onComplete: () => void }
                   <div
                     key={idx}
                     className={`p-2 rounded-xl border transition-all ${
-                      isActive 
-                        ? 'bg-yellow-400/20 border-yellow-400 text-yellow-200 font-bold shadow-[0_0_15px_rgba(250,204,21,0.3)] scale-102' 
+                      isActive
+                        ? 'bg-yellow-400/20 border-yellow-400 text-yellow-200 font-bold shadow-[0_0_15px_rgba(250,204,21,0.3)] scale-102'
                         : 'bg-slate-950/60 border-slate-800 text-slate-400'
                     }`}
                   >
@@ -358,7 +359,7 @@ export const CircuitBuilderGame: React.FC<{ task: Task; onComplete: () => void }
 
         </div>
       </div>
-      {!completed && <button className="workshop-primary mt-4" disabled={transition.current} onClick={()=>checkProgress(switchA,switchB)}>Проверить схему</button>}
+      {!completed && <GameButton variant="primary" size="compact" className="workshop-primary mt-4" disabled={transition.current} onClick={()=>checkProgress(switchA,switchB)}>Проверить схему</GameButton>}
       {error && <p role="alert" className="text-rose-300 mt-3">{error}</p>}
     </div>
   );

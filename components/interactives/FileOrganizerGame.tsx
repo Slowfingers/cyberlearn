@@ -1,3 +1,4 @@
+import {GameButton} from '../GameUI';
 import React, { useState, useRef, useEffect } from 'react';
 import { Task } from '../../types';
 import { playSound } from '../../utils/sound';
@@ -138,10 +139,10 @@ export const FileOrganizerGame: React.FC<{ task: Task; onComplete: () => void }>
   };
   const folderAt = (x: number, y: number) => document.elementFromPoint(x, y)?.closest<HTMLElement>('[data-folder-type]')?.dataset.folderType;
   return <div className="workshop-game delivery-workshop">
-    <WorkshopHeader title="Бюро цифровых посылок" description="Разложи файлы по папкам. Перетаскивай или нажимай: файл → папка."><button className="workshop-icon-button" onClick={reset} aria-label="Начать заново"><RotateCcw size={19} /></button></WorkshopHeader>
+    <WorkshopHeader title="Бюро цифровых посылок" description="Разложи файлы по папкам. Перетаскивай или нажимай: файл → папка."><GameButton variant="secondary" size="icon" className="workshop-icon-button" onClick={reset} aria-label="Начать заново"><RotateCcw size={19} /></GameButton></WorkshopHeader>
     <WorkshopProgress value={placed.length} total={files.length} />
     <p className="workshop-feedback" role="status">{feedback}</p>
-    {selected && <div className="delivery-selection"><span>Выбран файл <strong>{files.find(file => file.id === selected)?.name}</strong></span><button className="academy-primary" onClick={() => foldersRef.current?.scrollIntoView({block:'center'})}>Выбрать папку ↓</button></div>}
+    {selected && <div className="delivery-selection"><span>Выбран файл <strong>{files.find(file => file.id === selected)?.name}</strong></span><GameButton variant="primary" size="compact" className="academy-primary" onClick={() => foldersRef.current?.scrollIntoView({block:'center'})}>Выбрать папку ↓</GameButton></div>}
     <div className="delivery-desk"><div className="workshop-section-title">Посылки ждут доставки <span>{files.length - placed.length}</span></div><div className="parcel-grid">
       {files.filter(f => !placed.includes(f.id)).map(file => <button key={file.id} className={`parcel-card ${selected === file.id ? 'is-selected' : ''}`} aria-pressed={selected === file.id}
         onClick={() => { if (suppressClick.current === file.id) { suppressClick.current = null; return; } suppressClick.current = null; setSelected(file.id); setFeedback(file.description); }}

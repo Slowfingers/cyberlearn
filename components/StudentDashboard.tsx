@@ -1,3 +1,5 @@
+import {GameButton} from './GameUI';
+import {PlayerShop, PlayerProfile} from './PlayerPanels';
 import { AssessmentPlayer } from './AssessmentPanel';
 
 import React, { useState, useEffect, useRef, useCallback, useMemo, lazy, Suspense } from 'react';
@@ -192,7 +194,6 @@ const StudentDashboard: React.FC<StudentDashboardProps> = ({ currentUser: propUs
   // Customization & Market
   const [showProfileModal, setShowProfileModal] = useState(false);
   const [showMarketModal, setShowMarketModal] = useState(false);
-  const [marketCategory, setMarketCategory] = useState('avatar');
 
   // Toast notifications
   const [toasts, setToasts] = useState<ToastMessage[]>([]);
@@ -575,7 +576,7 @@ const StudentDashboard: React.FC<StudentDashboardProps> = ({ currentUser: propUs
           addToast(`${item?.name || 'Предмет'} приобретён!`, 'success');
       } else {
           playSound('error');
-          addToast(res.error || 'Ошибка покупки', 'error');
+          throw new Error(res.error || 'Не удалось купить предмет');
       }
   };
 
@@ -583,11 +584,11 @@ const StudentDashboard: React.FC<StudentDashboardProps> = ({ currentUser: propUs
       if (!currentUser) return;
       let res;
       try { res = await equipItem(currentUser.id, itemId); }
-      catch { addToast("Не удалось сохранить выбранный предмет", "error"); return; }
+      catch { throw new Error("Не удалось сохранить выбранный предмет"); }
       if (res.success && res.user) {
           setCurrentUser(res.user);
           playSound('click');
-      }
+      } else { throw new Error(res.error || 'Не удалось выбрать предмет'); }
   };
 
   const handleNextTask = () => {
@@ -675,219 +676,9 @@ const StudentDashboard: React.FC<StudentDashboardProps> = ({ currentUser: propUs
                  if (sidebarRef.current) sidebarRef.current.scrollTop = 0;
                }} />}
 
-             {/* PROFILE MODAL (Enhanced) */}
-             {showProfileModal && currentUser && (() => {
-                 const userAchievements = ACHIEVEMENTS.filter(a => currentUser.achievements.includes(a.id));
-                 const totalCompleted = tasks.filter(t => t.status === 'completed').length;
-                 const totalTasks = tasks.length;
+             {showProfileModal && currentUser && <PlayerProfile user={currentUser} courses={courses} completed={tasks.filter(t=>t.status==='completed').length} streak={streak} currentLevel={currentLevel} nextLevelXP={nextLevelXP} progress={progressPercent} onClose={()=>setShowProfileModal(false)} onShop={()=>{setShowProfileModal(false);setShowMarketModal(true);}}/>}
+             {showMarketModal && currentUser && <PlayerShop user={currentUser} onClose={()=>setShowMarketModal(false)} onBuy={handleBuyItem} onEquip={handleEquipItem}/>}
 
-                 return (
-                 <div className="academy-modal fixed inset-0 z-[100] bg-black/95 backdrop-blur-md flex flex-col" onClick={(e) => { if (e.target === e.currentTarget) setShowProfileModal(false); }}>
-                     <div className="h-14 md:h-16 shrink-0" />
-                     <div className="flex-1 flex items-start md:items-center justify-center p-3 md:p-4 overflow-hidden">
-                     <div className="w-full max-w-md max-h-full md:max-h-[85vh] bg-[#0c0c10] border border-gray-700 flex flex-col relative rounded-lg overflow-hidden shadow-2xl animate-in zoom-in-95">
-                        <button aria-label="Закрыть профиль" onClick={() => setShowProfileModal(false)} className="absolute top-3 right-3 z-50 text-gray-500 hover:text-white p-2 active:bg-gray-800 rounded">
-                            <X size={24} />
-                        </button>
-                        <div className="p-6 md:p-8 overflow-y-auto custom-scrollbar">
-                            {/* Avatar + Name */}
-                            <div className="text-center mb-6">
-                                <div className="w-28 h-28 mx-auto mb-4 flex items-center justify-center">
-                                    <ShopAvatar frameId={currentUser.equipped.avatarFrame} avatarId={COSMETICS.find(c => c.id === currentUser.equipped.avatar)?.value || '2'} animation="Idle" scale={2} />
-                                </div>
-                                <h3 className="text-2xl font-bold text-white uppercase">{currentUser.name}</h3>
-                                <span className="text-cyber-neonYellow font-mono text-sm">УРОВЕНЬ {currentUser.level}</span>
-                            </div>
-
-                            {/* Stats Grid */}
-                            <div className="grid grid-cols-2 sm:grid-cols-3 gap-3 mb-6">
-                                <div className="bg-gray-900 border border-gray-800 rounded-lg p-3 text-center">
-                                    <div className="text-cyber-neonBlue font-mono font-bold text-lg">{currentUser.xp}</div>
-                                    <div className="text-gray-500 text-[10px] uppercase tracking-wider">XP</div>
-                                </div>
-                                <div className="bg-gray-900 border border-gray-800 rounded-lg p-3 text-center">
-                                    <div className="text-cyber-neonYellow font-mono font-bold text-lg">{currentUser.currency}</div>
-                                    <div className="text-gray-500 text-[10px] uppercase tracking-wider">Монет</div>
-                                </div>
-                                <div className="bg-gray-900 border border-gray-800 rounded-lg p-3 text-center">
-                                    <div className="text-cyber-neonGreen font-mono font-bold text-lg">{totalCompleted}</div>
-                                    <div className="text-gray-500 text-[10px] uppercase tracking-wider">Задач</div>
-                                </div>
-                                <div className="bg-gray-900 border border-orange-500/30 rounded-lg p-3 text-center">
-                                    <div className="text-orange-400 font-mono font-bold text-lg">{streak.currentStreak}</div>
-                                    <div className="text-gray-500 text-[10px] uppercase tracking-wider">Дней подряд</div>
-                                </div>
-                                <div className="bg-gray-900 border border-gray-800 rounded-lg p-3 text-center">
-                                    <div className="text-orange-300 font-mono font-bold text-lg">{streak.longestStreak}</div>
-                                    <div className="text-gray-500 text-[10px] uppercase tracking-wider">Рекорд</div>
-                                </div>
-                                <div className="bg-gray-900 border border-gray-800 rounded-lg p-3 text-center">
-                                    <div className="text-cyber-neonGreen font-mono font-bold text-lg">{streak.tasksToday}</div>
-                                    <div className="text-gray-500 text-[10px] uppercase tracking-wider">Сегодня</div>
-                                </div>
-                            </div>
-
-                            {/* XP Progress to Next Level */}
-                            <div className="mb-6">
-                                <div className="flex justify-between text-xs text-gray-500 mb-1">
-                                    <span>До уровня {currentLevel + 1}</span>
-                                    <span className="font-mono">{currentXP} / {nextLevelXP}</span>
-                                </div>
-                                <div className="w-full h-2 bg-gray-800 rounded-full overflow-hidden">
-                                    <div className="h-full bg-gradient-to-r from-cyber-neonBlue to-cyber-neonPink transition-all duration-500" style={{ width: `${progressPercent}%` }}></div>
-                                </div>
-                            </div>
-
-                            {/* Course Progress */}
-                            <div className="mb-6">
-                                <h4 className="text-xs font-bold text-gray-400 uppercase tracking-widest mb-3 flex items-center gap-2">
-                                    <Flame size={14} className="text-cyber-neonPink" /> Прогресс по курсам
-                                </h4>
-                                <div className="space-y-2">
-                                    {courses.filter(c => c.status === 'active').map(course => (
-                                        <div key={course.id} className="flex items-center gap-3">
-                                            <div className="w-2 h-2 rounded-full shrink-0" style={{ backgroundColor: course.color }}></div>
-                                            <span className="text-xs text-gray-300 flex-1 leading-tight break-words">{course.title.split(':')[0]}</span>
-                                            <div className="w-20 h-1.5 bg-gray-800 rounded-full overflow-hidden shrink-0">
-                                                <div className="h-full transition-all" style={{ width: `${course.progress}%`, backgroundColor: course.color }}></div>
-                                            </div>
-                                            <span className="text-[10px] font-mono text-gray-500 w-8 text-right">{course.progress}%</span>
-                                        </div>
-                                    ))}
-                                </div>
-                            </div>
-
-                            {/* Achievements */}
-                            <div className="mb-6">
-                                <h4 className="text-xs font-bold text-gray-400 uppercase tracking-widest mb-3 flex items-center gap-2">
-                                    <Award size={14} className="text-cyber-neonYellow" /> Достижения ({userAchievements.length}/{ACHIEVEMENTS.length})
-                                </h4>
-                                {userAchievements.length === 0 ? (
-                                    <div className="text-center py-4 text-gray-600 text-xs font-mono">Нет разблокированных достижений</div>
-                                ) : (
-                                    <div className="grid grid-cols-2 gap-2">
-                                        {userAchievements.map(ach => (
-                                            <div key={ach.id} className="bg-gray-900 border border-cyber-neonYellow/20 rounded-lg p-3 flex items-center gap-2">
-                                                <span className="text-xl shrink-0">{ach.icon}</span>
-                                                <div className="min-w-0">
-                                                    <div className="text-[10px] font-bold text-white leading-tight break-words">{ach.title}</div>
-                                                    <div className="text-[9px] text-gray-500 leading-tight break-words">{ach.description}</div>
-                                                </div>
-                                            </div>
-                                        ))}
-                                    </div>
-                                )}
-                                {/* Locked achievements teaser */}
-                                {userAchievements.length < ACHIEVEMENTS.length && (
-                                    <div className="mt-2 grid grid-cols-2 gap-2">
-                                        {ACHIEVEMENTS.filter(a => !currentUser.achievements.includes(a.id)).slice(0, 4).map(ach => (
-                                            <div key={ach.id} className="bg-gray-900/50 border border-gray-800 rounded-lg p-3 flex items-center gap-2 opacity-40">
-                                                <span className="text-xl shrink-0 grayscale">🔒</span>
-                                                <div className="min-w-0">
-                                                    <div className="text-[10px] font-bold text-gray-500 leading-tight break-words">???</div>
-                                                    <div className="text-[9px] text-gray-600 leading-tight break-words">{ach.description}</div>
-                                                </div>
-                                            </div>
-                                        ))}
-                                    </div>
-                                )}
-                            </div>
-
-                            <button onClick={() => setShowProfileModal(false)} className="w-full bg-cyber-neonBlue text-black py-3 font-bold uppercase tracking-widest hover:bg-white transition-colors rounded">ЗАКРЫТЬ</button>
-                        </div>
-                     </div>
-                     </div>
-                 </div>
-                 );
-             })()}
-
-             {/* MARKET MODAL */}
-             {showMarketModal && currentUser && (
-                 <div className="academy-modal fixed inset-0 z-[100] bg-black/95 backdrop-blur-md flex flex-col" onClick={(e) => { if (e.target === e.currentTarget) setShowMarketModal(false); }}>
-                     {/* Spacer for global header on mobile */}
-                     <div className="h-14 md:h-16 shrink-0" />
-                     <div className="flex-1 flex items-start md:items-center justify-center p-3 md:p-4 overflow-hidden">
-                     <div className="w-full max-w-lg md:max-w-5xl h-full md:h-[85vh] bg-[#0c0c10] border border-cyber-neonPink flex flex-col relative rounded-lg overflow-hidden shadow-[0_0_50px_rgba(255,0,255,0.1)]">
-                        <div className="p-3 md:p-4 border-b border-gray-800 flex justify-between items-center bg-gray-900 shrink-0">
-                             <div className="flex items-center gap-2">
-                                 <button onClick={() => setShowMarketModal(false)} className="text-gray-400 hover:text-white p-1.5 -ml-1 active:bg-gray-800 rounded"><ChevronLeft size={22} /></button>
-                                 <h2 className="text-base md:text-xl font-bold text-cyber-neonPink flex items-center gap-2"><ShoppingBag size={18} /> Магазин открытий</h2>
-                             </div>
-                             <div className="flex items-center gap-2 md:gap-4">
-                                 <div className="text-cyber-neonYellow font-mono font-bold flex items-center gap-1.5 bg-black px-2 md:px-3 py-1 rounded border border-cyber-neonYellow/30 text-sm">
-                                     <Coins size={14}/> {currentUser.currency}
-                                 </div>
-                                 <button aria-label="Закрыть магазин" onClick={() => setShowMarketModal(false)} className="text-gray-500 hover:text-white p-1.5 active:bg-gray-800 rounded"><X size={22} /></button>
-                             </div>
-                        </div>
-
-                        <div className="flex gap-2 overflow-x-auto p-3 md:px-6 border-b border-gray-800 shrink-0" aria-label="Категории магазина">
-                            {([['avatar', 'Аватарки'], ['avatarFrame', 'Рамки'], ['mascotSkin', 'Наставники'], ['droneColor', 'Цвета дрона']] as const).map(([type, label]) => (
-                                <button key={type} onClick={() => setMarketCategory(type)} aria-pressed={marketCategory === type} className={`px-4 py-2 rounded-full text-xs font-semibold whitespace-nowrap transition-colors ${marketCategory === type ? 'bg-cyan-300 text-slate-950' : 'bg-gray-900 text-gray-400 hover:text-white'}`}>
-                                    {label} <span className="ml-1 opacity-60">{SHOP_COSMETICS.filter(item => item.type === type && item.id !== 'frame_none').length}</span>
-                                </button>
-                            ))}
-                        </div>
-                        <div className="academy-shop-grid flex-1 overflow-y-auto p-3 md:p-6 grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-3 md:gap-4 auto-rows-max">
-                            {SHOP_COSMETICS.filter(item => item.type === marketCategory).map(item => {
-                                const street = STREET_AVATARS.find(avatar => avatar.value === item.value);
-                                const isOwned = currentUser.inventory.includes(item.id);
-                                const isEquipped = currentUser.equipped.avatar === item.id || currentUser.equipped.droneColor === item.id || currentUser.equipped.mascotSkin === item.id || currentUser.equipped.avatarFrame === item.id;
-                                const canAfford = currentUser.currency >= item.cost;
-                                const isLocked = currentUser.level < item.unlockLevel;
-
-                                return (
-                                    <div key={item.id} data-cosmetic-id={item.id} className={`${street ? 'street-shop-card' : ''} bg-black border rounded-lg ${isEquipped ? 'border-cyber-neonBlue' : 'border-gray-800'} p-3 md:p-4 flex flex-col items-center text-center relative group hover:border-gray-600 transition-colors`}>
-                                        {isLocked && (
-                                            <div className="absolute top-2 right-2 flex items-center gap-1 text-gray-400 bg-gray-950/90 px-2 py-1 rounded-full">
-                                                <Lock size={10} />
-                                                <span className="text-[10px] font-mono">Ур. {item.unlockLevel}</span>
-                                            </div>
-                                        )}
-
-                                        <div className={`${street || item.type === 'mascotSkin' ? 'street-shop-preview' : 'w-28 h-28 md:w-32 md:h-32'} my-3 flex items-center justify-center overflow-hidden rounded-2xl bg-gradient-to-b from-slate-900 to-black`}>
-                                            {item.type === 'avatar' || item.type === 'avatarFrame' ? (
-                                                <ShopAvatar avatarId={item.type === 'avatar' ? item.value : COSMETICS.find(c => c.id === currentUser.equipped.avatar)?.value || '2'} frameId={item.type === 'avatarFrame' ? item.id : currentUser.equipped.avatarFrame} scale={street ? 4 : 2.3} fullBody={!!street} />
-                                            ) : item.type === 'mascotSkin' ? (
-                                                <div className="pointer-events-none mentor-shop-stage">
-                                                    <Suspense fallback={<Bot className="text-cyber-neonBlue animate-pulse" size={28} />}>
-                                                        <BigCharacter3D skin={item.value} mood="happy" gesture="idle" />
-                                                    </Suspense>
-                                                </div>
-                                            ) : (
-                                                <div className="w-10 h-10 rounded-full shadow-[0_0_15px]" style={{backgroundColor: item.value, boxShadow: `0 0 15px ${item.value}`}}></div>
-                                            )}
-                                        </div>
-
-                                        <h3 className="text-white font-bold text-xs md:text-sm mb-0.5 md:mb-1 leading-tight">{item.name}</h3>
-                                        <p className="text-gray-500 text-[9px] md:text-[10px] uppercase mb-2 md:mb-4">{street ? `${street.role} · Анимированный` : item.type === 'avatar' ? 'Аватар' : item.type === 'avatarFrame' ? 'Рамка профиля' : item.type === 'mascotSkin' ? 'Твой помощник в уроках' : 'Цвет Дрона'}</p>
-
-                                        {isOwned ? (
-                                            <button
-                                                onClick={() => handleEquipItem(item.id)}
-                                                disabled={isEquipped}
-                                                className={`w-full py-1.5 md:py-2 text-[10px] md:text-xs font-bold uppercase rounded ${isEquipped ? 'bg-cyber-neonBlue text-black cursor-default' : 'bg-gray-800 text-white hover:bg-gray-700'}`}
-                                            >
-                                                {isEquipped ? 'Экипировано' : 'Надеть'}
-                                            </button>
-                                        ) : (
-                                            <button
-                                                onClick={() => handleBuyItem(item.id)}
-                                                disabled={!canAfford || isLocked}
-                                                className={`w-full py-1.5 md:py-2 text-[10px] md:text-xs font-bold uppercase flex items-center justify-center gap-1.5 rounded ${canAfford ? 'bg-cyber-neonPink text-black hover:bg-white' : 'bg-gray-900 text-gray-600 cursor-not-allowed'}`}
-                                            >
-                                                <span>Купить</span>
-                                                <span className="flex items-center gap-1"><Coins size={10}/> {item.cost}</span>
-                                            </button>
-                                        )}
-                                    </div>
-                                )
-                            })}
-                        </div>
-                     </div>
-                     </div>
-                 </div>
-             )}
         </div>
     );
   }
@@ -924,7 +715,7 @@ const StudentDashboard: React.FC<StudentDashboardProps> = ({ currentUser: propUs
       {/* SIDEBAR (Courses) */}
       <div className={`academy-lesson-nav ${showMobileSidebar ? 'flex' : 'hidden'} md:flex absolute md:relative inset-0 md:inset-auto md:w-64 border-r border-cyber-neonBlue/20 bg-cyber-glass backdrop-blur-md flex-col shrink-0 z-30`}>
         <div className="course-nav-toolbar h-14 flex items-center justify-between border-b border-cyber-neonBlue/20 px-3 shrink-0">
-            <button
+            <GameButton size="compact"
                 onClick={() => {
                     playSound('click');
                     setActiveCourseId(null);
@@ -933,7 +724,7 @@ const StudentDashboard: React.FC<StudentDashboardProps> = ({ currentUser: propUs
                 className="flex items-center gap-1 text-gray-200 active:text-white py-3 pr-4 text-xs font-bold uppercase tracking-wider hover:text-cyber-neonBlue transition-colors"
             >
                 <ChevronLeft size={18} /> На базу
-            </button>
+            </GameButton>
             {currentUser && (
                 <div className="flex items-center gap-2">
                     <span className="text-cyber-neonYellow font-mono text-xs font-bold">LVL {currentUser.level}</span>
@@ -949,7 +740,7 @@ const StudentDashboard: React.FC<StudentDashboardProps> = ({ currentUser: propUs
               <h2>{currentCourse?.title || 'Учебные работы'}</h2>
               <p><span>Пройдено {courseDone} из {filteredTasks.length}</span><strong>{coursePercent}%</strong></p>
               <div className="course-nav-progress" role="progressbar" aria-label="Пройдено уроков" aria-valuemin={0} aria-valuemax={filteredTasks.length || 1} aria-valuenow={courseDone}><i style={{width:`${coursePercent}%`}}/></div>
-              {resumeTask && <button className="academy-primary course-resume" onClick={() => {setActiveTask(resumeTask);setLessonStage('explanation');setShowMobileSidebar(false);setTaskTab('info');}}>Продолжить курс <ArrowRight size={16}/></button>}
+              {resumeTask && <GameButton variant="primary" className="course-resume" onClick={() => {setActiveTask(resumeTask);setLessonStage('explanation');setShowMobileSidebar(false);setTaskTab('info');}}>Продолжить курс <ArrowRight size={16}/></GameButton>}
               {!resumeTask && courseDone > 0 && <span className="course-finished"><CheckCircle size={15}/> Курс пройден. Можно повторить!</span>}
               <small>Нажми на раздел, чтобы увидеть уроки</small>
             </section>
@@ -983,7 +774,7 @@ const StudentDashboard: React.FC<StudentDashboardProps> = ({ currentUser: propUs
                                     : 'hover:bg-white/5 text-gray-200 hover:text-white'}
                                     ${task.status === 'locked' ? 'opacity-40 grayscale' : ''}`}
                             >
-                                <button
+                                <GameButton size="compact"
                                     onClick={() => {
                                         playSound('click');
                                         setActiveTask(task);
@@ -1029,7 +820,7 @@ const StudentDashboard: React.FC<StudentDashboardProps> = ({ currentUser: propUs
                                         <div className="text-sm md:text-sm font-bold leading-tight font-sans break-words">{task.title}</div>
                                         <div className="text-[11px] mt-1 text-gray-400">{task.status === 'completed' ? 'Пройдено · можно повторить' : task.status === 'locked' ? 'Пока закрыто' : activeTask?.id === task.id ? 'Ты здесь' : task.type === 'quiz' ? 'Проверяем понимание' : 'Практикуемся'}</div>
                                     </div>
-                                </button>
+                                </GameButton>
 
 
                             </div>
@@ -1114,7 +905,7 @@ const StudentDashboard: React.FC<StudentDashboardProps> = ({ currentUser: propUs
                           }
 
                           return (
-                            <button
+                            <GameButton size="compact"
                                 key={idx}
                                 disabled={quizSubmitted}
                                 onClick={() => { playSound('click'); setQuizSelectedOption(idx); }}
@@ -1123,7 +914,7 @@ const StudentDashboard: React.FC<StudentDashboardProps> = ({ currentUser: propUs
                             >
                                 <span className="mr-4 opacity-50">{idx + 1}.</span>
                                 {opt}
-                            </button>
+                            </GameButton>
                           )
                       })}
                   </div>
@@ -1146,28 +937,28 @@ const StudentDashboard: React.FC<StudentDashboardProps> = ({ currentUser: propUs
                       </div>
 
                       {!quizSubmitted ? (
-                          <button
-                             onClick={handleQuizSubmit}
+                          <GameButton size="compact"
+                             variant="primary" onClick={handleQuizSubmit}
                              disabled={quizSelectedOption === null}
                              className={`academy-primary lesson-check px-8 py-3 font-bold uppercase tracking-widest transition-all ${quizSelectedOption !== null ? 'bg-cyber-neonBlue text-black hover:bg-white' : 'bg-gray-800 text-gray-500 cursor-not-allowed'}`}
                           >
                               Проверить
-                          </button>
+                          </GameButton>
                       ) : (
                           quizIsCorrect ? (
-                              !missionSuccess && <button
-                                onClick={handleNextTask}
+                              !missionSuccess && <GameButton size="compact"
+                                variant="primary" onClick={handleNextTask}
                                 className={`academy-primary flex px-6 py-3 bg-cyber-neonGreen text-black hover:bg-white border border-cyber-neonGreen font-bold uppercase items-center gap-2 text-sm md:text-base`}
                               >
                                   {(tasks.filter(t => t.courseId === activeTask.courseId).findIndex(t => t.id === activeTask.id) < tasks.filter(t => t.courseId === activeTask.courseId).length - 1) ? 'Далее' : 'Завершить'} <ArrowRight size={18} />
-                              </button>
+                              </GameButton>
                           ) : (
-                              <button
+                              <GameButton size="compact"
                                 onClick={handleQuizRetry}
                                 className="academy-secondary px-6 py-3 bg-red-500/20 text-red-500 hover:bg-red-500 hover:text-black border border-red-500 font-bold uppercase flex items-center gap-2 transition-colors text-sm md:text-base"
                               >
                                   <RotateCcw size={18} /> Повторить
-                              </button>
+                              </GameButton>
                           )
                       )}
                   </div>
@@ -1239,28 +1030,28 @@ const StudentDashboard: React.FC<StudentDashboardProps> = ({ currentUser: propUs
 
       {/* 6. CODE/TERMINAL TASK VIEW */}
       {isCodingTask && activeTask && lessonStage === 'practice' && (
-          <div className={`${!showMobileSidebar ? 'flex' : 'hidden'} xl:flex flex-1 flex-col min-w-0 overflow-hidden`}>
+          <div className={`${!showMobileSidebar ? 'flex' : 'hidden'} lg:flex ui-code-workspace flex-1 flex-col min-w-0 overflow-hidden`}>
             {/* MOBILE TOP BAR (always visible for coding tasks) */}
-            <div className="xl:hidden flex items-center border-b border-gray-800 px-2 py-2 bg-gray-950 shrink-0 gap-2">
-                <button aria-label="Меню курса" onClick={() => setShowMobileSidebar(true)} className="p-2 text-gray-200 active:text-white shrink-0"><ChevronLeft size={20}/></button>
+            <div className="lg:hidden flex items-center border-b border-gray-800 px-2 py-2 bg-gray-950 shrink-0 gap-2">
+                <GameButton size="compact" aria-label="Меню курса" onClick={() => setShowMobileSidebar(true)} className="p-2 text-gray-200 active:text-white shrink-0"><ChevronLeft size={20}/></GameButton>
                 <span className="text-xs font-bold text-gray-300 uppercase leading-tight break-words flex-1">{activeTask.title}</span>
-                  {lessonStage === 'practice' && <button onClick={() => setLessonStage('explanation')} className="text-sm text-cyan-300 px-3 py-2">К объяснению</button>}
-                <button
+                  {lessonStage === 'practice' && <GameButton size="compact" onClick={() => setLessonStage('explanation')} className="text-sm text-cyan-300 px-3 py-2">К объяснению</GameButton>}
+                <GameButton size="compact" variant="primary"
                     onClick={handleRunCode}
                     disabled={isRunning}
                     className={`shrink-0 px-4 py-2 text-xs font-bold uppercase flex items-center gap-1 ${isRunning ? 'bg-gray-700 text-gray-400' : 'bg-cyber-neonGreen text-black'}`}
                 >
                     {isRunning ? <Loader2 size={14} className="animate-spin"/> : <Play size={14} className="fill-current"/>}
                     {isRunning ? '...' : 'Запустить'}
-                </button>
+                </GameButton>
             </div>
 
             <section className="academy-task-brief academy-code-brief" aria-label="Задача"><span>Твоя задача</span><p>{getTaskPracticeGoal(activeTask)}</p></section>
             {/* CONTENT AREA: tabs on mobile, side-by-side on desktop */}
-            <div className="flex-1 flex flex-col xl:flex-row min-w-0 overflow-hidden">
+            <div className="flex-1 flex flex-col lg:flex-row min-w-0 overflow-hidden">
 
             {/* MOBILE: TASK INFO TAB */}
-            <div className={`${taskTab === 'info' ? 'flex' : 'hidden'} xl:hidden flex-1 flex-col bg-gray-950 overflow-hidden`}>
+            <div className={`${taskTab === 'info' ? 'flex' : 'hidden'} lg:hidden flex-1 flex-col bg-gray-950 overflow-hidden`}>
                 <div className="flex-1 overflow-y-auto p-4">
                     <div className="prose prose-invert prose-sm max-w-none">
                         <h3 className="text-cyber-neonGreen font-mono">Задание</h3>
@@ -1273,9 +1064,9 @@ const StudentDashboard: React.FC<StudentDashboardProps> = ({ currentUser: propUs
             </div>
 
             {/* EDITOR AREA / TERMINAL INPUT */}
-            <div className={`${taskTab === 'code' ? 'flex' : 'hidden'} xl:flex flex-1 flex-col relative min-w-0 bg-black overflow-hidden`}>
+            <div className={`${taskTab === 'code' ? 'flex' : 'hidden'} lg:flex flex-1 flex-col relative min-w-0 bg-black overflow-hidden`}>
                  {/* Top Bar Desktop Only */}
-                 <div className="hidden xl:flex min-h-[3.5rem] py-2 bg-gray-900 border-b border-cyber-neonBlue/20 items-center justify-between px-4 shrink-0">
+                 <div className="hidden lg:flex min-h-[3.5rem] py-2 bg-gray-900 border-b border-cyber-neonBlue/20 items-center justify-between px-4 shrink-0">
                      <div className="flex items-center gap-3 min-w-0">
                          <div className="bg-cyber-neonPink/20 p-1.5 rounded text-cyber-neonPink border border-cyber-neonPink/50 shrink-0"><Code size={16} /></div>
                          <div className="min-w-0">
@@ -1284,25 +1075,25 @@ const StudentDashboard: React.FC<StudentDashboardProps> = ({ currentUser: propUs
                          </div>
                      </div>
                      <div className="flex gap-2">
-                         <button onClick={() => setLessonStage('explanation')} className="text-sm text-cyan-300 px-3 py-2">К объяснению</button>
-                         <button
+                         <GameButton size="compact" onClick={() => setLessonStage('explanation')} className="text-sm text-cyan-300 px-3 py-2">К объяснению</GameButton>
+                         <GameButton size="compact"
                             title="Сбросить код к начальному"
                             onClick={() => { playSound('click'); setCode(activeTask.lesson?.starterCode ?? activeTask.initialCode ?? ''); }}
                             className="p-2 text-gray-500 hover:text-red-400"
                         >
                             <RotateCcw size={18} />
-                        </button>
-                         <button
+                        </GameButton>
+                         <GameButton size="compact"
                             onClick={() => setShowTheory(!showTheory)}
                             className={`flex items-center gap-2 px-3 py-1.5 text-xs font-bold uppercase border transition-all ${showTheory ? 'bg-cyber-neonBlue text-black border-cyber-neonBlue' : 'border-cyber-neonBlue/30 text-cyber-neonBlue'}`}
                         >
                             <BookOpen size={14} /> Справка
-                        </button>
+                        </GameButton>
                      </div>
                  </div>
 
                  {/* Theory Panel (Desktop) */}
-                 <div className={`hidden xl:block bg-gray-900 border-b border-cyber-neonBlue/20 overflow-hidden transition-all duration-300 ${showTheory ? 'max-h-[35vh]' : 'max-h-0'}`}>
+                 <div className={`hidden lg:block bg-gray-900 border-b border-cyber-neonBlue/20 overflow-hidden transition-all duration-300 ${showTheory ? 'max-h-[35vh]' : 'max-h-0'}`}>
                     <div className="p-6 overflow-y-auto max-h-[35vh] prose prose-invert prose-sm max-w-none">
                         <h3 className="text-cyber-neonGreen font-mono">Главная идея</h3>
                         <div className="lesson-theory-copy" dangerouslySetInnerHTML={{ __html: activeTask.theory || '' }} />
@@ -1320,11 +1111,12 @@ const StudentDashboard: React.FC<StudentDashboardProps> = ({ currentUser: propUs
                                 <span className="text-cyber-neonPink mt-0.5">$</span>
                                 <textarea
                                     ref={editorRef}
+                                    aria-label="Код решения"
                                     autoFocus
                                     value={code}
                                     onChange={(e) => setCode(e.target.value)}
                                     // Removed Enter key binding to allow multiline typing
-                                    className="flex-1 bg-transparent border-none outline-none text-cyber-neonGreen font-mono resize-none min-h-[120px] xl:min-h-[200px]"
+                                    className="flex-1 bg-transparent border-none outline-none text-cyber-neonGreen font-mono resize-none min-h-[120px] lg:min-h-[200px]"
                                     spellCheck={false}
                                 />
                             </div>
@@ -1337,22 +1129,23 @@ const StudentDashboard: React.FC<StudentDashboardProps> = ({ currentUser: propUs
                                 <div className="bg-[#0e0e12] border-b border-gray-800 p-2 flex flex-wrap gap-2 shrink-0 items-center z-20">
                                     <span className="text-[10px] font-bold text-gray-600 uppercase shrink-0 px-2">Команды:</span>
                                     {activeTask.allowedCommands.map(cmd => (
-                                        <button
+                                        <GameButton size="compact"
                                             key={cmd}
                                             onClick={() => insertCommand(cmd)}
                                             className="px-3 py-2 bg-[#1a1a20] border border-gray-700 text-gray-300 text-xs font-mono rounded active:bg-cyber-neonBlue active:text-black whitespace-nowrap"
                                         >
                                             {activeTask.type === 'grid' ? <span className="flex flex-col whitespace-normal text-left"><strong>{activeTask.lesson?.commands?.find(c=>c.code===cmd)?.meaning ?? cmd}</strong><small>{cmd.replace(/range\(\d+\)/,'range(число)')}</small></span> : cmd}
-                                        </button>
+                                        </GameButton>
                                     ))}
                                 </div>
                             )}
 
                             <textarea
                                 ref={editorRef}
+                                    aria-label="Код решения"
                                 value={code}
                                 onChange={(e) => setCode(e.target.value)}
-                                className="flex-1 bg-black text-gray-200 p-4 font-mono text-sm resize-none focus:outline-none leading-relaxed whitespace-pre min-w-0 min-h-[200px] xl:min-h-[300px]"
+                                className="flex-1 bg-black text-gray-200 p-4 font-mono text-sm resize-none focus:outline-none leading-relaxed whitespace-pre min-w-0 min-h-[200px] lg:min-h-[300px]"
                                 spellCheck={false}
                                 placeholder={activeTask.type === 'html' ? "<!-- Пиши HTML код здесь -->" : "// Введите код..."}
                             />
@@ -1360,21 +1153,21 @@ const StudentDashboard: React.FC<StudentDashboardProps> = ({ currentUser: propUs
                     )}
 
                     {/* Execute Button Desktop */}
-                    <div className="absolute bottom-6 right-6 z-20 hidden xl:block">
-                        <button
+                    <div className="ui-code-runbar hidden lg:flex">
+                        <GameButton size="compact" variant="primary"
                             onClick={handleRunCode}
                             disabled={isRunning}
                             className={`pl-6 pr-8 py-4 bg-cyber-neonGreen text-black font-bold font-sans text-lg uppercase tracking-widest clip-path-polygon hover:bg-white transition-all ${isRunning ? 'opacity-70 cursor-wait' : 'hover:scale-105'}`}
-                            style={{ clipPath: 'polygon(10% 0, 100% 0, 100% 70%, 90% 100%, 0 100%, 0 30%)' }}
+
                         >
                             <div className="flex items-center gap-3">{isRunning ? <Loader2 className="animate-spin" /> : <Play className="fill-current" />} {isRunning ? 'ВЫПОЛНЕНИЕ...' : 'ЗАПУСК'}</div>
-                        </button>
+                        </GameButton>
                     </div>
                  </div>
             </div>
 
             {/* VISUAL AREA */}
-            <div className={`${taskTab === 'visual' ? 'flex' : 'hidden'} xl:flex xl:w-96 bg-[#0c0c10] flex-col shrink-0 relative z-20 border-l border-gray-800 overflow-hidden`}>
+            <div className={`${taskTab === 'visual' ? 'flex' : 'hidden'} lg:flex lg:w-96 bg-[#0c0c10] flex-col shrink-0 relative z-20 border-l border-gray-800 overflow-hidden`}>
 
                  {/* === HTML TASK: Full browser-like preview === */}
                  {activeTask.type === 'html' && (
@@ -1406,7 +1199,7 @@ const StudentDashboard: React.FC<StudentDashboardProps> = ({ currentUser: propUs
                                  <div className="text-[10px] text-gray-500 font-mono leading-tight break-words flex-1">
                                      {logs.length > 0 ? logs[logs.length - 1] : '> Ready'}
                                  </div>
-                                 <button onClick={handleGetHint} disabled={isHintLoading} className="px-2 py-1 border border-cyber-neonBlue/30 bg-cyber-neonBlue/5 text-cyber-neonBlue font-bold text-[10px] uppercase flex items-center gap-1 shrink-0 rounded">{isHintLoading ? <Loader2 className="animate-spin w-3 h-3"/> : <Zap size={10}/>} Хинт</button>
+                                 <GameButton size="compact" onClick={handleGetHint} disabled={isHintLoading} className="px-2 py-1 border border-cyber-neonBlue/30 bg-cyber-neonBlue/5 text-cyber-neonBlue font-bold text-[10px] uppercase flex items-center gap-1 shrink-0 rounded">{isHintLoading ? <Loader2 className="animate-spin w-3 h-3"/> : <Zap size={10}/>} Подсказка</GameButton>
                              </div>
                          </div>
                      </div>
@@ -1416,12 +1209,12 @@ const StudentDashboard: React.FC<StudentDashboardProps> = ({ currentUser: propUs
                  {activeTask.type !== 'html' && (
                      <>
                          <div className="p-3 border-b border-gray-800 bg-cyber-panel flex justify-between items-center shrink-0">
-                             <span className="text-xs font-bold text-cyber-neonBlue tracking-widest uppercase flex items-center gap-2"><div className="w-2 h-2 rounded-full bg-red-500 animate-pulse"></div> LIVE FEED</span>
+                             <span className="text-xs font-bold text-cyber-neonBlue tracking-widest uppercase flex items-center gap-2"><div className="w-2 h-2 rounded-full bg-red-500 animate-pulse"></div> Результат</span>
                              <span className="text-[10px] font-mono text-gray-500">MODE: {activeTask.type === 'terminal' ? 'SHELL' : 'DRONE'}</span>
                          </div>
 
                          {/* RENDER BOX */}
-                         <div className="w-full relative bg-black flex items-center justify-center overflow-hidden border-b border-cyber-neonBlue/20 shrink-0 aspect-square xl:max-h-[50vh]">
+                         <div className="w-full relative bg-black flex items-center justify-center overflow-hidden border-b border-cyber-neonBlue/20 shrink-0 aspect-square lg:max-h-[50vh]">
 
                              {activeTask.type === 'grid' && activeTask.mapConfig && (
                                 <Suspense fallback={<LessonLoader />}>
@@ -1482,11 +1275,11 @@ const StudentDashboard: React.FC<StudentDashboardProps> = ({ currentUser: propUs
                          </div>
 
                          <div className="flex-1 flex flex-col p-4 bg-cyber-panel/50 min-h-0 overflow-hidden">
-                             <div className="flex items-center gap-2 mb-2 opacity-70 shrink-0"><Bot size={20} className="text-cyber-neonBlue" /><h3 className="font-bold text-gray-300 text-xs">LOGS</h3></div>
+                             <div className="flex items-center gap-2 mb-2 opacity-70 shrink-0"><Bot size={20} className="text-cyber-neonBlue" /><h3 className="font-bold text-gray-300 text-xs">Проверка решения</h3></div>
                              <div className="flex-1 border border-dashed border-gray-700 rounded-lg p-3 mb-3 bg-black/40 text-xs text-gray-400 font-mono overflow-y-auto">
                                  {logs.map((log, i) => <div key={i} className={log.includes('ОШИБКА') ? 'text-red-500' : 'text-gray-400'}>{log}</div>)}
                              </div>
-                             <button onClick={handleGetHint} disabled={isHintLoading} className="w-full py-3 border border-cyber-neonBlue/30 bg-cyber-neonBlue/5 text-cyber-neonBlue font-bold text-xs uppercase flex justify-center items-center gap-2 shrink-0">{isHintLoading ? <Loader2 className="animate-spin w-4 h-4"/> : <Zap size={16}/>} ПОДСКАЗКА</button>
+                             <GameButton size="compact" onClick={handleGetHint} disabled={isHintLoading} className="w-full py-3 border border-cyber-neonBlue/30 bg-cyber-neonBlue/5 text-cyber-neonBlue font-bold text-xs uppercase flex justify-center items-center gap-2 shrink-0">{isHintLoading ? <Loader2 className="animate-spin w-4 h-4"/> : <Zap size={16}/>} ПОДСКАЗКА</GameButton>
                          </div>
                      </>
                  )}
@@ -1495,19 +1288,19 @@ const StudentDashboard: React.FC<StudentDashboardProps> = ({ currentUser: propUs
             </div>{/* end content area flex row */}
       {/* --- MOBILE BOTTOM NAVIGATION (coding tasks only) --- */}
       {isCodingTask && lessonStage === 'practice' && !showMobileSidebar && (
-        <div className="xl:hidden h-14 bg-gray-900 border-t border-gray-800 flex items-stretch shrink-0 z-[60] w-full">
-            <button onClick={() => setTaskTab('info')} className={`flex flex-col items-center justify-center flex-1 py-2 gap-1 ${taskTab === 'info' ? 'text-cyber-neonBlue bg-black' : 'text-gray-500'}`}>
+        <div className="lg:hidden h-14 bg-gray-900 border-t border-gray-800 flex items-stretch shrink-0 z-[60] w-full">
+            <GameButton size="compact" aria-pressed={taskTab === 'info'} onClick={() => setTaskTab('info')} className={`flex flex-col items-center justify-center flex-1 py-2 gap-1 ${taskTab === 'info' ? 'text-cyber-neonBlue bg-black' : 'text-gray-500'}`}>
                 <LayoutList size={18} />
-                <span className="text-[9px] font-bold uppercase">Инфо</span>
-            </button>
-            <button onClick={() => setTaskTab('code')} className={`flex flex-col items-center justify-center flex-1 py-2 gap-1 ${taskTab === 'code' ? 'text-cyber-neonBlue bg-black' : 'text-gray-500'}`}>
+                <span className="text-[9px] font-bold uppercase">Задача</span>
+            </GameButton>
+            <GameButton size="compact" aria-pressed={taskTab === 'code'} onClick={() => setTaskTab('code')} className={`flex flex-col items-center justify-center flex-1 py-2 gap-1 ${taskTab === 'code' ? 'text-cyber-neonBlue bg-black' : 'text-gray-500'}`}>
                 <Code size={18} />
                 <span className="text-[9px] font-bold uppercase">Код</span>
-            </button>
-            <button onClick={() => setTaskTab('visual')} className={`flex flex-col items-center justify-center flex-1 py-2 gap-1 ${taskTab === 'visual' ? 'text-cyber-neonBlue bg-black' : 'text-gray-500'}`}>
+            </GameButton>
+            <GameButton size="compact" aria-pressed={taskTab === 'visual'} onClick={() => setTaskTab('visual')} className={`flex flex-col items-center justify-center flex-1 py-2 gap-1 ${taskTab === 'visual' ? 'text-cyber-neonBlue bg-black' : 'text-gray-500'}`}>
                 <Eye size={18} />
-                <span className="text-[9px] font-bold uppercase">Вывод</span>
-            </button>
+                <span className="text-[9px] font-bold uppercase">Результат</span>
+            </GameButton>
         </div>
       )}
 

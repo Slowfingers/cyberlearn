@@ -5,7 +5,7 @@ const originalFetch=globalThis.fetch;
 let tick:()=>void, cleared=false, calls=0, offline=false;
 let user:unknown={id:'student_test',role:'student',name:'Тест'};
 const win=new EventTarget() as any;
-win.setInterval=(callback:()=>void,ms:number)=>{assert.equal(ms,15000);tick=callback;return 1;};
+win.setInterval=(callback:()=>void,ms:number)=>{assert.equal(ms,3000);tick=callback;return 1;};
 win.clearInterval=()=>{cleared=true;};
 const doc=new EventTarget() as any;doc.visibilityState='visible';
 Object.assign(globalThis,{window:win,document:doc});

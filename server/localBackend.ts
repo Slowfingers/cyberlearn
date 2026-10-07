@@ -125,7 +125,7 @@ export async function localCall<T>(operation: string, data: Record<string, unkno
     case 'resolveHand': { const student=state.users[String(data.studentId)]; if(!student?.classId) throw new Error('Ученик не найден.'); owned(student.classId); student.helpRequestedAt=undefined; student.helpTaskId=undefined; changed=true; break; }
     case 'endClassSession': {
       const cls = owned(String(data.classId));
-      const ids = new Set(Object.values(state.users).filter(s => s.role === 'student' && s.classId === cls.id).map(s => s.id));
+      const ids = new Set(Object.values(state.users).filter(s => s.role === 'student' && (s.classId === cls.id || cls.studentIds.includes(s.id))).map(s => s.id));
       const sessions = readSessions();
       for (const key of Object.keys(sessions)) if (ids.has(sessions[key].uid)) delete sessions[key];
       saveSessions(sessions);
@@ -158,6 +158,7 @@ export async function localCall<T>(operation: string, data: Record<string, unkno
       const cls: Classroom = {id:`local_class_${crypto.randomUUID()}`,name,teacherId:user.id,inviteCode:crypto.randomUUID().replace(/-/g,'').slice(0,12).toUpperCase(),studentIds:[]};
       state.classes[cls.id] = cls; result = cls; changed = true; break;
     }
+    case 'setClassFolder': { const cls=owned(String(data.classId)); cls.folder=String(data.folder ?? '').trim().slice(0,100); if(cls.folder) state.folders=[...new Set([...(state.folders ?? []),cls.folder])]; result=cls; changed=true; break; }
     case 'updateClassroom': {
       const updated = data.classroom as Classroom; const cls = owned(updated.id);
       cls.name = updated.name; cls.hiddenCourses = updated.hiddenCourses ?? []; cls.folder = String(updated.folder ?? '').trim().slice(0,100); changed = true; break;

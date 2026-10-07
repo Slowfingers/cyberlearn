@@ -1,3 +1,4 @@
+import {GameButton} from '../GameUI';
 import React, { useState, useEffect, useRef } from 'react';
 import { Task } from '../../types';
 import { playSound } from '../../utils/sound';
@@ -28,23 +29,8 @@ export const TypingGame: React.FC<{ task: Task; onComplete: () => void }> = ({ t
   const rows = language === 'ru' ? ['ё1234567890-=', 'йцукенгшщзхъ', 'фывапролджэ', 'ячсмитьбю.'] : ['`1234567890-=', 'qwertyuiop[]', "asdfghjkl;'", 'zxcvbnm,./'];
   const shifted = language === 'ru' ? ['Ё!"№;%:?*()_+', 'ЙЦУКЕНГШЩЗХЪ', 'ФЫВАПРОЛДЖЭ', 'ЯЧСМИТЬБЮ,'] : ['~!@#$%^&*()_+', 'QWERTYUIOP{}', 'ASDFGHJKL:"', 'ZXCVBNM<>?'];
   const needsShift = rows.some((row, r) => [...row].some((char, i) => shifted[r][i] === next && char !== next));
-  const positionCursor = (position: number) => {
-    setCursor(position);
-    requestAnimationFrame(() => { inputRef.current?.setSelectionRange(position, position); if (window.matchMedia('(pointer: fine)').matches) inputRef.current?.focus({ preventScroll: true }); });
-  };
-  const insert = (char: string) => {
-    const start = inputRef.current?.selectionStart ?? input.length;
-    const end = inputRef.current?.selectionEnd ?? input.length;
-    update(input.slice(0, start) + char + input.slice(end)); setShift(false); positionCursor(start + char.length);
-  };
-  const erase = () => {
-    const start = inputRef.current?.selectionStart ?? input.length;
-    const end = inputRef.current?.selectionEnd ?? input.length;
-    const from = start === end ? Math.max(0, start - 1) : start;
-    update(input.slice(0, from) + input.slice(end)); positionCursor(from);
-  };
   return <div className="workshop-game typing-workshop">
-    <div className="typing-toolbar"><h2>Клавиатурный тренажёр</h2><div><button className="typing-tool academy-secondary" onClick={() => setShowKeyboard(!showKeyboard)} aria-pressed={showKeyboard}>{showKeyboard ? 'Скрыть клавиатуру' : 'Показать клавиатуру'}</button><button className="typing-tool academy-secondary" onClick={reset} aria-label="Начать заново" title="Начать заново"><RotateCcw size={17} /></button></div></div>
+    <div className="typing-toolbar"><h2>Клавиатурный тренажёр</h2><div><GameButton variant="secondary" size="compact" className="typing-tool academy-secondary" onClick={() => setShowKeyboard(!showKeyboard)} aria-pressed={showKeyboard}>{showKeyboard ? 'Скрыть клавиатуру' : 'Показать клавиатуру'}</GameButton><GameButton variant="secondary" size="compact" className="typing-tool academy-secondary" onClick={reset} aria-label="Начать заново" title="Начать заново"><RotateCcw size={17} /></GameButton></div></div>
     <section className={`typing-surface ${focused ? 'is-focused' : ''} ${completed ? 'is-completed' : ''}`}>
       <p id={`typing-example-${task.id}`} className="sr-only">Образец для набора: {target}</p>
       <div className="typing-inline-editor">
@@ -54,9 +40,9 @@ export const TypingGame: React.FC<{ task: Task; onComplete: () => void }> = ({ t
       <div className="typing-status"><p id={`typing-help-${task.id}`} role="status">{completed ? 'Готово! Текст набран верно.' : firstError >= target.length ? 'Удали лишние символы в конце.' : firstError >= 0 ? `Исправь символ ${firstError + 1}: нужен ${next === ' ' ? 'пробел' : next === '\n' ? 'Enter' : `«${next}»`}.` : focused || input ? needsShift ? 'Для выделенной клавиши удерживай Shift.' : 'Печатай выделенные символы.' : 'Нажми на текст и начни печатать.'}</p><span>{Math.min(correct, target.length)} / {target.length}</span></div>
       <div className="typing-progress" role="progressbar" aria-label="Прогресс задания" aria-valuenow={Math.min(correct, target.length)} aria-valuemin={0} aria-valuemax={target.length}><i style={{width:`${correct / target.length * 100}%`}} /></div>
     </section>
-    {showKeyboard && <section className="keyboard-board" aria-label="Экранная клавиатура"><div className="keyboard-caption"><span>Можно печатать и на экране</span><button onClick={() => setLanguage(language === 'ru' ? 'en' : 'ru')} aria-label="Переключить язык клавиатуры">{language === 'ru' ? 'РУС' : 'ENG'} ↔</button></div>
-      {rows.map((row, r) => <div className="keyboard-row" key={r}>{[...row].map((char, i) => <button disabled={completed} key={i} onMouseDown={e => e.preventDefault()} aria-label={shift ? shifted[r][i] : char.toUpperCase()} className={`keycap ${char === next || shifted[r][i] === next ? 'keycap-next' : ''}`} onClick={() => insert(shift ? shifted[r][i] : char)}><small>{shifted[r][i] !== char.toUpperCase() ? shifted[r][i] : ''}</small>{shift ? shifted[r][i] : char.toUpperCase()}</button>)}</div>)}
-      <div className="keyboard-row"><button onMouseDown={e => e.preventDefault()} className={`keycap keycap-wide ${shift || needsShift ? 'keycap-next' : ''}`} disabled={completed} onClick={() => setShift(!shift)} aria-pressed={shift}>⇧ Shift</button><button onMouseDown={e => e.preventDefault()} className={`keycap keycap-space ${next === ' ' ? 'keycap-next' : ''}`} disabled={completed} onClick={() => insert(' ')}>Пробел</button><button onMouseDown={e => e.preventDefault()} className="keycap keycap-wide" disabled={completed} onClick={erase} aria-label="Удалить последний символ">⌫</button><button onMouseDown={e => e.preventDefault()} className={`keycap keycap-wide ${next === '\n' ? 'keycap-next' : ''}`} disabled={completed} onClick={() => insert('\n')} aria-label="Новая строка">↵</button></div>
+    {showKeyboard && <section className="keyboard-board" aria-label="Экранная клавиатура"><div className="keyboard-caption"><span>Печатай на клавиатуре — подсвечена следующая клавиша</span><button onClick={() => setLanguage(language === 'ru' ? 'en' : 'ru')} aria-label="Переключить язык клавиатуры">{language === 'ru' ? 'РУС' : 'ENG'} ↔</button></div>
+      {rows.map((row,r)=><div className="keyboard-row" key={r}>{[...row].map((char,i)=><span key={i} className={`keycap ${char === next || shifted[r][i] === next ? 'keycap-next' : ''}`}><small>{shifted[r][i] !== char.toUpperCase() ? shifted[r][i] : ''}</small>{shift ? shifted[r][i] : char.toUpperCase()}</span>)}</div>)}
+      <div className="keyboard-row"><span className={`keycap keycap-wide ${needsShift ? 'keycap-next' : ''}`}>⇧ Shift</span><span className={`keycap keycap-space ${next === ' ' ? 'keycap-next' : ''}`}>Пробел</span><span className="keycap keycap-wide">⌫</span><span className={`keycap keycap-wide ${next === '\n' ? 'keycap-next' : ''}`}>↵</span></div>
     </section>}
   </div>;
 };

@@ -1,3 +1,4 @@
+import {GameButton} from '../GameUI';
 import React, { useState, useEffect } from 'react';
 import { Task } from '../../types';
 import { playSound } from '../../utils/sound';
@@ -88,7 +89,7 @@ export const PhishingInspectorGame: React.FC<PhishingInspectorGameProps> = ({ ta
   const foundCount = threats.filter(t => t.found).length;
 
   return (
-    <div className="workshop-legacy phishing-workshop flex flex-col h-full bg-gray-950 p-4 md:p-6 overflow-y-auto">
+    <div className="ui-trainer-family workshop-legacy phishing-workshop flex flex-col h-full bg-gray-950 p-4 md:p-6 overflow-y-auto">
       {/* Header */}
       <div className="workshop-banner flex flex-wrap items-center justify-between gap-4 p-4 bg-black/70 border border-cyber-neonPink/30 rounded-xl mb-4">
         <div className="flex items-center gap-3">
@@ -106,13 +107,13 @@ export const PhishingInspectorGame: React.FC<PhishingInspectorGameProps> = ({ ta
             <div className="text-[9px] text-gray-400">ОБНАРУЖЕНО УГРОЗ</div>
             <div className="text-lg font-bold text-cyber-neonPink">{foundCount} / {threats.length}</div>
           </div>
-          <button
+          <GameButton size="compact"
             onClick={resetGame}
             className="p-2.5 bg-gray-900 hover:bg-gray-800 text-gray-300 border border-gray-800 rounded-lg transition-colors"
             title="Сбросить"
           >
             <RotateCcw size={16} />
-          </button>
+          </GameButton>
         </div>
       </div>
 
@@ -245,12 +246,12 @@ export const PhishingInspectorGame: React.FC<PhishingInspectorGameProps> = ({ ta
               </div>
             </div>
           </div>
-          <button
+          <GameButton size="compact"
             onClick={onComplete}
             className="px-5 py-2 bg-cyber-neonGreen text-black font-bold uppercase rounded-lg text-xs hover:bg-white transition-colors"
           >
             ЗАКРЫТЬ КЕЙС (+{task.xpReward} XP)
-          </button>
+          </GameButton>
         </div>
       ) : (
         <div className="phishing-checklist grid grid-cols-2 md:grid-cols-4 gap-2">

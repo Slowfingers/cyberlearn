@@ -1,3 +1,4 @@
+import { GameButton, GameDialog } from './GameUI';
 import AssessmentBuilder from './AssessmentBuilder';
 import { AssessmentPanel } from './AssessmentPanel';
 
@@ -25,11 +26,11 @@ interface TeacherDashboardProps {
 type SortKey = 'name' | 'totalXP' | 'tasksCompleted' | 'totalErrors' | 'level' | 'streak' | 'totalTabSwitches';
 type SortDir = 'asc' | 'desc';
 
-const TeacherDashboard: React.FC<TeacherDashboardProps> = ({ 
-    currentUser, 
-    classrooms, 
-    activeClassId, 
-    onSelectClass, 
+const TeacherDashboard: React.FC<TeacherDashboardProps> = ({
+    currentUser,
+    classrooms,
+    activeClassId,
+    onSelectClass,
     onClassCreated,
     onReorderClassrooms
 }) => {
@@ -37,7 +38,7 @@ const TeacherDashboard: React.FC<TeacherDashboardProps> = ({
   const [folderFilter,setFolderFilter] = useState('*');
   const [viewMode, setViewMode] = useState<'dashboard' | 'create-task' | 'assessment'>('dashboard');
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
-  
+
   // Dashboard State
   const [newClassName, setNewClassName] = useState('');
   const [students, setStudents] = useState<StudentProgress[]>([]);
@@ -188,7 +189,7 @@ const TeacherDashboard: React.FC<TeacherDashboardProps> = ({
     setClassActionPending(true);
     try {
       await callServer('endClassSession', {classId: currentClass.id});
-      addToast('Сеанс завершён. Ученики выйдут в течение 15 секунд.', 'success');
+      addToast('Сеанс завершён. Ученики выйдут на всех устройствах после проверки сессии (обычно до 3 секунд).', 'success');
     } catch(e) { addToast(e instanceof Error ? e.message : 'Не удалось завершить сеанс', 'error'); }
     finally { setClassActionPending(false); }
   };
@@ -239,7 +240,7 @@ const TeacherDashboard: React.FC<TeacherDashboardProps> = ({
           addToast('Заполните название миссии', 'error');
           return;
       }
-      
+
       const newTask: Task = {
           id: `custom_${Date.now()}`,
           courseId: 'course_grade3',
@@ -264,7 +265,7 @@ const TeacherDashboard: React.FC<TeacherDashboardProps> = ({
               })
           }
       };
-      
+
       try { validateMap(newTask.mapConfig); }
       catch (error) { addToast(error instanceof Error ? error.message : 'Неверная карта','error'); return; }
       setSavingTask(true);
@@ -280,7 +281,7 @@ const TeacherDashboard: React.FC<TeacherDashboardProps> = ({
   };
 
   // --- RENDER HELPERS ---
-  
+
   // 1. CLASS LIST VIEW (Mobile: Main Screen when no class selected / Desktop: Sidebar)
   const ClassList = ({ isMobile = false }) => (
       <div className={`flex flex-col h-full ${isMobile ? 'bg-black' : ''}`}>
@@ -293,7 +294,7 @@ const TeacherDashboard: React.FC<TeacherDashboardProps> = ({
                     <div className="text-[10px] text-gray-600 font-mono">SEC_LIST_V1</div>
                 )}
           </div>
-          
+
           <div className="flex-1 overflow-y-auto p-2 space-y-2">
                 <FolderFilter value={folderFilter} onChange={setFolderFilter}/>
                 {classrooms.length === 0 && (
@@ -303,7 +304,7 @@ const TeacherDashboard: React.FC<TeacherDashboardProps> = ({
                 )}
                 {classrooms.map((cls, idx) => (folderFilter==='*'||(cls.folder ?? '')===folderFilter) && (
                     <div key={cls.id} className="flex items-center gap-1">
-                        <button
+                        <GameButton size="compact"
                             onClick={() => {
                                 playSound('click');
                                 onSelectClass(cls.id);
@@ -323,25 +324,25 @@ const TeacherDashboard: React.FC<TeacherDashboardProps> = ({
                                 <div className="text-[10px] font-mono opacity-50">CODE: {cls.inviteCode}</div>
                             </div>
                             <ChevronRight size={16} className={activeClassId === cls.id ? 'text-cyber-neonBlue' : 'text-gray-600'} />
-                        </button>
+                        </GameButton>
                         {classrooms.length > 1 && (
                             <div className="flex flex-col gap-0.5 shrink-0">
-                                <button
+                                <GameButton size="compact"
                                     onClick={(e) => { e.stopPropagation(); moveClassroom(idx, 'up'); }}
                                     disabled={idx === 0}
                                     className={`p-0.5 rounded transition-colors ${idx === 0 ? 'text-gray-700 cursor-not-allowed' : 'text-gray-400 hover:text-white hover:bg-gray-700'}`}
                                     title="Переместить вверх"
                                 >
                                     <ChevronUp size={14} />
-                                </button>
-                                <button
+                                </GameButton>
+                                <GameButton size="compact"
                                     onClick={(e) => { e.stopPropagation(); moveClassroom(idx, 'down'); }}
                                     disabled={idx === classrooms.length - 1}
                                     className={`p-0.5 rounded transition-colors ${idx === classrooms.length - 1 ? 'text-gray-700 cursor-not-allowed' : 'text-gray-400 hover:text-white hover:bg-gray-700'}`}
                                     title="Переместить вниз"
                                 >
                                     <ChevronDown size={14} />
-                                </button>
+                                </GameButton>
                             </div>
                         )}
                     </div>
@@ -349,19 +350,19 @@ const TeacherDashboard: React.FC<TeacherDashboardProps> = ({
             </div>
 
             <div className="p-4 border-t border-cyber-neonBlue/20 pb-[env(safe-area-inset-bottom)] md:pb-4 shrink-0">
-                <button 
+                <GameButton size="compact"
                     onClick={() => {
                         playSound('click');
                         onSelectClass('NEW');
                     }}
                     className={`w-full flex items-center justify-center gap-2 p-4 md:p-3 rounded border border-dashed transition-all uppercase text-xs font-bold tracking-widest ${
-                        activeClassId === 'NEW' 
-                        ? 'border-cyber-neonGreen text-cyber-neonGreen bg-cyber-neonGreen/10' 
+                        activeClassId === 'NEW'
+                        ? 'border-cyber-neonGreen text-cyber-neonGreen bg-cyber-neonGreen/10'
                         : 'border-gray-700 text-gray-500 hover:border-cyber-neonGreen hover:text-cyber-neonGreen'
                     }`}
                 >
                     <PlusCircle size={16} /> {isMobile ? 'Создать класс' : 'Создать класс'}
-                </button>
+                </GameButton>
             </div>
       </div>
   );
@@ -369,7 +370,7 @@ const TeacherDashboard: React.FC<TeacherDashboardProps> = ({
   return (
     <div className="academy-teacher flex flex-col md:flex-row h-full overflow-hidden relative">
         <CyberToast toasts={toasts} onDismiss={dismissToast} />
-        
+
         {/* --- MOBILE: LIST VIEW (Master) --- */}
         {/* Only visible on mobile when NO class is selected OR when creating new */}
         <div className={`md:hidden flex-1 flex flex-col ${currentClass && !isCreatingClass ? 'hidden' : 'flex'}`}>
@@ -389,12 +390,12 @@ const TeacherDashboard: React.FC<TeacherDashboardProps> = ({
         {/* --- MAIN CONTENT AREA --- */}
         {/* On mobile, this is hidden if no class selected, unless creating */}
         <div className={`flex-1 overflow-y-auto bg-black relative flex flex-col ${!currentClass && !isCreatingClass ? 'hidden md:flex' : 'flex'}`}>
-            
+
             <TeacherSupport classes={classrooms} current={currentClass} onUpdated={onClassCreated}/>
             {/* MOBILE HEADER (Only for Class View) */}
             {currentClass && !isCreatingClass && (
                 <div className="md:hidden h-14 bg-cyber-dark border-b border-cyber-neonBlue/20 flex items-center justify-between px-4 shrink-0 sticky top-0 z-30">
-                    <button 
+                    <GameButton size="compact"
                         onClick={() => {
                             playSound('click');
                             onSelectClass(null); // Go back to list
@@ -403,8 +404,8 @@ const TeacherDashboard: React.FC<TeacherDashboardProps> = ({
                     >
                         <ArrowLeft size={20} />
                         <span className="text-xs font-bold uppercase tracking-wider">Все классы</span>
-                    </button>
-                    
+                    </GameButton>
+
                     <div className="flex items-center gap-2 min-w-0 flex-1 justify-end">
                         <div className="w-2 h-2 bg-cyber-neonGreen rounded-full animate-pulse shrink-0"></div>
                         <span className="text-xs font-mono font-bold text-cyber-neonBlue break-words leading-tight">
@@ -418,14 +419,14 @@ const TeacherDashboard: React.FC<TeacherDashboardProps> = ({
             {isCreatingClass ? (
                 <div className="flex-1 flex items-center justify-center p-4 md:p-6 bg-[url('https://images.unsplash.com/photo-1550751827-4bd374c3f58b?q=80&w=2070&auto=format&fit=crop')] bg-cover bg-center relative min-h-[100dvh] md:min-h-0 overflow-y-auto">
                     <div className="absolute inset-0 bg-black/90 backdrop-blur-sm"></div>
-                    
+
                     {/* Mobile Back Button for Creator */}
-                    <button 
+                    <GameButton size="compact"
                         onClick={() => onSelectClass(null)}
                         className="md:hidden absolute top-4 left-4 z-20 text-white flex items-center gap-2 bg-black/50 p-2 rounded backdrop-blur"
                     >
                         <ArrowLeft size={20} /> <span className="text-xs font-bold">Назад</span>
-                    </button>
+                    </GameButton>
 
                     <div className="relative z-10 w-full max-w-lg p-6 md:p-8 bg-cyber-panel border-2 border-cyber-neonBlue shadow-[0_0_50px_rgba(0,243,255,0.2)] animate-in zoom-in-95 my-auto">
                         <div className="absolute top-0 left-0 w-4 h-4 border-t-2 border-l-2 border-cyber-neonBlue"></div>
@@ -439,8 +440,8 @@ const TeacherDashboard: React.FC<TeacherDashboardProps> = ({
                         <form onSubmit={handleCreateClass} className="space-y-6">
                             <div>
                                 <label className="block text-cyber-neonPink font-bold text-xs uppercase mb-2">Название Класса</label>
-                                <input 
-                                    type="text" 
+                                <input
+                                    type="text"
                                     value={newClassName}
                                     onChange={(e) => {
                                         setNewClassName(e.target.value);
@@ -453,20 +454,20 @@ const TeacherDashboard: React.FC<TeacherDashboardProps> = ({
                             </div>
                             <div className="flex gap-4">
                                 {classrooms.length > 0 && (
-                                    <button
+                                    <GameButton size="compact"
                                         type="button"
                                         onClick={() => onSelectClass(classrooms[0].id || null)}
                                         className="flex-1 py-4 border border-gray-700 text-gray-400 hover:text-white transition-colors uppercase font-bold text-sm"
                                     >
                                         Отмена
-                                    </button>
+                                    </GameButton>
                                 )}
-                                <button 
+                                <GameButton size="compact" variant="primary"
                                     type="submit"
                                     className="flex-1 bg-cyber-neonBlue text-black font-bold py-4 hover:bg-white hover:shadow-[0_0_20px_rgba(255,255,255,0.5)] transition-all uppercase tracking-widest flex items-center justify-center gap-2"
                                 >
                                     <PlusCircle size={20} /> Создать
-                                </button>
+                                </GameButton>
                             </div>
                         </form>
                     </div>
@@ -488,51 +489,51 @@ const TeacherDashboard: React.FC<TeacherDashboardProps> = ({
                                             className="text-2xl md:text-3xl font-bold bg-transparent border-b-2 border-cyber-neonBlue text-white focus:outline-none uppercase tracking-widest"
                                             autoFocus
                                         />
-                                        <button onClick={handleRenameClass} className="text-cyber-neonGreen hover:text-white p-1"><Save size={20}/></button>
-                                        <button onClick={() => setIsRenaming(false)} className="text-gray-500 hover:text-white p-1"><X size={20}/></button>
+                                        <GameButton size="compact" onClick={handleRenameClass} className="text-cyber-neonGreen hover:text-white p-1"><Save size={20}/></GameButton>
+                                        <GameButton size="compact" onClick={() => setIsRenaming(false)} className="text-gray-500 hover:text-white p-1"><X size={20}/></GameButton>
                                     </div>
                                 ) : (
                                     <div className="flex items-center gap-3 mb-2">
                                         <h2 className="text-2xl md:text-3xl font-bold text-white tracking-widest font-sans uppercase break-words">{currentClass.name}</h2>
-                                        <button
+                                        <GameButton size="compact"
                                             onClick={() => { setRenameValue(currentClass.name); setIsRenaming(true); }}
                                             className="text-gray-600 hover:text-cyber-neonBlue transition-colors p-1"
                                             title="Переименовать"
                                         >
                                             <Edit3 size={16} />
-                                        </button>
+                                        </GameButton>
                                     </div>
                                 )}
                                 <p className="text-cyber-neonBlue font-mono text-sm">{'>> СТАТУС: АКТИВЕН'} • {students.length} студентов</p>
                             </div>
 
                             <div className="flex flex-col sm:flex-row gap-3">
-                                <button 
+                                <GameButton size="compact"
                                     onClick={() => {setEditingAssessment(undefined);setViewMode('assessment');}}
                                     className="px-5 py-3 bg-cyber-neonPink/10 border border-cyber-neonPink text-cyber-neonPink hover:bg-cyber-neonPink hover:text-black transition-all uppercase font-bold text-xs tracking-widest flex items-center justify-center gap-2 rounded"
                                 >
                                     <Edit3 size={16} /> Создать контрольную
-                                </button>
+                                </GameButton>
 
-                                <button 
+                                <GameButton size="compact"
                                     onClick={handleDeleteClass}
                                     className="px-5 py-3 bg-red-900/10 border border-red-500 text-red-500 hover:bg-red-500 hover:text-white transition-all uppercase font-bold text-xs tracking-widest flex items-center justify-center gap-2 rounded"
                                 >
                                     <Trash2 size={16} /> Удалить
-                                </button>
+                                </GameButton>
 
                                 <div className="bg-cyber-dark border border-cyber-neonGreen p-2 px-4 flex items-center justify-between gap-4 shadow-[0_0_20px_rgba(0,255,65,0.1)] rounded">
                                     <div className="flex flex-col">
                                         <div className="text-gray-500 text-[8px] font-bold uppercase tracking-widest mb-1">Код доступа</div>
                                         <div className="text-lg md:text-xl font-mono font-bold text-cyber-neonGreen tracking-wider">{currentClass.inviteCode}</div>
                                     </div>
-                                    <button 
+                                    <GameButton size="compact" variant="primary"
                                         onClick={copyCode}
                                         className="p-3 bg-gray-900 hover:bg-cyber-neonGreen hover:text-black border border-gray-700 hover:border-cyber-neonGreen transition-all rounded text-gray-400"
                                         title="Копировать"
                                     >
                                         <Copy size={18} />
-                                    </button>
+                                    </GameButton>
                                 </div>
                             </div>
                         </div>
@@ -583,8 +584,8 @@ const TeacherDashboard: React.FC<TeacherDashboardProps> = ({
                                             <CartesianGrid strokeDasharray="3 3" stroke="#333" />
                                             <XAxis dataKey="name" stroke="#666" fontSize={10} tick={{fill: '#888'}} />
                                             <YAxis stroke="#666" fontSize={10} tick={{fill: '#888'}} />
-                                            <Tooltip 
-                                                contentStyle={{ backgroundColor: '#0a0a0f', borderColor: '#00f3ff', color: '#fff' }} 
+                                            <Tooltip
+                                                contentStyle={{ backgroundColor: '#0a0a0f', borderColor: '#00f3ff', color: '#fff' }}
                                                 itemStyle={{ color: '#00f3ff' }}
                                                 cursor={{fill: 'rgba(0, 243, 255, 0.1)'}}
                                             />
@@ -598,10 +599,10 @@ const TeacherDashboard: React.FC<TeacherDashboardProps> = ({
                             <div className="bg-cyber-panel border border-gray-800 flex flex-col rounded mb-6">
                                 <div className="p-4 border-b border-gray-800 flex flex-wrap gap-3 justify-between items-center">
                                     <h3 className="text-white font-bold font-sans flex items-center gap-2"><Users size={16} className="text-cyber-neonBlue" /> СПИСОК ГРУППЫ</h3>
-                                    {LOCAL_SERVER && <button disabled={classActionPending} onClick={endClassSession} className="flex items-center gap-2 text-sm text-cyber-neonYellow min-h-11 disabled:opacity-50"><LogOut size={16}/>Завершить сеанс класса</button>}
-                                    <button onClick={refreshStudents} className="text-gray-500 hover:text-white flex items-center gap-1 text-xs">
+                                    {LOCAL_SERVER && <GameButton size="compact" disabled={classActionPending} onClick={endClassSession} className="flex items-center gap-2 text-sm text-cyber-neonYellow min-h-11 disabled:opacity-50"><LogOut size={16}/>Завершить сеанс класса</GameButton>}
+                                    <GameButton size="compact" onClick={refreshStudents} className="text-gray-500 hover:text-white flex items-center gap-1 text-xs">
                                         <RefreshCw size={14} /> <span className="hidden sm:inline">Обновить</span>
-                                    </button>
+                                    </GameButton>
                                 </div>
                                 <div className="overflow-x-auto">
                                     <table className="w-full text-left text-sm font-mono text-gray-400">
@@ -639,12 +640,12 @@ const TeacherDashboard: React.FC<TeacherDashboardProps> = ({
                                             {sortedStudents.map((student) => {
                                                 const pct = student.totalTasks > 0 ? Math.round((student.tasksCompleted / student.totalTasks) * 100) : 0;
                                                 return (
-                                                <tr 
-                                                    key={student.studentId} 
+                                                <tr
+                                                    key={student.studentId}
                                                     onClick={() => { playSound('click'); setSelectedStudent(student); }}
                                                     className="hover:bg-cyber-neonBlue/5 transition-colors cursor-pointer"
                                                 >
-                                                    <td className="p-3 text-white font-bold break-words leading-tight">{student.name}{LOCAL_SERVER && <button disabled={classActionPending} onClick={e=>{e.stopPropagation();void removeStudent(student);}} className="flex gap-1 items-center text-xs text-red-400 min-h-11 disabled:opacity-50" aria-label={`Удалить ${student.name} из класса`}><Trash2 size={14}/>Убрать из класса</button>}</td>
+                                                    <td className="p-3 text-white font-bold break-words leading-tight">{student.name}{LOCAL_SERVER && <GameButton size="compact" disabled={classActionPending} onClick={e=>{e.stopPropagation();void removeStudent(student);}} className="flex gap-1 items-center text-xs text-red-400 min-h-11 disabled:opacity-50" aria-label={`Удалить ${student.name} из класса`}><Trash2 size={14}/>Убрать из класса</GameButton>}</td>
                                                     <td className="p-3 whitespace-nowrap text-cyber-neonYellow">{student.level}</td>
                                                     <td className="p-3 whitespace-nowrap text-cyber-neonBlue">{student.totalXP}</td>
                                                     <td className="p-3 whitespace-nowrap">{student.tasksCompleted}/{student.totalTasks}</td>
@@ -698,7 +699,7 @@ const TeacherDashboard: React.FC<TeacherDashboardProps> = ({
                                 {COURSES.map(course => {
                                     const isHidden = (currentClass.hiddenCourses || []).includes(course.id);
                                     return (
-                                        <div 
+                                        <div
                                             key={course.id}
                                             className={`flex items-center justify-between p-3 md:p-4 transition-colors ${isHidden ? 'bg-red-950/20' : 'hover:bg-white/[0.02]'}`}
                                         >
@@ -713,7 +714,7 @@ const TeacherDashboard: React.FC<TeacherDashboardProps> = ({
                                                     </div>
                                                 </div>
                                             </div>
-                                            <button
+                                            <GameButton size="compact"
                                                 disabled={classActionPending}
                                                 onClick={async () => {
                                                     if (classActionPending) return;
@@ -732,14 +733,14 @@ const TeacherDashboard: React.FC<TeacherDashboardProps> = ({
                                                     finally { setClassActionPending(false); }
                                                 }}
                                                 className={`shrink-0 flex items-center gap-1.5 px-3 py-1.5 rounded text-xs font-bold uppercase tracking-wider transition-all ${
-                                                    isHidden 
-                                                        ? 'bg-red-900/30 border border-red-500/50 text-red-400 hover:bg-red-900/50' 
+                                                    isHidden
+                                                        ? 'bg-red-900/30 border border-red-500/50 text-red-400 hover:bg-red-900/50'
                                                         : 'bg-cyber-neonGreen/10 border border-cyber-neonGreen/30 text-cyber-neonGreen hover:bg-cyber-neonGreen/20'
                                                 }`}
                                             >
                                                 {isHidden ? <EyeOff size={14} /> : <Eye size={14} />}
                                                 <span className="hidden sm:inline">{isHidden ? 'Скрыт' : 'Виден'}</span>
-                                            </button>
+                                            </GameButton>
                                         </div>
                                     );
                                 })}
@@ -747,30 +748,23 @@ const TeacherDashboard: React.FC<TeacherDashboardProps> = ({
                         </div>
 
                         {/* STUDENT DETAIL MODAL */}
-                        {issuedPassword && <div role="dialog" aria-label="Пароль ученика" className="fixed inset-0 z-[120] bg-black/90 flex items-center justify-center p-4">
-                            <div className="bg-gray-950 border border-cyan-400 p-6 rounded text-white">
-                                <p>Новый пароль для {issuedPassword.name}</p><code className="block text-xl my-4 select-all">{issuedPassword.password}</code>
-                                <p className="text-sm mb-4">Передайте пароль этому ученику. Старый пароль больше не действует.</p>
-                                <button onClick={() => setIssuedPassword(null)} className="border px-4 py-2 rounded">Закрыть</button>
-                            </div>
-                        </div>}
+                        {issuedPassword && <GameDialog title="Пароль ученика" onClose={() => setIssuedPassword(null)}>
+                            <p>Новый пароль для {issuedPassword.name}</p><code className="block text-xl my-4 select-all">{issuedPassword.password}</code>
+                            <p className="text-sm mb-4">Передайте пароль этому ученику. Старый пароль больше не действует.</p>
+                        </GameDialog>}
                         {selectedStudent && (
-                            <div className="fixed inset-0 z-[100] bg-black/95 backdrop-blur-md flex flex-col" onClick={(e) => { if (e.target === e.currentTarget) setSelectedStudent(null); }}>
-                                <div className="h-14 md:h-16 shrink-0" />
-                                <div className="flex-1 flex items-start md:items-center justify-center p-3 md:p-4 overflow-hidden">
-                                <div className="w-full max-w-lg max-h-full md:max-h-[85vh] bg-[#0c0c10] border border-cyber-neonBlue rounded-lg flex flex-col relative shadow-2xl animate-in zoom-in-95 overflow-hidden">
-                                    <button onClick={() => setSelectedStudent(null)} className="absolute top-3 right-3 z-50 text-gray-500 hover:text-white p-2 active:bg-gray-800 rounded"><X size={24} /></button>
-                                    <div className="p-6 overflow-y-auto custom-scrollbar">
+                            <GameDialog title={`Ученик: ${selectedStudent.name}`} onClose={() => setSelectedStudent(null)}>
+                                <div className="ui-teacher-student">
                                         {/* Student Header */}
                                         <div className="text-center mb-6">
                                             <div className="w-16 h-16 mx-auto rounded-full bg-cyber-neonBlue/20 border-2 border-cyber-neonBlue flex items-center justify-center mb-3">
                                                 <span className="text-2xl font-bold text-cyber-neonBlue">{selectedStudent.name.charAt(0).toUpperCase()}</span>
                                             </div>
                                             <h3 className="text-xl font-bold text-white uppercase">{selectedStudent.name}</h3>
-                                            {!LOCAL_SERVER && <button className="mt-3 px-3 py-2 border border-cyan-400 rounded text-cyan-300" onClick={async () => {
+                                            {!LOCAL_SERVER && <GameButton size="compact" className="mt-3 px-3 py-2 border border-cyan-400 rounded text-cyan-300" onClick={async () => {
                                                 try { const password = await fbResetStudentPassword(selectedStudent.studentId); setIssuedPassword({name:selectedStudent.name,password}); }
                                                 catch { addToast('Не удалось выдать пароль','error'); }
-                                            }}>Выдать новый пароль</button>}
+                                            }}>Выдать новый пароль</GameButton>}
                                             <span className="text-cyber-neonYellow font-mono text-sm">УРОВЕНЬ {selectedStudent.level}</span>
                                         </div>
 
@@ -876,11 +870,8 @@ const TeacherDashboard: React.FC<TeacherDashboardProps> = ({
                                             </div>
                                         </div>
 
-                                        <button onClick={() => setSelectedStudent(null)} className="w-full bg-cyber-neonBlue text-black py-3 font-bold uppercase tracking-widest hover:bg-white transition-colors rounded">ЗАКРЫТЬ</button>
-                                    </div>
                                 </div>
-                                </div>
-                            </div>
+                            </GameDialog>
                         )}
                     </div>
                 ) : viewMode === 'assessment' ? (
@@ -890,24 +881,24 @@ const TeacherDashboard: React.FC<TeacherDashboardProps> = ({
                     <div className="h-full flex flex-col">
                         <div className="p-4 border-b border-gray-800 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 bg-gray-900 shrink-0">
                              <div className="flex items-center gap-4 w-full sm:w-auto">
-                                <button onClick={() => setViewMode('dashboard')} className="text-gray-500 hover:text-white flex items-center gap-1">
+                                <GameButton size="compact" onClick={() => setViewMode('dashboard')} className="text-gray-500 hover:text-white flex items-center gap-1">
                                     <ArrowLeft size={18}/> <span className="hidden sm:inline">Назад</span>
-                                </button>
+                                </GameButton>
                                 <h2 className="text-lg md:text-xl font-bold text-cyber-neonPink uppercase tracking-wider leading-tight break-words flex-1">Конструктор</h2>
                              </div>
-                             <button onClick={saveTask} disabled={savingTask} className="w-full sm:w-auto px-6 py-3 bg-cyber-neonGreen text-black font-bold uppercase tracking-widest text-xs flex items-center justify-center gap-2 hover:bg-white transition-colors rounded">
+                             <GameButton size="compact" variant="primary" onClick={saveTask} disabled={savingTask} className="w-full sm:w-auto px-6 py-3 bg-cyber-neonGreen text-black font-bold uppercase tracking-widest text-xs flex items-center justify-center gap-2 hover:bg-white transition-colors rounded">
                                  <Save size={16} /> Сохранить
-                             </button>
+                             </GameButton>
                         </div>
-                        
+
                         <div className="flex-1 flex flex-col md:flex-row overflow-hidden">
                             {/* SETTINGS (Stacked on mobile) */}
                             <div className="w-full md:w-80 border-b md:border-b-0 md:border-r border-gray-800 bg-black p-4 md:p-6 overflow-y-auto shrink-0 max-h-[40vh] md:max-h-full">
                                 <div className="space-y-4 md:space-y-6">
                                     <div>
                                         <label className="block text-gray-500 text-xs font-bold uppercase mb-2">Название</label>
-                                        <input 
-                                            type="text" 
+                                        <input
+                                            type="text"
                                             className="w-full bg-gray-900 border border-gray-700 p-2 text-white text-sm focus:border-cyber-neonBlue focus:outline-none"
                                             value={taskTitle}
                                             onChange={(e) => {
@@ -919,7 +910,7 @@ const TeacherDashboard: React.FC<TeacherDashboardProps> = ({
                                     </div>
                                     <div>
                                         <label className="block text-gray-500 text-xs font-bold uppercase mb-2">Описание</label>
-                                        <textarea 
+                                        <textarea
                                             className="w-full bg-gray-900 border border-gray-700 p-2 text-white text-sm h-16 md:h-24 resize-none focus:border-cyber-neonBlue focus:outline-none"
                                             value={taskDesc}
                                             onChange={(e) => {
@@ -931,9 +922,9 @@ const TeacherDashboard: React.FC<TeacherDashboardProps> = ({
                                     </div>
                                     <div>
                                         <label className="block text-gray-500 text-xs font-bold uppercase mb-2">Размер Сетки: <span className="text-cyber-neonBlue">{gridSize}x{gridSize}</span></label>
-                                        <input 
-                                            type="range" min="3" max="8" 
-                                            value={gridSize} 
+                                        <input
+                                            type="range" min="3" max="8"
+                                            value={gridSize}
                                             onChange={(e) => {
                                                 const size = Number(e.target.value);
                                                 setGridSize(size);
@@ -945,35 +936,35 @@ const TeacherDashboard: React.FC<TeacherDashboardProps> = ({
                                         />
                                     </div>
                                 </div>
-                                
+
                                 <div className="mt-6 md:mt-8 border-t border-gray-800 pt-4 md:pt-6">
                                     <h4 className="text-white font-bold text-sm mb-4">ИНСТРУМЕНТЫ</h4>
                                     <div className="grid grid-cols-3 md:grid-cols-1 gap-2">
-                                        <button 
+                                        <GameButton size="compact"
                                             onClick={() => setEditorMode('wall')}
                                             className={`p-2 md:p-3 border rounded flex flex-col md:flex-row items-center justify-center md:justify-start gap-2 text-[10px] md:text-sm font-bold uppercase transition-all ${editorMode === 'wall' ? 'border-red-500 bg-red-500/10 text-red-500' : 'border-gray-700 text-gray-400 hover:border-gray-500'}`}
                                         >
                                             <Ban size={16} /> Стена
-                                        </button>
-                                        <button 
+                                        </GameButton>
+                                        <GameButton size="compact"
                                             onClick={() => setEditorMode('start')}
                                             className={`p-2 md:p-3 border rounded flex flex-col md:flex-row items-center justify-center md:justify-start gap-2 text-[10px] md:text-sm font-bold uppercase transition-all ${editorMode === 'start' ? 'border-cyber-neonBlue bg-cyber-neonBlue/10 text-cyber-neonBlue' : 'border-gray-700 text-gray-400 hover:border-gray-500'}`}
                                         >
                                             <PlayCircle size={16} /> Старт
-                                        </button>
-                                        <button 
+                                        </GameButton>
+                                        <GameButton size="compact"
                                             onClick={() => setEditorMode('end')}
                                             className={`p-2 md:p-3 border rounded flex flex-col md:flex-row items-center justify-center md:justify-start gap-2 text-[10px] md:text-sm font-bold uppercase transition-all ${editorMode === 'end' ? 'border-cyber-neonGreen bg-cyber-neonGreen/10 text-cyber-neonGreen' : 'border-gray-700 text-gray-400 hover:border-gray-500'}`}
                                         >
                                             <Flag size={16} /> Финиш
-                                        </button>
+                                        </GameButton>
                                     </div>
                                 </div>
                             </div>
 
                             {/* PREVIEW CENTER (Responsive Grid) */}
                             <div className="flex-1 bg-[#0c0c10] flex items-center justify-center p-4 md:p-8 bg-[radial-gradient(circle_at_center,_#1a1a20_1px,_transparent_1px)] bg-[size:20px_20px] overflow-auto">
-                                <div 
+                                <div
                                     className="bg-black border border-cyber-neonBlue/30 relative shadow-2xl touch-none max-h-full"
                                     style={{
                                         display: 'grid',
@@ -991,9 +982,9 @@ const TeacherDashboard: React.FC<TeacherDashboardProps> = ({
                                         const isWall = obstacles.includes(`${x},${y}`);
                                         const isStart = startPos[0] === x && startPos[1] === y;
                                         const isEnd = endPos[0] === x && endPos[1] === y;
-                                        
+
                                         return (
-                                            <div 
+                                            <div
                                                 key={i}
                                                 // Support both touch and click
                                                 onClick={() => handleGridClick(x, y)}

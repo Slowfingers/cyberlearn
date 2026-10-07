@@ -1,0 +1,375 @@
+/* Stage 1. Shared component family. Only the migrated lobby and UI primitives. */
+@font-face{font-family:'Russo One';font-weight:400;font-style:normal;font-display:swap;src:url('/fonts/russo-one.ttf') format('truetype');}
+.academy-app {
+ --ui-bg:#101724;--ui-surface:#1b2839;--ui-raised:#26364b;--ui-edge:#496079;
+ --ui-text:#f2f6ff;--ui-muted:#b7c7d9;--ui-accent:#55dfd4;--ui-action:#ffd369;
+ --ui-danger:#ff8b92;--ui-title:'Russo One',Arial,sans-serif;
+ --ui-panel-art:url('/ui/game/ui-panel.svg');--ui-control-art:url('/ui/game/ui-button-secondary.svg');
+}
+.academy-app .ui-button,.ui-dialog .ui-button {
+ position:relative;isolation:isolate;display:inline-flex;align-items:center;justify-content:center;gap:10px;
+ min-height:48px;padding:10px 20px;border:0;border-radius:0;clip-path:none;background:transparent;
+ color:var(--ui-text);font-family:inherit;font-size:14px;font-weight:700;line-height:1.4;text-shadow:none;box-shadow:none;
+ cursor:pointer;transition:transform 120ms ease,filter 120ms ease;
+}
+.academy-app .ui-button::before,.ui-dialog .ui-button::before {content:'';position:absolute;inset:0;z-index:-1;pointer-events:none;border:9px solid transparent;border-image:var(--ui-control-art) 9 fill / 9px / 0 stretch;}
+.academy-app .ui-button--primary,.ui-dialog .ui-button--primary {--ui-control-art:url('/ui/game/ui-button-primary.svg');color:#202a35;}
+.academy-app .ui-button--danger,.ui-dialog .ui-button--danger {--ui-control-art:url('/ui/game/ui-button-danger.svg');}
+.academy-app .ui-button--compact {min-height:44px;padding:8px 14px;}
+.academy-app .ui-button--icon,.ui-dialog .ui-button--icon {min-height:44px;width:44px;padding:10px;flex-shrink:0;}
+.academy-app .ui-button:hover:not(:disabled),.ui-dialog .ui-button:hover:not(:disabled){filter:brightness(1.14);}
+.academy-app .ui-button:active:not(:disabled),.ui-dialog .ui-button:active:not(:disabled){transform:translateY(2px);}
+.academy-app .ui-button:focus-visible,.ui-dialog .ui-button:focus-visible{outline:3px solid #fff;outline-offset:3px;box-shadow:none;}
+.academy-app .ui-button:disabled,.ui-dialog .ui-button:disabled{filter:grayscale(1);opacity:.5;cursor:not-allowed;}
+.academy-app .game-home {background:radial-gradient(ellipse at 65% 0,#233954,transparent 65%),var(--ui-bg);color:var(--ui-text);}
+.academy-app .game-home .academy-nav {background:var(--ui-bg)!important;border-color:var(--ui-edge)!important;}
+.academy-app .game-home .academy-home-content {padding-top:24px;}
+.academy-app .game-home :is(h1,h2,h3) {font-family:var(--ui-title);font-weight:400;letter-spacing:.01em;text-shadow:none;}
+.academy-app .game-home .academy-page-heading h1 {font-size:32px;line-height:1.2;text-transform:uppercase;}
+.academy-app .game-home .academy-eyebrow,.academy-app .game-home .academy-nav-caption {color:var(--ui-muted);letter-spacing:.1em;}
+.academy-app .game-home .academy-nav-item {justify-content:flex-start;width:100%;color:var(--ui-muted);}
+.academy-app .game-home .academy-nav-item.is-active {--ui-control-art:url('/ui/game/ui-button-selected.svg');color:var(--ui-accent);}
+.academy-app .game-home :is(.academy-wallet,.academy-pill,.academy-course-number) {background:var(--ui-raised);border:1px solid var(--ui-edge);border-radius:0;box-shadow:none;color:var(--ui-text);padding:8px 12px;}
+.academy-app .game-home :is(.academy-wallet,.academy-pill,.academy-course-number)::before {display:none;}
+.academy-app .game-home .academy-wallet {color:var(--ui-action);}
+.academy-app .game-home .player-lobby {border:0;background:var(--ui-surface);box-shadow:none;position:relative;padding:2px;}
+.academy-app .game-home :is(.player-lobby,.academy-course,.academy-milestones>div)::after {content:'';position:absolute;inset:0;pointer-events:none;border:10px solid transparent;border-image:var(--ui-panel-art) 10 / 10px / 0 stretch;}
+.academy-app .game-home .player-stage {background:var(--ui-bg);}
+.academy-app .game-home .player-greeting {background:linear-gradient(#101724d9,transparent);}
+.academy-app .game-home .player-greeting h2 {font-size:26px;}
+.academy-app .game-home .player-mission {background:var(--ui-surface);border-left:1px solid var(--ui-edge);padding:24px;}
+.academy-app .game-home .player-mission .academy-pill {background:transparent;border:0;padding:0;color:var(--ui-accent);font-weight:700;}
+.academy-app .game-home .player-mission h2 {font-size:28px;line-height:1.3;}
+.academy-app .game-home :is(.player-mission>p,.player-mission-course,.player-mission-progress>span) {color:var(--ui-muted);}
+.academy-app .game-home .player-nameplate {--ui-control-art:url('/ui/game/ui-button-secondary.svg');display:grid;position:absolute;gap:2px;min-width:170px;padding:8px 18px;transform:translateX(-50%);}
+.academy-app .game-home .player-nameplate:active {transform:translate(-50%,2px);}
+.academy-app .game-home .player-nameplate>strong {font-family:var(--ui-title);font-weight:400;font-size:18px;}
+.academy-app .game-home .player-nameplate>span {color:var(--ui-muted);}
+.academy-app .game-home .player-nameplate>span:first-child {color:var(--ui-accent);}
+.academy-app .game-home .player-mission .ui-button {width:100%;}
+.academy-app .game-home .academy-milestones>div {position:relative;background:var(--ui-surface);border:0;border-image:none;border-radius:0;box-shadow:none;}
+.academy-app .game-home .academy-stat-icon {background:var(--ui-raised);border:0;border-radius:0;box-shadow:none;color:var(--ui-accent);}
+.academy-app .game-home .academy-stat-icon.gold {color:var(--ui-action);}
+.academy-app .game-home .academy-milestones small {color:var(--ui-muted);}
+.academy-app .game-home .academy-course {position:relative;background:var(--ui-surface);border:0;border-radius:0;box-shadow:none;border-image:none;overflow:hidden;}
+.academy-app .game-home .academy-course:focus-visible {outline:3px solid #fff;outline-offset:3px;}
+.academy-app .game-home .academy-course:hover:not(:disabled) {transform:translateY(-2px);box-shadow:none;}
+.academy-app .game-home .academy-course-picture {background:radial-gradient(ellipse at 50% 80%,#365e6b,transparent 70%),var(--ui-raised);border-bottom:1px solid var(--ui-edge);}
+.academy-app .game-home .academy-course-copy h3 {font-size:18px;line-height:1.4;}
+.academy-app .game-home .academy-course-copy p {color:var(--ui-muted);}
+.academy-app .game-home .academy-course-bottom>strong {border:0;background:none;padding:0;color:var(--ui-accent);border-radius:0;}
+.academy-app .game-home :is(.academy-course-track,.academy-level-track) {background:var(--ui-bg);border-radius:0;}
+.academy-app .game-home :is(.academy-course-track i,.academy-level-track i) {background:var(--ui-accent);box-shadow:none;}
+.ui-dialog {--ui-text:#f2f6ff;--ui-control-art:url('/ui/game/ui-button-secondary.svg');--ui-title:'Russo One',Arial,sans-serif;position:fixed;inset:0;margin:auto;width:min(460px,calc(100vw - 32px));max-height:calc(100dvh - 32px);padding:20px;border:10px solid transparent;border-image:url('/ui/game/ui-panel.svg') 10 fill / 10px / 0 stretch;background:transparent;color:var(--ui-text);overflow:auto;border-radius:0;}
+.ui-dialog::backdrop {background:#080e1bd9;backdrop-filter:blur(5px);}
+.ui-dialog header {display:flex;align-items:center;justify-content:space-between;gap:16px;margin-bottom:20px;}
+.ui-dialog h2 {font:20px/1.4 var(--ui-title);}
+.ui-dialog-body {font-size:15px;line-height:1.6;}
+.ui-dialog-body p {color:#b7c7d9;margin-bottom:20px;}
+.ui-dialog-actions {display:flex;justify-content:flex-end;gap:12px;flex-wrap:wrap;}
+@media(min-width:1000px) and (max-height:850px) {.academy-app .game-home .player-mission h2{font-size:25px;}.academy-app .game-home .player-stage{min-height:340px;}.academy-app .game-home .academy-milestones {margin:16px 0 24px;}}
+@media(max-width:760px){.academy-app .game-home .academy-page-heading h1{font-size:24px;}.academy-app .game-home .academy-nav-item{font-size:11px;padding:8px;justify-content:center;}.academy-app .game-home .player-mission{padding:20px;border-left:0;border-top:1px solid var(--ui-edge);}.academy-app .game-home .player-mission h2{font-size:22px;}.academy-app .game-home .player-greeting h2{font-size:22px;}.ui-dialog-actions .ui-button{flex:1;}}
+@media(prefers-reduced-motion:reduce){.academy-app .ui-button{transition:none;}}
+/* The old illustrated controls are retired within migrated components. */
+.academy-app .game-home{background:radial-gradient(ellipse at 65% 0,#233954,transparent 65%),var(--ui-bg)!important;}
+.academy-app .game-home .ui-button::before,.academy-app .academy-top-actions .ui-button::before,.academy-app .raise-hand .ui-button::before {border-image:var(--ui-control-art) 9 fill / 9px / 0 stretch;}
+.academy-app:has(.game-home),.academy-app:has(.game-home) .academy-home-shell {background:var(--ui-bg)!important;}
+.academy-app .academy-topbar {background:var(--ui-bg);border-bottom:1px solid var(--ui-edge);box-shadow:none;}
+.academy-app .academy-brand-mark {border-radius:0;background:var(--ui-raised);border-color:var(--ui-edge);box-shadow:none;}
+.academy-app .academy-brand>span:last-child {font-family:var(--ui-title);font-weight:400;}
+.academy-app .academy-brand>span:last-child>span {color:var(--ui-accent);}
+.academy-app .raise-hand .ui-button[aria-pressed=true] {--ui-control-art:url('/ui/game/ui-button-selected.svg');background:transparent;box-shadow:none;color:var(--ui-accent);}
+/* Stage 2: inventory, profile and large dialogs use the same chassis. */
+.ui-dialog{overflow:hidden;padding:16px;}
+.ui-dialog[open]{display:flex;flex-direction:column;}
+.ui-dialog>header{flex-shrink:0;margin-bottom:16px;padding-bottom:12px;border-bottom:1px solid #496079;}
+.ui-dialog>header h2{flex:1;min-width:0;}
+.ui-dialog-body{min-height:0;overflow-y:auto;overscroll-behavior:contain;padding:4px;}
+.ui-dialog--wide{width:min(1040px,calc(100vw - 32px));max-height:calc(100dvh - 32px);}
+.ui-wallet{display:flex;align-items:center;gap:6px;color:#ffd369;font-weight:700;white-space:nowrap;}
+.ui-category-nav{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:12px;}
+.ui-dialog .ui-button[aria-pressed=true]{--ui-control-art:url('/ui/game/ui-button-selected.svg');color:#55dfd4;}
+.ui-dialog .ui-shop-intro{font-size:13px;margin:0 0 16px;}
+.ui-shop-catalog{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:12px;}
+.ui-shop-card{min-width:0;display:flex;flex-direction:column;padding:12px;background:#26364b;border:1px solid #496079;}
+.ui-shop-card[data-equipped=true]{border-color:#55dfd4;}
+.ui-item-status{font-size:12px;color:#b7c7d9;min-height:20px;}
+.ui-item-status>span{display:flex;align-items:center;gap:6px;}
+.ui-shop-card[data-equipped=true] .ui-item-status{color:#55dfd4;}
+.ui-item-preview{height:170px;display:flex;justify-content:center;align-items:center;overflow:hidden;margin:8px 0;background:radial-gradient(ellipse at 50% 90%,#365e6b,transparent 70%),#1b2839;}
+.ui-item-preview .mentor-shop-stage{width:100%;height:100%;display:flex;align-items:center;justify-content:center;}
+.ui-item-preview .mentor-character{max-height:100%;}
+.ui-drone-swatch{width:56px;height:56px;border:3px solid #f2f6ff;}
+.ui-shop-card h3{font:16px/1.4 var(--ui-title);overflow-wrap:anywhere;}
+.ui-dialog .ui-item-description{font-size:12px;line-height:1.5;min-height:36px;margin:4px 0 12px;}
+.ui-shop-card>.ui-button{width:100%;padding:10px 8px;font-size:13px;margin-top:auto;}
+.ui-dialog .ui-panel-message{color:#ffb2b7;padding:12px;background:#3a2631;border-left:3px solid #ff8b92;}
+.ui-profile{display:grid;grid-template-columns:220px minmax(0,1fr);gap:24px;}
+.ui-profile-hero{display:flex;align-items:center;flex-direction:column;gap:12px;padding:20px;background:#26364b;align-self:start;}
+.ui-profile-hero h3{font:20px/1.4 var(--ui-title);overflow-wrap:anywhere;text-align:center;}
+.ui-profile-hero>span{color:#55dfd4;}
+.ui-profile-hero>.ui-button{width:100%;font-size:13px;padding:10px;}
+.ui-profile-stats{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px;}
+.ui-profile-stats>div{background:#26364b;border:1px solid #496079;padding:12px;display:flex;flex-direction:column-reverse;}
+.ui-profile-stats dt{font-size:12px;color:#b7c7d9;}
+.ui-profile-stats dd{font:22px/1.4 var(--ui-title);}
+.ui-profile-section{margin-top:24px;}
+.ui-profile-section h3{font:18px/1.4 var(--ui-title);margin-bottom:12px;}
+.ui-dialog .ui-profile-section p{font-size:13px;margin:4px 0 12px;}
+.ui-progress{height:8px;background:#101724;overflow:hidden;}
+.ui-progress i{display:block;height:100%;background:#55dfd4;}
+.ui-course-progress{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:8px;margin-bottom:12px;font-size:13px;}
+.ui-course-progress .ui-progress{grid-column:1/-1;}
+.ui-course-progress strong{color:#55dfd4;}
+.ui-achievement-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px;}
+.ui-achievement-grid>div{background:#26364b;border:1px solid #496079;padding:12px;}
+.ui-achievement-grid h4{font-weight:700;line-height:1.4;margin:6px 0;}
+.ui-achievement-grid [data-locked=true]{color:#b7c7d9;}
+@media(max-width:760px){.ui-dialog{padding:12px;}.ui-dialog--wide{width:calc(100vw - 16px);max-height:calc(100dvh - 16px);}.ui-dialog>header{gap:8px;}.ui-dialog>header h2{font-size:18px;}.ui-wallet{font-size:13px;}.ui-category-nav{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));}.ui-category-nav .ui-button{padding:8px;font-size:13px;}.ui-shop-catalog{grid-template-columns:repeat(2,minmax(0,1fr));gap:8px;}.ui-shop-card{padding:8px;}.ui-item-preview{height:145px;}.ui-profile{grid-template-columns:1fr;gap:16px;}.ui-profile-stats{grid-template-columns:repeat(2,minmax(0,1fr));}.ui-achievement-grid{grid-template-columns:1fr;}.ui-profile-hero{padding:16px;}}
+.ui-category-nav{position:sticky;top:0;background:#1b2839;padding:4px 0 12px;z-index:2;}
+.ui-item-preview>svg[data-character]{height:100%;max-width:100%;}
+.ui-shop-card{position:relative;border:0;}
+.ui-shop-card::after{content:'';position:absolute;inset:0;pointer-events:none;border:10px solid transparent;border-image:url('/ui/game/ui-panel.svg') 10 / 10px / 0 stretch;}
+.ui-shop-card[data-equipped=true]::after{border-image-source:url('/ui/game/ui-panel-selected.svg');}
+.ui-dialog-body{scrollbar-color:#61758b #101724;scrollbar-width:thin;}
+.ui-dialog{max-width:none;}
+.ui-profile-hero,.ui-profile-stats>div,.ui-achievement-grid>div{position:relative;border:0;}
+.ui-profile-hero::after,.ui-profile-stats>div::after,.ui-achievement-grid>div::after{content:'';position:absolute;inset:0;pointer-events:none;border:10px solid transparent;border-image:url('/ui/game/ui-panel.svg') 10 / 10px / 0 stretch;}
+@media(max-width:760px){.ui-shop-card>.ui-button{font-size:12px;gap:6px;}}
+/* Stage 3: course navigation and mentor classroom. */
+.academy-app .game-workspace{background:var(--ui-bg)!important;color:var(--ui-text);}
+.academy-app .game-workspace .academy-lesson-nav{background:var(--ui-bg)!important;border-color:var(--ui-edge)!important;}
+.academy-app .game-workspace :is(.course-nav-toolbar,.lesson-toolbar){background:var(--ui-surface);border-color:var(--ui-edge);}
+.academy-app .game-workspace .lesson-explanation-scroll{background:var(--ui-bg);padding:16px;}
+.academy-app .game-workspace .lesson-explanation-scroll>div{max-width:1000px;}
+.academy-app .game-workspace :is(.course-nav-overview,.academy-module){background:var(--ui-surface);border:1px solid var(--ui-edge);border-radius:0;box-shadow:none;}
+.academy-app .game-workspace :is(.course-nav-overview h2,.lesson-toolbar-title h2){font:18px/1.35 var(--ui-title);color:var(--ui-text);}
+.academy-app .game-workspace :is(.course-nav-eyebrow,.lesson-toolbar-title>span){color:var(--ui-accent);}
+.academy-app .game-workspace .course-nav-progress{background:var(--ui-bg);border-radius:0;}
+.academy-app .game-workspace .course-nav-progress i{background:var(--ui-accent);}
+.academy-app .game-workspace .academy-module>summary{padding:8px 4px;margin:0;border:0;min-height:48px;}
+.academy-app .game-workspace .academy-module>summary h3{font-size:13px!important;color:var(--ui-text);letter-spacing:0;text-transform:none;}
+.academy-app .game-workspace .academy-lesson-node{background:transparent;border:0!important;border-radius:0;box-shadow:none;}
+.academy-app .game-workspace .academy-lesson-node .ui-button{width:100%;text-align:left;justify-content:flex-start;padding:12px;min-height:60px;}
+.academy-app .game-workspace .academy-lesson-node[data-active=true] .ui-button{--ui-control-art:url('/ui/game/ui-button-selected.svg');}
+.academy-app .game-workspace .academy-lesson-node .ui-button svg{color:var(--ui-accent);filter:none;}
+.academy-app .game-workspace .academy-lesson-node .ui-button>div:last-child>div:last-child{color:var(--ui-muted);}
+.academy-app .game-workspace .lesson-toolbar .ui-button{padding:8px 12px;min-height:44px;}
+.academy-app .game-workspace .mentor-lesson{background:var(--ui-surface)!important;border:0;border-radius:0;box-shadow:none;padding:20px;position:relative;color:var(--ui-text)!important;}
+.academy-app .game-workspace .mentor-lesson::after{border-image:url('/ui/game/ui-panel.svg') 10 / 10px / 0 stretch;pointer-events:none;}
+.academy-app .game-workspace .mentor-lesson-header h1{font:24px/1.35 var(--ui-title);color:var(--ui-text);}
+.academy-app .game-workspace .mentor-lesson-header>div>span{color:var(--ui-muted);}
+.academy-app .game-workspace .mentor-stage-nav{gap:8px;}
+.academy-app .game-workspace .mentor-stage-nav .ui-button{padding:8px;min-height:44px;color:var(--ui-muted);}
+.academy-app .game-workspace .mentor-stage-nav .ui-button[aria-current=step]{--ui-control-art:url('/ui/game/ui-button-selected.svg');color:var(--ui-accent);box-shadow:none;}
+.academy-app .game-workspace .mentor-stage-nav .ui-button span{background:none;border:0;border-radius:0;color:inherit;}
+.academy-app .game-workspace .ui-button::before{border-image:var(--ui-control-art) 9 fill / 9px / 0 stretch;}
+.academy-app .game-workspace .ui-button--primary{--ui-control-art:url('/ui/game/ui-button-primary.svg');color:#202a35;}
+.academy-app .game-workspace :is(.mentor-bubble,.mentor-experiment,.mentor-practice-brief,.mentor-feedback){background:var(--ui-raised)!important;border:1px solid var(--ui-edge);border-radius:0;box-shadow:none;color:var(--ui-text);}
+.academy-app .game-workspace .mentor-bubble::after{display:none;}
+.academy-app .game-workspace :is(.mentor-opening,.mentor-example-text,.mentor-teacher>span,.mentor-lesson-footer button){color:var(--ui-muted);}
+.academy-app .game-workspace .mentor-bubble-label{color:var(--ui-accent);}
+.academy-app .game-workspace .mentor-teacher-halo{background:radial-gradient(ellipse,#55dfd420,transparent 70%);}
+.academy-app .game-workspace .mentor-answer-list .ui-button{font-size:14px;line-height:1.6;min-height:48px;padding:12px 16px;text-align:left;justify-content:space-between;}
+.academy-app .game-workspace .mentor-answer-list .ui-button:is(.is-correct,.is-retry),.academy-app .game-workspace .mentor-experiment .ui-button[aria-pressed=true]{--ui-control-art:url('/ui/game/ui-button-selected.svg');background:none;box-shadow:none;}
+.academy-app .game-workspace .mentor-answer-list .ui-button.is-correct{opacity:1;filter:none;color:var(--ui-accent);}
+.academy-app .game-workspace .mentor-feedback{border-left:3px solid var(--ui-action);}
+.academy-app .game-workspace .mentor-feedback.is-correct{border-left-color:var(--ui-accent);}
+.academy-app .game-workspace .mentor-explanation-progress{display:flex;gap:8px;flex-wrap:wrap;}
+.academy-app .game-workspace .mentor-explanation-progress .ui-button{width:44px;height:44px;padding:8px;}
+.academy-app .game-workspace .mentor-explanation-progress .ui-button[aria-current=step]{--ui-control-art:url('/ui/game/ui-button-selected.svg');color:var(--ui-accent);}
+.academy-app .game-workspace .mentor-lesson-footer{display:flex;gap:12px;flex-wrap:wrap;border-color:var(--ui-edge);}
+.academy-app .game-workspace .mentor-lesson-footer .ui-button{font-size:12px;}
+.academy-app .game-workspace .mentor-repeat-control select{background:var(--ui-bg);color:var(--ui-text);border:1px solid var(--ui-edge);border-radius:0;min-height:44px;}
+.academy-app .game-workspace :is(.mentor-code,.mentor-page-preview){background:var(--ui-bg);border-color:var(--ui-edge);border-radius:0;}
+@media(min-width:1000px) and (max-height:850px){.academy-app .game-workspace .mentor-lesson{padding:16px 20px;}.academy-app .game-workspace .mentor-lesson-header h1{font-size:22px;}.academy-app .game-workspace .mentor-bubble{padding:16px;}.academy-app .game-workspace .mentor-lesson-footer{margin-top:12px;padding-top:12px;}}
+@media(max-width:760px){.academy-app .game-workspace .mentor-lesson{padding:16px;}.academy-app .game-workspace .mentor-lesson-header h1{font-size:20px;}.academy-app .game-workspace .mentor-lesson-header{flex-wrap:wrap;gap:12px;}.academy-app .game-workspace .mentor-stage-nav .ui-button{flex-direction:column;gap:2px;}.academy-app .game-workspace .mentor-lesson-footer .ui-button{width:100%;}.academy-app .game-workspace .lesson-toolbar-title h2{font-size:15px;}.academy-app .game-workspace .lesson-toolbar .ui-button{padding:8px;}}
+.academy-app:has(.game-workspace){background:var(--ui-bg)!important;}
+.academy-app .game-workspace .mentor-explanation-progress .ui-button::after{display:none;}
+.academy-app .game-workspace .mentor-lesson-footer .ui-button{background:transparent;border:0;box-shadow:none;}
+.academy-app .game-workspace .mentor-dialog-actions .ui-button{background:transparent;border:0;box-shadow:none;}
+@media(min-width:1000px) and (max-height:850px){
+ .academy-app .game-workspace .mentor-stage-nav{margin:12px 0;}
+ .academy-app .game-workspace .mentor-bubble{padding:12px 16px;}
+ .academy-app .game-workspace .mentor-bubble-label{margin-bottom:8px;}
+ .academy-app .game-workspace .mentor-opening{margin-bottom:8px;}
+ .academy-app .game-workspace .mentor-answer-list{gap:6px;margin-top:8px;}
+ .academy-app .game-workspace .mentor-answer-list .ui-button{min-height:44px;padding:8px 14px;}
+ .academy-app .game-workspace .mentor-feedback{padding:8px 12px;margin-top:8px;}
+ .academy-app .game-workspace .mentor-lesson-footer{margin-top:8px;padding-top:8px;}
+}
+.academy-app .game-workspace :is(.course-nav-overview,.academy-module){position:relative;border-color:transparent;}
+.academy-app .game-workspace :is(.course-nav-overview,.academy-module)::after{content:'';position:absolute;inset:0;pointer-events:none;border:10px solid transparent;border-image:url('/ui/game/ui-panel.svg') 10 / 10px / 0 stretch;}
+.academy-app .game-workspace .mentor-number-pair span{background:var(--ui-raised);border-color:var(--ui-edge);border-radius:0;color:var(--ui-text);}
+.academy-app .game-workspace :is(.mentor-live-result,.mentor-experiment-note){color:var(--ui-muted);}
+.academy-app .game-workspace .mentor-live-result strong{color:var(--ui-accent);}
+/* Stage 4a: shared practice workbench, table, typing and file delivery. */
+.academy-app .game-workspace .academy-practice-scroll{background:var(--ui-bg)!important;}
+.academy-app .game-workspace .academy-task-brief{background:var(--ui-surface)!important;color:var(--ui-text)!important;border-color:var(--ui-edge);border-radius:0;box-shadow:none;}
+.academy-app .game-workspace .academy-task-brief::after{border-image:url('/ui/game/ui-panel.svg') 10 / 10px / 0 stretch;}
+.academy-app .game-workspace .academy-task-brief>span{color:var(--ui-accent);}
+.academy-app .game-workspace :is(.workshop-game,.workshop-legacy){background:var(--ui-surface)!important;color:var(--ui-text);border-color:var(--ui-edge);border-radius:0;box-shadow:none;}
+.academy-app .game-workspace :is(.workshop-header h2,.typing-toolbar h2,.spreadsheet-heading h2){font:22px/1.35 var(--ui-title);color:var(--ui-text);}
+.academy-app .game-workspace :is(.workshop-header p,.workshop-eyebrow,.workshop-section-title,.spreadsheet-address-note,.spreadsheet-instruction,.keyboard-caption){color:var(--ui-muted);}
+.academy-app .game-workspace :is(.workshop-hint,.workshop-feedback,.workshop-banner,.spreadsheet-console,.spreadsheet-row-card){background:var(--ui-raised)!important;border:1px solid var(--ui-edge);border-radius:0!important;color:var(--ui-text);box-shadow:none;}
+.academy-app .game-workspace :is(.spreadsheet-lab input,.typing-surface,.keyboard-board){background:var(--ui-bg);border-color:var(--ui-edge);border-radius:0;box-shadow:none;}
+.academy-app .game-workspace .spreadsheet-lab input{border-radius:0;min-height:44px;color:var(--ui-text);}
+.academy-app .game-workspace .spreadsheet-lab :is(th,td){border-color:var(--ui-edge);color:var(--ui-text);}
+.academy-app .game-workspace .spreadsheet-lab thead th{background:var(--ui-raised);}
+.academy-app .game-workspace .spreadsheet-lab tbody td:last-child{background:#25464b;color:var(--ui-accent);}
+.academy-app .game-workspace .spreadsheet-formula-label strong{background:var(--ui-bg);border-color:var(--ui-edge);border-radius:0;color:var(--ui-accent);}
+.academy-app .game-workspace .spreadsheet-hint{background:var(--ui-bg);color:var(--ui-muted);border-color:var(--ui-edge);border-radius:0;}
+.academy-app .game-workspace .spreadsheet-error{color:var(--ui-danger);}
+.academy-app .game-workspace .spreadsheet-success{color:var(--ui-accent);}
+.academy-app .game-workspace .spreadsheet-actions{gap:8px;flex-wrap:wrap;}
+.academy-app .game-workspace :is(.workshop-progress>div,.typing-progress){background:var(--ui-bg);border-radius:0;}
+.academy-app .game-workspace :is(.workshop-progress i,.typing-progress i){background:var(--ui-accent);border-radius:0;}
+.academy-app .game-workspace .typing-surface.is-focused{border-color:var(--ui-accent);box-shadow:inset 0 0 0 1px var(--ui-accent);}
+.academy-app .game-workspace .typing-status{color:var(--ui-muted);}
+.academy-app .game-workspace .typed-correct{color:var(--ui-accent);}
+.academy-app .game-workspace .typed-error{color:var(--ui-danger);background:#743b4933;}
+.academy-app .game-workspace .typed-pending{color:var(--ui-muted);}
+.academy-app .game-workspace .keycap{background:var(--ui-raised);border:1px solid var(--ui-edge);border-bottom:3px solid #101724;border-radius:0;color:var(--ui-text);box-shadow:none;}
+.academy-app .game-workspace .keycap-next{background:var(--ui-action);color:#202a35;border-color:#b98735;}
+.academy-app .game-workspace :is(.delivery-desk,.parcel-card,.folder-card){background:var(--ui-raised);border-color:var(--ui-edge);border-radius:0;box-shadow:none;color:var(--ui-text);}
+.academy-app .game-workspace .parcel-card.is-selected,.academy-app .game-workspace .folder-card.is-hovered{background:#25464b;border-color:var(--ui-accent);box-shadow:inset 0 0 0 1px var(--ui-accent);}
+.academy-app .game-workspace :is(.parcel-name,.folder-card strong){color:var(--ui-text);}
+.academy-app .game-workspace :is(.parcel-extension,.parcel-select,.folder-card span){color:var(--ui-muted);background:none;border-radius:0;}
+.academy-app .game-workspace .workshop-success{background:#25464b;border-color:var(--ui-accent);border-radius:0;color:var(--ui-text);}
+.academy-app .game-workspace .workshop-hint summary{min-height:44px;display:flex;align-items:center;cursor:pointer;}
+@media(min-width:1000px) and (max-height:850px){.academy-app .game-workspace :is(.workshop-header h2,.typing-toolbar h2,.spreadsheet-heading h2){font-size:19px;}.academy-app .game-workspace .spreadsheet-actions .ui-button{padding:8px 12px;min-height:44px;}}
+@media(max-width:760px){.academy-app .game-workspace :is(.workshop-header h2,.typing-toolbar h2,.spreadsheet-heading h2){font-size:18px;}.academy-app .game-workspace .spreadsheet-heading{flex-wrap:wrap;gap:12px;}.academy-app .game-workspace .typing-toolbar{flex-wrap:wrap;}.academy-app .game-workspace .typing-toolbar>div{flex-wrap:wrap;}.academy-app .game-workspace .spreadsheet-actions .ui-button{flex:1;}}
+.academy-app .game-workspace .academy-practice-frame{background:var(--ui-bg);}
+.academy-app .game-workspace .spreadsheet-lab table{background:var(--ui-surface)!important;}
+.academy-app .game-workspace .spreadsheet-lab input{background:var(--ui-bg)!important;}
+.academy-app .game-workspace .spreadsheet-lab{border:2px solid transparent!important;border-image:url('/ui/game/ui-panel.svg') 10 / 10px / 0 stretch!important;border-radius:0!important;}
+.academy-app .game-workspace .keyboard-caption button{background:var(--ui-raised);border:1px solid var(--ui-edge);border-radius:0;color:var(--ui-text);min-height:44px;padding:8px 12px;}
+/* Stage 4b: algorithms, graphs, logic circuits and learning models. */
+.academy-app .game-workspace .ui-trainer-family :is(h2,h3){font-family:var(--ui-title);font-weight:400;letter-spacing:0;}
+.academy-app .game-workspace .ui-trainer-family :is(div,section)[class*="border"]{border-color:var(--ui-edge);border-radius:0;box-shadow:none;}
+.academy-app .game-workspace .ui-trainer-family :is(div,section):is([class~="bg-gray-900"],[class~="bg-gray-900/80"],[class~="bg-black/70"],[class~="bg-slate-900/90"],[class~="bg-slate-950"]){background:var(--ui-raised);}
+.academy-app .game-workspace .ui-trainer-family div[class~="bg-black"]{background:var(--ui-bg)!important;}
+.academy-app .game-workspace .ui-trainer-family .ui-button{background:transparent;box-shadow:none;border:0;border-radius:0;min-height:44px;padding:8px 14px;font-family:inherit;color:var(--ui-text);}
+.academy-app .game-workspace .ui-trainer-family .ui-button--primary{color:#202a35;}
+.academy-app .game-workspace .ui-trainer-family .ui-button[aria-pressed=true]{--ui-control-art:url('/ui/game/ui-button-selected.svg');color:var(--ui-accent);}
+.academy-app .game-workspace .ui-trainer-family input{background:var(--ui-bg)!important;border:1px solid var(--ui-edge);border-radius:0;color:var(--ui-text);min-height:44px;}
+.academy-app .game-workspace .ui-trainer-family :is(.text-gray-400,.text-slate-400,.text-gray-500,.text-slate-500){color:var(--ui-muted);}
+.academy-app .game-workspace .ui-trainer-family :is(.text-cyber-neonGreen,.text-cyan-300,.text-emerald-400){color:var(--ui-accent);}
+.academy-app .game-workspace .ui-trainer-family :is(.text-yellow-300,.text-cyber-neonYellow){color:var(--ui-action);}
+.academy-app .game-workspace .training-basket{background:var(--ui-raised);border-color:var(--ui-edge);border-radius:0;box-shadow:none;}
+.academy-app .game-workspace .basket-target{background:var(--ui-raised);border-color:var(--ui-edge);border-radius:0;color:var(--ui-text);min-height:44px;}
+.academy-app .game-workspace .basket-examples button{background:var(--ui-bg);border:1px solid var(--ui-edge);border-radius:0;color:var(--ui-text);min-height:44px;}
+.academy-app .game-workspace .training-basket.is-hovered{border-color:var(--ui-accent);}
+.academy-app .game-workspace :is(.wireframe-phone,.wireframe-slot,.wireframe-widget){border-color:var(--ui-edge);border-radius:0;box-shadow:none;}
+.academy-app .game-workspace :is(.wireframe-slot,.wireframe-widget){background:var(--ui-raised);color:var(--ui-text);}
+.academy-app .game-workspace .wireframe-phone{background:var(--ui-bg);}
+@media(max-width:760px){.academy-app .game-workspace .ui-trainer-family .ui-button{padding:8px 10px;font-size:13px;}}
+.academy-app .game-workspace :is(.widget-card,.screen-slot,.training-basket,.basket-target){background:var(--ui-raised);border-color:var(--ui-edge);border-radius:0;box-shadow:none;}
+.academy-app .game-workspace .widget-card.is-selected{border-color:var(--ui-accent);background:#25464b;}
+.academy-app .game-workspace .widget-card strong,.academy-app .game-workspace .slot-target{color:var(--ui-text);}
+.academy-app .game-workspace .widget-card span{color:var(--ui-muted);}
+.academy-app .game-workspace .slot-remove{background:var(--ui-raised);border:1px solid var(--ui-edge);border-radius:0;color:var(--ui-text);min-width:32px;min-height:32px;}
+.academy-app .game-workspace .ui-trainer-family .workshop-banner{position:relative;}
+.academy-app .game-workspace .ui-trainer-family .workshop-banner::after{content:'';position:absolute;inset:0;pointer-events:none;border:10px solid transparent;border-image:url('/ui/game/ui-panel.svg') 10 / 10px / 0 stretch;}
+@media(min-width:1000px) and (max-height:850px){
+ .academy-app .game-workspace .circuit-workshop{padding:12px;}
+ .academy-app .game-workspace .circuit-workshop .workshop-banner{margin-bottom:8px;}
+ .academy-app .game-workspace .circuit-workshop>.ui-button{margin-top:8px;}
+ .academy-app .game-workspace .ui-trainer-family:has(>.ui-button--primary)>.workshop-banner{margin-bottom:8px;}
+}
+@media(min-width:1000px) and (max-height:850px){
+ .academy-app .game-workspace .circuit-workshop>*{margin-block-start:0;}
+ .academy-app .game-workspace .circuit-workshop .workshop-banner{margin-block-end:4px;}
+ .academy-app .game-workspace .circuit-workshop>.ui-button{margin-block-start:4px;}
+ .academy-app .game-workspace .academy-practice-content[data-trainer=ai_neuron] .ui-trainer-family>*{margin-block-start:4px;}
+}
+@media(min-width:1000px) and (max-height:850px){
+ .academy-app .game-workspace .academy-practice-content .circuit-workshop{padding:8px 12px;}
+ .academy-app .game-workspace .academy-practice-content .circuit-workshop>div{margin-top:0;margin-bottom:0;}
+ .academy-app .game-workspace .academy-practice-content[data-trainer=ai_neuron] .ui-trainer-family>div{margin-top:0;margin-bottom:0;}
+}
+/* Stage 4c: safety inspections, binary workbench, Hanoi and quizzes. */
+.academy-app .game-workspace .lesson-quiz-scroll{background:var(--ui-bg);}
+.academy-app .game-workspace .lesson-quiz-panel{background:var(--ui-surface);border-color:var(--ui-edge);border-radius:0;box-shadow:none;}
+.academy-app .game-workspace .lesson-quiz-panel :is(h1,h2,h3){font-family:var(--ui-title);font-weight:400;}
+.academy-app .game-workspace .lesson-answer.ui-button{display:flex;justify-content:flex-start;gap:12px;min-height:48px;line-height:1.6;font-family:inherit!important;font-size:15px!important;background:transparent;border:0;color:var(--ui-text);box-shadow:none;}
+.academy-app .game-workspace .lesson-answer.ui-button[aria-pressed=true]{--ui-control-art:url('/ui/game/ui-button-selected.svg');}
+.academy-app .game-workspace .lesson-answer.ui-button[class*="text-cyber-neonGreen"]{color:var(--ui-accent);opacity:1;filter:none;--ui-control-art:url('/ui/game/ui-button-selected.svg');}
+.academy-app .game-workspace .lesson-answer.ui-button[class*="text-red-500"]{color:var(--ui-danger);opacity:1;filter:none;--ui-control-art:url('/ui/game/ui-button-danger.svg');}
+.academy-app .game-workspace .lesson-answer.ui-button>span{margin:0;color:var(--ui-muted);}
+.academy-app .game-workspace .lesson-quiz-actions{border-color:var(--ui-edge);gap:12px;flex-wrap:wrap;}
+.academy-app .game-workspace .lesson-quiz-panel div[class*="border rounded"]{background:var(--ui-raised);border-color:var(--ui-edge);border-radius:0;color:var(--ui-text);}
+.academy-app .game-workspace .phishing-message{background:var(--ui-raised);border-color:var(--ui-edge);border-radius:0;box-shadow:none;}
+.academy-app .game-workspace .phishing-checklist{background:var(--ui-raised);border-color:var(--ui-edge);border-radius:0;}
+.academy-app .game-workspace :is(.safety-workshop,.phishing-workshop,.process-workshop) :is(div,section)[class*="border"]{border-radius:0;}
+.academy-app .game-workspace .binary-workshop [class*="rounded-full"]{border-radius:50%;}
+.academy-app .game-workspace .hanoi-workshop{min-height:0;}
+.academy-app .game-workspace .hanoi-workshop .ui-button{min-height:44px;}
+@media(max-width:760px){.academy-app .game-workspace .lesson-answer.ui-button{font-size:14px!important;padding:12px;}.academy-app .game-workspace .lesson-quiz-actions .ui-button{width:100%;}}
+@media(min-width:1000px) and (max-height:850px){
+ .academy-app .game-workspace .academy-practice-content .process-workshop{padding:8px 12px;}
+ .academy-app .game-workspace .process-workshop .process-row{padding-top:0;padding-bottom:0;min-height:44px;}
+ .academy-app .game-workspace .process-workshop>.workshop-banner{margin-top:0;margin-bottom:4px;}
+}
+.academy-app .game-workspace .lesson-quiz-panel{background:var(--ui-surface)!important;border:10px solid transparent!important;border-image:url('/ui/game/ui-panel.svg') 10 / 10px / 0 stretch;box-shadow:none!important;padding:24px!important;}
+.academy-app .game-workspace .lesson-quiz-scroll{padding:16px!important;justify-content:flex-start;}
+.academy-app .game-workspace .lesson-quiz-panel .text-center{margin-bottom:16px;}
+.academy-app .game-workspace .lesson-quiz-panel h2{font-size:21px;line-height:1.45;margin-bottom:16px;}
+.academy-app .game-workspace .lesson-quiz-panel .space-y-4>*+*{margin-top:10px;}
+.academy-app .game-workspace .lesson-quiz-actions{margin-top:18px;padding-top:16px;}
+@media(max-width:760px){.academy-app .game-workspace .lesson-quiz-panel{padding:16px!important;}.academy-app .game-workspace .lesson-quiz-scroll{padding:10px!important;}}
+/* Stage 4d: code workspaces share controls while code and preview remain distinct. */
+.academy-app .game-workspace .ui-code-workspace{min-height:0;background:var(--ui-bg);}
+.academy-app .game-workspace .ui-code-workspace div[class*="bg-gray"],
+.academy-app .game-workspace .ui-code-workspace div[class*="bg-cyber-panel"]{background:var(--ui-surface)!important;border-color:var(--ui-edge);}
+.academy-app .game-workspace .ui-code-workspace .ui-button{background:transparent!important;border:0!important;border-radius:0!important;box-shadow:none!important;clip-path:none!important;transform:none;font-family:inherit;letter-spacing:normal;color:var(--ui-text)!important;min-height:44px;padding:8px 12px;}
+.academy-app .game-workspace .ui-code-workspace .ui-button--primary{color:#192231!important;}
+.academy-app .game-workspace .ui-code-workspace .ui-button[aria-pressed=true]{--ui-control-art:url('/ui/game/ui-button-selected.svg');color:var(--ui-accent)!important;}
+.academy-app .game-workspace .ui-code-workspace textarea{background:var(--ui-bg)!important;color:var(--ui-text)!important;min-height:120px!important;line-height:1.65;font-size:15px;tab-size:4;padding:12px;outline-offset:-3px;}
+.academy-app .game-workspace .ui-code-workspace textarea:focus-visible{outline:2px solid var(--ui-accent)!important;}
+.academy-app .game-workspace .ui-code-runbar{position:static;padding:10px 14px;border-top:1px solid var(--ui-edge);background:var(--ui-surface);justify-content:flex-end;flex-shrink:0;}
+.academy-app .game-workspace .ui-code-workspace h1,
+.academy-app .game-workspace .ui-code-workspace h3{font-family:var(--ui-title);font-weight:400;color:var(--ui-text);}
+.academy-app .game-workspace .academy-code-brief{background:var(--ui-surface)!important;border-color:var(--ui-edge)!important;color:var(--ui-text);flex-shrink:0;}
+.academy-app .game-workspace .ui-code-workspace .text-gray-500,
+.academy-app .game-workspace .ui-code-workspace .text-gray-600{color:var(--ui-muted);}
+@media(min-width:1024px){.academy-app .game-workspace .ui-code-workspace>div.flex-1{min-height:0;}.academy-app .game-workspace .ui-code-workspace div.lg\:w-96{width:32%;min-width:250px;}.academy-app .game-workspace .ui-code-workspace .ui-code-runbar{display:flex;}}
+/* Retire the previous blue page wash; every role uses the same base surfaces. */
+html body .academy-app,html body .academy-home-shell,html body .academy-app .game-home,html body .academy-app .game-workspace{background:var(--ui-bg)!important;color:var(--ui-text);}
+.academy-app .game-workspace [class~="bg-black"],.academy-app .game-workspace [class~="bg-gray-950"],.academy-app .game-workspace .academy-practice-scroll{background-color:var(--ui-bg)!important;}
+.academy-app .game-workspace .academy-task-brief,.academy-app .game-workspace .academy-theory{background:var(--ui-surface)!important;border-color:var(--ui-edge)!important;}
+.academy-app .game-workspace .academy-practice-content>.workshop-game,.academy-app .game-workspace .academy-practice-content>.workshop-legacy{background:var(--ui-surface)!important;border-color:var(--ui-edge)!important;}
+.academy-app .academy-teacher{background:var(--ui-bg)!important;color:var(--ui-text);}
+.academy-app .academy-teacher :is(aside,section,article),.academy-app .academy-teacher div[class*="bg-gray"],.academy-app .academy-teacher div[class*="bg-cyber-panel"]{background:var(--ui-surface)!important;border-color:var(--ui-edge)!important;}
+.academy-app .academy-teacher .ui-button,.academy-app.academy-welcome .ui-button,.academy-app .assessment-builder .ui-button,.academy-app .assessment-panel .ui-button{background:transparent!important;border:0!important;border-radius:0!important;box-shadow:none!important;clip-path:none!important;color:var(--ui-text)!important;min-height:44px;padding:8px 14px;letter-spacing:normal;}
+.academy-app.academy-welcome .ui-button--primary,.academy-app .academy-teacher .ui-button--primary,.academy-app .assessment-builder .ui-button--primary{color:#192231!important;}
+.academy-app.academy-welcome .academy-auth-card{background:var(--ui-surface)!important;border:10px solid transparent;border-image:url('/ui/game/ui-panel.svg') 10 / 10px / 0 stretch;border-radius:0;box-shadow:none;}
+.academy-app.academy-welcome :is(h1,h2),.academy-app .academy-teacher :is(h1,h2,h3){font-family:var(--ui-title);font-weight:400;color:var(--ui-text);text-shadow:none;}
+.academy-app.academy-welcome .academy-auth-action{width:100%;min-height:48px;}
+.academy-app.academy-welcome input,.academy-app .academy-teacher :is(input,textarea,select){background:var(--ui-bg)!important;color:var(--ui-text)!important;border:1px solid var(--ui-edge)!important;border-radius:0;min-height:44px;}
+.academy-app .academy-teacher div[class*="rounded"]{border-radius:0;}
+.academy-app .academy-teacher table{background:var(--ui-surface);}
+.academy-app .academy-teacher th{background:var(--ui-raised);color:var(--ui-muted);}
+.academy-app.academy-welcome .academy-auth-note,.academy-app.academy-welcome .academy-demo-panel{background:var(--ui-raised);border-color:var(--ui-edge);border-radius:0;color:var(--ui-muted);}
+.academy-app .academy-teacher .assessment-builder,.academy-app .academy-teacher .assessment-panel,.academy-app .academy-teacher .assessment-builder article,.academy-app .academy-teacher .assessment-panel article{background:var(--ui-surface)!important;border-color:var(--ui-edge);border-radius:0;}
+.academy-app.academy-welcome .academy-auth-card::after,.academy-app.academy-welcome .academy-pill::before{display:none;}
+.academy-app.academy-welcome .academy-pill{border:1px solid var(--ui-edge);border-radius:0;background:var(--ui-raised);box-shadow:none;color:var(--ui-muted);}
+/* Teacher details, tables and assessment forms. */
+.ui-dialog .ui-teacher-student{color:var(--ui-text);}
+.ui-dialog .ui-teacher-student div[class*="bg-gray"],.ui-dialog .ui-teacher-student div[class*="bg-black"]{background:var(--ui-raised);border-color:var(--ui-edge);border-radius:0;}
+.ui-dialog .ui-teacher-student :is(h2,h3){font-family:var(--ui-title);font-weight:400;}
+.ui-dialog .ui-teacher-student .text-gray-500{color:var(--ui-muted);}
+.academy-app .academy-teacher :is(.assessment-builder,.assessment-panel) article{border:10px solid transparent;border-image:url('/ui/game/ui-panel.svg') 10 / 10px / 0 stretch;box-shadow:none;}
+.academy-app .academy-teacher .assessment-builder>header{padding-bottom:16px;border-bottom:1px solid var(--ui-edge);}
+.academy-app .academy-teacher .assessment-builder>footer{position:sticky;bottom:-24px;background:var(--ui-surface);border-top:1px solid var(--ui-edge);padding:14px 0;z-index:2;}
+.academy-app .academy-teacher .assessment-option{grid-template-columns:24px minmax(0,1fr) 44px;}
+.academy-app .academy-teacher input[type=radio]{min-height:24px;width:24px;accent-color:var(--ui-accent);}
+.academy-app .academy-teacher :is(input,textarea,select):focus-visible{outline:2px solid var(--ui-accent);outline-offset:2px;}
+.academy-app .academy-teacher table :is(th,td){border-color:var(--ui-edge);overflow-wrap:anywhere;}
+.academy-app .academy-teacher th .ui-button{padding:6px 8px;white-space:normal;font-size:12px;}
+@media(max-width:760px){.academy-app .academy-teacher .assessment-builder{padding:14px;}.academy-app .academy-teacher .assessment-builder>footer{bottom:-14px;}.academy-app .academy-teacher .assessment-builder>footer .ui-button{width:100%;}.academy-app .academy-teacher .assessment-question-head h3{flex:1;min-width:100px;}}
+.academy-app .academy-teacher .assessment-panel::after,.academy-app .academy-teacher .assessment-builder::after{display:none;}
+.academy-app .academy-teacher .assessment-panel{border:10px solid transparent;border-image:url('/ui/game/ui-panel.svg') 10 / 10px / 0 stretch;box-shadow:none;}
+.academy-app .academy-teacher .text-cyber-neonPink{color:var(--ui-accent);}
+.academy-app .academy-teacher .text-cyber-neonYellow{color:var(--ui-action);}
+.academy-app .typing-workshop span.keycap{cursor:default;pointer-events:none;}

@@ -1,3 +1,4 @@
+import {GameButton} from './GameUI';
 
 import React, { useState, useEffect, useRef } from 'react';
 import { Task } from '../types';
@@ -22,7 +23,7 @@ const HanoiGame: React.FC<HanoiGameProps> = ({ task, onComplete }) => {
     // Colors for disks (Gradient from Neon Pink to Neon Blue)
     const diskColors = [
         '#ff00ff', // Pink
-        '#d900ff', 
+        '#d900ff',
         '#b200ff',
         '#8c00ff',
         '#6600ff',
@@ -70,7 +71,7 @@ const HanoiGame: React.FC<HanoiGameProps> = ({ task, onComplete }) => {
 
             const sourcePeg = [...pegs[selectedPeg]];
             const destPeg = [...pegs[pegIndex]];
-            
+
             const diskToMove = sourcePeg[sourcePeg.length - 1];
             const topDestDisk = destPeg.length > 0 ? destPeg[destPeg.length - 1] : Infinity;
 
@@ -104,9 +105,9 @@ const HanoiGame: React.FC<HanoiGameProps> = ({ task, onComplete }) => {
     };
 
     return (
-        <div className="workshop-legacy w-full min-h-[460px] flex flex-col items-center justify-start bg-[#050508] relative p-4">
+        <div className="ui-trainer-family hanoi-workshop workshop-legacy w-full min-h-[460px] flex flex-col items-center justify-start bg-[#050508] relative p-4">
             {/* Background Grid */}
-            <div className="absolute inset-0 z-0 opacity-20 pointer-events-none" 
+            <div className="absolute inset-0 z-0 opacity-20 pointer-events-none"
                  style={{backgroundImage: 'linear-gradient(rgba(0, 243, 255, 0.1) 1px, transparent 1px), linear-gradient(90deg, rgba(0, 243, 255, 0.1) 1px, transparent 1px)', backgroundSize: '20px 20px'}}>
             </div>
 
@@ -117,13 +118,13 @@ const HanoiGame: React.FC<HanoiGameProps> = ({ task, onComplete }) => {
             </div>
 
             <div className="absolute top-4 right-4 z-10">
-                <button 
+                <GameButton size="compact"
                     onClick={resetGame}
                     className="p-2 text-gray-500 hover:text-white transition-colors"
                     title="Сброс системы"
                 >
                     <RefreshCw size={20} />
-                </button>
+                </GameButton>
             </div>
 
             <p className="relative z-10 mt-16 text-sm text-gray-200 max-w-xl text-center">Перенеси все диски с башни 1 на башню 3. За ход бери только верхний диск. Большой диск нельзя класть на маленький. Нажми на башню с диском, затем на башню назначения.</p>
@@ -138,7 +139,7 @@ const HanoiGame: React.FC<HanoiGameProps> = ({ task, onComplete }) => {
             {/* Game Area */}
             <div className="flex items-end justify-center gap-2 md:gap-12 w-full max-w-2xl h-64 md:h-80 relative z-10 mt-8 shrink-0">
                 {pegs.map((peg, pegIndex) => (
-                    <div 
+                    <div
                         key={pegIndex}
                         role="button"
                         tabIndex={0}
@@ -158,19 +159,19 @@ const HanoiGame: React.FC<HanoiGameProps> = ({ task, onComplete }) => {
                         {peg.map((diskSize, i) => {
                             const widthPercent = 30 + (diskSize / numDisks) * 70; // 30% to 100%
                             const color = diskColors[(diskSize - 1) % diskColors.length];
-                            
+
                             // Check if this disk is currently selected (top of selected peg)
                             const isSelected = selectedPeg === pegIndex && i === peg.length - 1;
 
                             return (
-                                <div 
+                                <div
                                     key={i}
                                     className={`
                                         h-6 md:h-8 rounded-sm mb-1 z-10 shadow-[0_0_10px] transition-all duration-300
                                         ${isSelected ? 'translate-y-[-20px] shadow-[0_0_20px_white]' : ''}
                                     `}
-                                    style={{ 
-                                        width: `${widthPercent}%`, 
+                                    style={{
+                                        width: `${widthPercent}%`,
                                         backgroundColor: color,
                                         boxShadow: `0 0 ${isSelected ? '20px' : '5px'} ${color}`
                                     }}
@@ -179,7 +180,7 @@ const HanoiGame: React.FC<HanoiGameProps> = ({ task, onComplete }) => {
                                 </div>
                             );
                         })}
-                        
+
                         {/* Click Hint */}
                         <div className="absolute -bottom-8 text-[10px] text-gray-600 font-mono uppercase tracking-widest group-hover:text-cyber-neonBlue transition-colors">
                             STACK_0{pegIndex + 1}
