@@ -29,7 +29,7 @@ const initAudio = () => {
     }
 };
 
-type SoundType = 'hover' | 'click' | 'type' | 'error' | 'success' | 'move' | 'open' | 'page' | 'chirp' | 'mascot_pop' | 'hit';
+type SoundType = 'help' | 'hover' | 'click' | 'type' | 'error' | 'success' | 'move' | 'open' | 'page' | 'chirp' | 'mascot_pop' | 'hit';
 
 export const playSound = (type: SoundType) => {
     try {
@@ -46,6 +46,20 @@ export const playSound = (type: SoundType) => {
         const now = audioCtx.currentTime;
 
         switch (type) {
+            case 'help':
+                osc.type = 'sine';
+                osc.frequency.setValueAtTime(660, now);
+                osc.frequency.setValueAtTime(880, now + 0.18);
+                gain.gain.setValueAtTime(0, now);
+                gain.gain.linearRampToValueAtTime(0.3, now + 0.02);
+                gain.gain.linearRampToValueAtTime(0, now + 0.15);
+                gain.gain.setValueAtTime(0, now + 0.18);
+                gain.gain.linearRampToValueAtTime(0.3, now + 0.2);
+                gain.gain.exponentialRampToValueAtTime(0.001, now + 0.5);
+                osc.start(now);
+                osc.stop(now + 0.52);
+                break;
+
             case 'hover':
                 // High pitch short blip
                 osc.type = 'sine';

@@ -1,3 +1,4 @@
+import { GRADE5_TEACHING } from './grade5Teaching';
 import { GRADE4_TEACHING } from './grade4Teaching';
 import { GRADE3_TEACHING } from './grade3Teaching';
 import { CLEAR_EXPLANATIONS } from './clearExplanations';
@@ -416,7 +417,7 @@ export function reviseLessons(tasks: Task[]): Task[] {
     // Короткое описание рассказывает о действии, а не перечисляет стандарты.
     task.description = goal;
     const safe = (text: string) => text.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
-    const reviewedTeaching = GRADE3_TEACHING[task.id] ?? GRADE4_TEACHING[task.id];
+    const reviewedTeaching = GRADE3_TEACHING[task.id] ?? GRADE4_TEACHING[task.id] ?? GRADE5_TEACHING[task.id];
     Object.assign(task.lesson, reviewedTeaching ?? {});
     ({concept, explanation, example: workedExample} = task.lesson);
     task.description = task.lesson.goal;
