@@ -17,6 +17,10 @@ export function TeacherSupport({classes,current,onUpdated}:{classes:Classroom[];
  {error&&<p role="alert">{error}</p>}
  </section>;
 }
+const HELP_MESSAGES = [
+ 'Служба спасения завершила операцию. Можно продолжать делать вид, что всё было понятно с самого начала.',
+ 'Инцидент устранён. Причина ошибки находилась между клавиатурой и стулом. Шутим. Наверное.',
+];
 export function RaiseHand() {
  const [feedback,setFeedback]=useState<NonNullable<User['teacherFeedback']>>([]);
  const [raised,setRaised]=useState(false);const [pending,setPending]=useState(false);const [error,setError]=useState('');
@@ -24,7 +28,7 @@ export function RaiseHand() {
  useEffect(()=>{let alive=true;let busy=false;const poll=async()=>{if(busy)return;busy=true;try{const items=await callServer<NonNullable<User['teacherFeedback']>>('receiveFeedback');if(alive&&items.length)setFeedback(q=>[...q,...items].slice(-20));}catch{}finally{busy=false;}};const timer=setInterval(poll,3000);return()=>{alive=false;clearInterval(timer);};},[]);
  const current=feedback[0];
  useEffect(()=>{if(!current)return;const timer=setTimeout(()=>setFeedback(q=>q.slice(1)),5500);return()=>clearTimeout(timer);},[current?.id]);
- return <div className="raise-hand">{current&&<div key={current.id} className="teacher-feedback-pop" role="status"><div className="reaction-burst" aria-hidden="true">{Array.from({length:8},(_,i)=><i key={i} style={{'--ray':i} as React.CSSProperties}>✦</i>)}</div><span className="feedback-emoji">{current.kind==='help'?'🤝':current.emoji}</span><strong>{current.kind==='help'?'Помощь оказана!':'Реакция учителя'}</strong><p>{current.kind==='help'?'Спасибо, что воспользовались услугами нашей фирмы. Служба спасения домашних заданий всегда на связи.':current.emoji==='💩'?'Вот это поворот! Попробуем ещё раз?':'Сообщение принято. Продолжаем миссию!'}</p><button type="button" aria-label="Закрыть уведомление" onClick={()=>setFeedback(q=>q.slice(1))}>×</button></div>}<GameButton size="compact" disabled={pending} aria-pressed={raised} onClick={async()=>{setPending(true);try{const user=await callServer<User>('raiseHand',{raised:!raised});setRaised(Boolean(user.helpRequestedAt));setError('');}catch(e){setError((e as Error).message);}finally{setPending(false);}}}>{raised?'✋ Жду учителя · отменить':'✋ Поднять руку'}</GameButton>{error&&<span role="alert">{error}</span>}</div>;
+ return <div className="raise-hand">{current&&<div key={current.id} className="teacher-feedback-pop" role="status"><div className="reaction-burst" aria-hidden="true">{Array.from({length:8},(_,i)=><i key={i} style={{'--ray':i} as React.CSSProperties}>✦</i>)}</div><span className="feedback-emoji">{current.kind==='help'?'🤝':current.emoji}</span><strong>{current.kind==='help'?'Помощь оказана!':'Реакция учителя'}</strong><p>{current.kind==='help'?HELP_MESSAGES[parseInt(current.id.slice(-1),16) % HELP_MESSAGES.length || 0]:current.emoji==='💩'?'Вот это поворот! Попробуем ещё раз?':'Сообщение принято. Продолжаем миссию!'}</p><button type="button" aria-label="Закрыть уведомление" onClick={()=>setFeedback(q=>q.slice(1))}>×</button></div>}<GameButton size="compact" disabled={pending} aria-pressed={raised} onClick={async()=>{setPending(true);try{const user=await callServer<User>('raiseHand',{raised:!raised});setRaised(Boolean(user.helpRequestedAt));setError('');}catch(e){setError((e as Error).message);}finally{setPending(false);}}}>{raised?'✋ Жду учителя · отменить':'✋ Поднять руку'}</GameButton>{error&&<span role="alert">{error}</span>}</div>;
 }
 
 export function StudentReactions({studentId}:{studentId:string}) {
