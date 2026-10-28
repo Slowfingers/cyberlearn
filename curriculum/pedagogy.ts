@@ -302,7 +302,7 @@ const gaps: Record<string, [string, string]> = {
 export function reviseLessons(tasks: Task[]): Task[] {
   const revised = tasks.map(original => {
     // New courses carry authored, topic-specific guides; retain their scaffolds and order.
-    if (original.courseId === 'course_grade8' && original.lesson) return original;
+    if (['course_grade8','course_arduino'].includes(original.courseId) && original.lesson) return original;
     const task = { ...original };
     const mappedKey = topicOverrides[task.id]?.[0] ?? topics.get(task.id);
     const key = task.type === 'wireframe_builder' ? 'wireframe' : task.type === 'ai_neuron' ? 'neuron' : task.type === 'spreadsheet' ? (task.spreadsheetConfig?.formulaType === 'if' ? 'ifformula' : task.spreadsheetConfig?.formulaType === 'multiply' ? 'multiply' : 'spreadsheet') : mappedKey;
@@ -410,6 +410,8 @@ export function reviseLessons(tasks: Task[]): Task[] {
       success = 'Робот достиг цели; повторяющиеся шаги объединены в цикл.';
       reflection = 'Почему число повторов должно совпадать с количеством шагов?';
     }
+    if (task.id === 'g5_l63') explanation += ' Единичная грубая шутка отличается от травли: при травле обидные действия повторяются и человека намеренно хотят унизить. Один случай тоже стоит обсудить со взрослым, но именно повторяемость — главный признак.';
+    if (task.id === 'g7_l49') explanation += ' Шифрование при этом выполняет протокол TLS: HTTPS — это обычный HTTP поверх TLS.';
     if (task.id === 'g6_m1_l1') reflection = 'Как система помогает нескольким программам работать одновременно?';
     if (task.id === 'g6_m1_term') success = 'Показаны текущая папка, подробный список и содержимое welcome.txt.';
     if (task.id === 'g6_m8_l2') reflection = 'Что сохраняется локально, а что требует отправки?';

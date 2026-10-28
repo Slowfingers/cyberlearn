@@ -1,4 +1,4 @@
-import { Course, Task } from '../types';
+import { Task } from '../types';
 import { MODULE1_TASKS } from './grade3/module1';
 import { MODULE2_TASKS } from './grade3/module2';
 import { MODULE3_TASKS } from './grade3/module3';
@@ -10,16 +10,8 @@ import { MODULE8_TASKS } from './grade3/module8';
 import { MODULE9_TASKS } from './grade3/module9';
 import { MODULE10_TASKS } from './grade3/module10';
 
-export const GRADE3_COURSE: Course = {
-  id: 'course_grade3',
-  title: '3 класс · Первые шаги с компьютером',
-  description: 'Учимся находить файлы, давать команды роботу, считать в таблице и безопасно общаться. Сначала понятный пример, затем короткая самостоятельная практика.',
-  icon: 'Sparkles',
-  difficulty: 'Beginner',
-  status: 'active',
-  totalModules: 10,
-  color: '#fcee0a' // neonYellow
-};
+import { GRADE3_COURSE } from './courseCatalog';
+export { GRADE3_COURSE } from './courseCatalog';
 
 export const GRADE3_TASKS: Task[] = [
   ...MODULE1_TASKS,

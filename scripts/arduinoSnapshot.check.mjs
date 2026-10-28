@@ -1,0 +1,8 @@
+import assert from 'node:assert/strict';import fs from 'node:fs';import crypto from 'node:crypto';import ts from 'typescript';
+const root='third_party/learn-arduino',manifest=JSON.parse(fs.readFileSync(root+'/snapshot.json','utf8'));
+function literals(source){const sf=ts.createSourceFile('source.js',source,ts.ScriptTarget.Latest,true,ts.ScriptKind.JS),out=[];function visit(n){if(ts.isStringLiteral(n)||ts.isNoSubstitutionTemplateLiteral(n)||ts.isTemplateHead(n)||ts.isTemplateMiddle(n)||ts.isTemplateTail(n))out.push(n.text);ts.forEachChild(n,visit);}visit(sf);return out;}
+let preserved=0;
+for(const [name,hash]of Object.entries(manifest.files)){const bytes=fs.readFileSync(root+'/upstream/'+name);assert.equal(crypto.createHash('sha256').update(bytes).digest('hex'),hash,`${name}: original snapshot remains unmodified`);if(!name.endsWith('.js'))continue;const rendered=fs.readFileSync('public/courses/arduino/assets/'+name,'utf8');assert.ok(!rendered.includes('viewКоробка'),'localization must not translate SVG attribute identifiers');const original=literals(bytes.toString()),adapted=new Set(literals(rendered));for(const text of original.filter(s=>/gl_Position|gl_FragColor|void setup\(\)/.test(s))){assert.ok(adapted.has(text),`${name}: localization must not change GLSL or Arduino source code`);preserved++;}}
+const entries=fs.readFileSync(root+'/locales/ru-pairs.txt','utf8').trim().split('\n');assert.ok(entries.length>500);
+assert.ok(fs.readFileSync('public/courses/arduino/index.html','utf8').includes('lang="ru"'));
+console.log(`Arduino snapshot: ${Object.keys(manifest.files).length} original file hashes, ${preserved} unchanged shader/Arduino code segments, ${entries.length} translations OK`);

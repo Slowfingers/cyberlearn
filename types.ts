@@ -38,7 +38,18 @@ export interface TaskAttempt {
   success: boolean;
 }
 
+export interface CharacterParts {hair:string;outfit:string;accessory:string;emotion:string;animation:string;hairColor?:string;skinTone?:string;emblem?:string}
+export interface CharacterLook {id:string;name:string;avatar:string;frame:string;parts:CharacterParts}
+
+export type LessonMode="learn"|"train"|"check";
+export interface RoomPlacement {itemId:string;x:number;y:number;rotation:0|1;wall?:'left'|'right'}
+export interface AvatarRoomState {cleared?:string[];palette?:string;owned:string[];placements:RoomPlacement[];revision:number}
 export interface User {
+  avatarRoom?: AvatarRoomState;
+  lessonModeAttempts?: {requestId:string;taskId:string;version:string;mode:LessonMode;correct:boolean;at:string}[];
+  practiceDrafts?: Record<string,{version:string;mode:LessonMode;state:{active:boolean;typed:string;option:number|null};updatedAt:string}>;
+  lessonCheckpoints?: Record<string, {taskId:string;version:string;mode:"learn";blockId:string;state:{phase:number;idea:number;path:number;typed:string;removed:boolean;choice:string|null};updatedAt:string}>;
+  characterLooks?: CharacterLook[];
   id: string;
   name: string;
   role: Role;
@@ -61,6 +72,7 @@ export interface User {
     droneColor: string;
     mascotSkin?: string;
     avatarFrame?: string;
+    characterParts?: CharacterParts;
   };
   taskAttempts?: TaskAttempt[]; // Detailed attempt history
   suspiciousActivity?: {
@@ -81,7 +93,7 @@ export interface Course {
 }
 
 export type TaskType =
-  | 'assessment' | 'grid' | 'quiz' | 'theory' | 'html' | 'terminal' | 'hanoi' | 'blocks'
+  | 'pc_builder' | 'smart_city' | 'arduino' | 'assessment' | 'grid' | 'quiz' | 'theory' | 'html' | 'terminal' | 'hanoi' | 'blocks'
   // Интерактивные тренажёры школьного курса (3-7 класс)
   | 'typing' | 'process_manager' | 'spreadsheet' | 'sorting' | 'tree_search'
   | 'phishing_detect' | 'ai_neuron' | 'network_route' | 'file_organizer'
@@ -90,7 +102,16 @@ export type TaskType =
   // Алиасы совместимости со старыми данными
   | 'circuit' | 'ai_trainer';
 
+export interface LessonDemo {
+  language: 'python' | 'sql' | 'js' | 'html' | 'text';
+  code: string;                       // показывается с номерами строк
+  output?: string;                    // ожидаемый stdout (python/sql); сверяется скриптом
+  steps: { line: number; say: string; vars?: Record<string, string> }[];  // line — 1-based строка кода; say — короткая реплика наставника для ребёнка; vars — состояние переменных после шага
+  predict?: { prompt: string; options: string[]; correct: number; why: string };
+}
+
 export interface LessonGuide {
+  demo?: LessonDemo;
   mentorQuestion?: {
     prompt: string;
     options: { text: string; feedback: string }[];
@@ -109,6 +130,9 @@ export interface LessonGuide {
 }
 
 export interface Task {
+  smartCityConfig?: {mission:'traffic'|'gate'};
+  arduinoConfig?: {lessonId:string};
+  pcBuilderConfig?: {lessonId:'case'|'cpu'|'memory'|'power'|'graphics'|'build'};
   assessment?: {published:boolean;questions:AssessmentQuestion[]};
   lesson?: LessonGuide;
   id: string;
@@ -241,7 +265,7 @@ export interface Task {
       endNode: string;         // id конечного узла (напр. 'server')
       maxLatencyMs?: number;   // порог задержки для победы (default 50)
       nodes?: { id: string; label: string; x: number; y: number; status: 'online' | 'overloaded' }[];
-      edges?: { from: string; to: string; latencyMs: number }[];
+      edges?: { from: string; to: string; latencyMs: number; status?: 'down' }[];
   };
 
   fileConfig?: any;
@@ -249,9 +273,12 @@ export interface Task {
 
   // wireframe_builder: виджеты, доступные для перетаскивания на слоты экрана
   wireframeConfig?: {
-      widgets?: { id: string; name: string; slot: 'header' | 'hero' | 'action' | 'footer'; icon: string; desc: string }[];
+      widgets?: { id: string; name: string; slot: 'header' | 'hero' | 'action' | 'footer' | 'none'; icon: string; desc: string }[];
       // Краткая запись: какие слоты экрана нужно заполнить ('canvas' -> hero, 'controls' -> action)
       requiredElements?: string[];
+      // Название экрана на фиктивном устройстве и подписи областей для ребёнка
+      screenTitle?: string;
+      slotLabels?: Partial<Record<'header' | 'hero' | 'action' | 'footer', string>>;
   };
 
   // circuit_builder: последовательность уровней-вентилей
@@ -262,6 +289,8 @@ export interface Task {
       targetGate?: string;
       targetOutput?: boolean;
       expectedOutput?: boolean;
+      // Режим тренировки: обычная цель / один вход / обход всех строк / предсказание выхода
+      mission?: 'target' | 'single' | 'explore' | 'predict';
   };
 
   // fake_detector: карточки-кейсы «правда или фейк/опасно»
@@ -322,6 +351,7 @@ export interface ExecutionResult {
 }
 
 export interface StudentProgress {
+  currency?: number;
   studentId: string;
   name: string;
   tasksCompleted: number;

@@ -1,8 +1,8 @@
-import {GameButton} from '../GameUI';
+import {GameButton, WorkshopHeader, WorkshopBadge} from '../GameUI';
 import React, { useState, useEffect } from 'react';
 import { Task } from '../../types';
 import { playSound } from '../../utils/sound';
-import { Cpu, HardDrive, AlertTriangle, ShieldCheck, Trash2, RotateCcw, Activity } from 'lucide-react';
+import { Cpu, HardDrive, AlertTriangle, ShieldCheck, Trash2, Activity } from 'lucide-react';
 
 interface Process {
   id: number;
@@ -91,24 +91,8 @@ export const ProcessManagerGame: React.FC<ProcessManagerGameProps> = ({ task, on
   return (
     <div className="ui-trainer-family workshop-legacy process-workshop flex flex-col h-full bg-gray-950 p-4 md:p-6 overflow-y-auto">
       {/* Title & Instructions */}
-      <div className="workshop-banner flex flex-wrap items-center justify-between gap-4 p-4 bg-black/70 border border-cyber-neonBlue/30 rounded-xl mb-4">
-        <div className="flex items-center gap-3">
-          <div className="p-2 rounded bg-cyber-neonBlue/20 text-cyber-neonBlue border border-cyber-neonBlue/40">
-            <Activity size={22} />
-          </div>
-          <div>
-            <div className="text-[10px] font-mono text-gray-400 uppercase tracking-widest">ДИСПЕТЧЕР ЗАДАЧ И ПРОЦЕССОВ OS</div>
-            <h2 className="text-base md:text-lg font-bold text-white">Устранение перегрузки CPU и утечек RAM</h2>
-          </div>
-        </div>
-
-        <GameButton size="compact"
-          onClick={resetGame}
-          className="flex items-center gap-1.5 px-3 py-1.5 bg-gray-900 hover:bg-gray-800 text-gray-300 border border-gray-800 rounded text-xs font-mono transition-colors"
-        >
-          <RotateCcw size={14} /> Перезапуск
-        </GameButton>
-      </div>
+      <WorkshopHeader icon={<Activity size={26}/>} eyebrow="Диспетчер задач и процессов OS" title="Устранение перегрузки CPU и утечек RAM" description={task.lesson?.goal} onReset={resetGame}
+        badges={<WorkshopBadge label="Цели">{scenario.targets.length}</WorkshopBadge>}/>
 
 <p className="mb-4 text-sm text-gray-200">В этой учебной ситуации заверши только: {scenario.targets.join(', ')}. Остальные процессы оставь работать. Высокая нагрузка сама по себе не означает, что программу нужно закрыть.</p>
       {/* Real-time System Telemetry Gauges */}
@@ -132,7 +116,7 @@ export const ProcessManagerGame: React.FC<ProcessManagerGameProps> = ({ task, on
               style={{ width: `${usedCpu}%` }}
             />
           </div>
-          <div className="text-[10px] text-gray-500 font-mono mt-1.5">
+          <div className="text-xs text-gray-500 font-mono mt-1.5">
             {usedCpu > 70 ? 'Высокая нагрузка. Сверь процессы с условием.' : '✓ Штатная нагрузка'}
           </div>
         </div>
@@ -156,7 +140,7 @@ export const ProcessManagerGame: React.FC<ProcessManagerGameProps> = ({ task, on
               style={{ width: `${ramPercent}%` }}
             />
           </div>
-          <div className="text-[10px] text-gray-500 font-mono mt-1.5">
+          <div className="text-xs text-gray-500 font-mono mt-1.5">
             Осталось завершить по условию: <span className="text-cyber-neonYellow font-bold">{rogueCount}</span>
           </div>
         </div>
@@ -172,7 +156,7 @@ export const ProcessManagerGame: React.FC<ProcessManagerGameProps> = ({ task, on
 
       {/* Process Table */}
       <div className="flex-1 bg-black border border-gray-800 rounded-xl overflow-hidden flex flex-col">
-        <div className="process-table-heading px-4 py-2.5 bg-gray-900/80 border-b border-gray-800 text-[11px] font-mono text-gray-400 uppercase grid grid-cols-12 gap-2 items-center">
+        <div className="process-table-heading px-4 py-2.5 bg-gray-900/80 border-b border-gray-800 text-xs font-mono text-gray-400 uppercase grid grid-cols-12 gap-2 items-center">
           <div className="col-span-2">PID</div>
           <div className="col-span-4">ИМЯ ПРОЦЕССА</div>
           <div className="col-span-2 text-right">CPU</div>
@@ -192,12 +176,12 @@ export const ProcessManagerGame: React.FC<ProcessManagerGameProps> = ({ task, on
                   <div className="process-name font-bold text-white flex items-center gap-2">
                     {proc.name}
                     {proc.isCritical && (
-                      <span className="text-[9px] px-1.5 py-0.2 bg-blue-950 text-cyber-neonBlue rounded border border-cyber-neonBlue/30">
+                      <span className="text-xs px-1.5 py-0.2 bg-blue-950 text-cyber-neonBlue rounded border border-cyber-neonBlue/30">
                         ОС
                       </span>
                     )}
                   </div>
-                  <div className="text-[10px] text-gray-400 break-words" title={proc.description}>
+                  <div className="text-xs text-gray-400 break-words" title={proc.description}>
                     {proc.description}
                   </div>
                 </div>
@@ -212,7 +196,7 @@ export const ProcessManagerGame: React.FC<ProcessManagerGameProps> = ({ task, on
                     variant="danger" onClick={() => handleKillProcess(proc)}
                     aria-label={`Завершить ${proc.name}`}
                     disabled={proc.isCritical || completed}
-                    className={`px-2.5 py-1 rounded text-[11px] font-bold flex items-center gap-1 transition-all ${
+                    className={`px-2.5 py-1 rounded text-xs font-bold flex items-center gap-1 transition-all ${
                       proc.isCritical
                         ? 'bg-gray-900 text-gray-600 cursor-not-allowed border border-gray-800'
                         : 'bg-red-950/60 text-red-400 hover:bg-red-600 hover:text-white border border-red-800/60 shadow-[0_0_10px_rgba(255,0,60,0.2)]'

@@ -1,8 +1,15 @@
-import {GameButton} from '../GameUI';
+import {GameButton, WorkshopHeader, WorkshopBadge} from '../GameUI';
 import React, { useState, useEffect } from 'react';
 import { Task } from '../../types';
 import { playSound } from '../../utils/sound';
-import { Mail, ShieldAlert, CheckCircle, Search, AlertTriangle, FileText, ExternalLink, RotateCcw } from 'lucide-react';
+import { Mail, MailWarning, CheckCircle, Search, AlertTriangle, FileText, ExternalLink, UserRound, MessageSquareWarning, Link, Paperclip } from 'lucide-react';
+
+const SLOT_META: Record<string, { title: string; icon: React.ReactNode }> = {
+  sender: { title: 'Отправитель', icon: <UserRound size={18} /> },
+  urgency: { title: 'Текст письма', icon: <MessageSquareWarning size={18} /> },
+  hidden_link: { title: 'Ссылка', icon: <Link size={18} /> },
+  attachment: { title: 'Вложение', icon: <Paperclip size={18} /> },
+};
 
 interface PhishingInspectorGameProps {
   task: Task;
@@ -91,31 +98,8 @@ export const PhishingInspectorGame: React.FC<PhishingInspectorGameProps> = ({ ta
   return (
     <div className="ui-trainer-family workshop-legacy phishing-workshop flex flex-col h-full bg-gray-950 p-4 md:p-6 overflow-y-auto">
       {/* Header */}
-      <div className="workshop-banner flex flex-wrap items-center justify-between gap-4 p-4 bg-black/70 border border-cyber-neonPink/30 rounded-xl mb-4">
-        <div className="flex items-center gap-3">
-          <div className="p-2 rounded bg-cyber-neonPink/20 text-cyber-neonPink border border-cyber-neonPink/40">
-            <ShieldAlert size={22} />
-          </div>
-          <div>
-            <div className="text-[10px] font-mono text-gray-400 uppercase tracking-widest">КРИМИНАЛИСТИКА ФИШИНГА // СЕКРЕТНЫЙ АУДИТОР</div>
-            <h2 className="text-base md:text-lg font-bold text-white">Расследование Подозрительного Письма</h2>
-          </div>
-        </div>
-
-        <div className="flex items-center gap-4">
-          <div className="bg-gray-900 border border-cyber-neonPink/40 px-3 py-1.5 rounded-lg text-center font-mono">
-            <div className="text-[9px] text-gray-400">ОБНАРУЖЕНО УГРОЗ</div>
-            <div className="text-lg font-bold text-cyber-neonPink">{foundCount} / {threats.length}</div>
-          </div>
-          <GameButton size="compact"
-            onClick={resetGame}
-            className="p-2.5 bg-gray-900 hover:bg-gray-800 text-gray-300 border border-gray-800 rounded-lg transition-colors"
-            title="Сбросить"
-          >
-            <RotateCcw size={16} />
-          </GameButton>
-        </div>
-      </div>
+      <WorkshopHeader icon={<MailWarning size={26}/>} eyebrow="Криминалистика фишинга" title="Расследование подозрительного письма" description={task.lesson?.goal} onReset={resetGame}
+        badges={<WorkshopBadge label="Найдено угроз">{foundCount} / {threats.length}</WorkshopBadge>}/>
 
       {/* Detective Tip */}
       <div className="phishing-instructions bg-gray-900/80 border border-cyber-neonYellow/30 rounded-xl p-3.5 mb-4 text-xs font-mono text-gray-200 flex items-center justify-between">
@@ -125,19 +109,13 @@ export const PhishingInspectorGame: React.FC<PhishingInspectorGameProps> = ({ ta
         </div>
       </div>
 
-      {/* Analysis Output Box if something clicked */}
-      {activeAnalysis && (
-        <div className="phishing-analysis mb-4 p-4 bg-cyber-neonBlue/10 border border-cyber-neonBlue rounded-xl text-xs font-mono text-cyan-200 flex items-start gap-3 animate-fade-in">
-          <AlertTriangle size={18} className="text-cyber-neonYellow shrink-0 mt-0.5" />
-          <div>
-            <div className="font-bold text-cyber-neonYellow uppercase mb-1">ОТЧЕТ КИБЕР-ЭКСПЕРТИЗЫ:</div>
-            <p>{activeAnalysis}</p>
-          </div>
-        </div>
-      )}
+      {/* Letter column + fixed findings column: the letter never moves when data arrives */}
+      <div className="phishing-layout">
+      <div className="phishing-main">
 
       {/* Simulated Email Client */}
-      <div className="phishing-message flex-1 bg-black border border-gray-800 rounded-xl p-5 flex flex-col mb-4 shadow-xl">
+      <div className="phishing-message mail-terminal bg-black border border-gray-800 rounded-xl p-5 flex flex-col shadow-xl">
+        <div className="mail-terminal-bar" aria-hidden="true"><span /><span /><span /><strong>Входящие</strong></div>
         {/* Email Header Bar */}
         <div className="border-b border-gray-800 pb-4 mb-4 space-y-2 font-mono text-xs">
           <div className="flex items-center gap-2">
@@ -203,13 +181,13 @@ export const PhishingInspectorGame: React.FC<PhishingInspectorGameProps> = ({ ta
               <span className="underline font-mono text-xs">
                 {cfg?.linkText || 'https://bank.ru/account/verify-identity'}
               </span>
-              <span className="text-[10px] text-gray-400 ml-2 italic">
-                (Реальный URL: {cfg?.linkReal || 'http://evil-steal-creds.net/login'})
+              <span className="phishing-real-url">
+                ↘ на самом деле ведёт на: {cfg?.linkReal || 'http://evil-steal-creds.net/login'}
               </span>
             </div>
           </div>
 
-          {threats.some(t => t.id === 'attachment') && <><p className="text-gray-400 text-[11px]">
+          {threats.some(t => t.id === 'attachment') && <><p className="text-gray-400 text-xs">
             Также обязательно запустите прикрепленный файл для обновления сертификата безопасности браузера.
           </p>
 
@@ -227,16 +205,26 @@ export const PhishingInspectorGame: React.FC<PhishingInspectorGameProps> = ({ ta
               <FileText size={20} className="text-red-500" />
               <div>
                 <div className="font-mono text-xs font-bold">{cfg?.attachmentName || 'Инструкция_по_безопасности.pdf.exe'}</div>
-                <div className="text-[10px] text-gray-400">Вложение письма • Проверь название и просьбу отправителя</div>
+                <div className="text-xs text-gray-400">Вложение письма • Проверь название и просьбу отправителя</div>
               </div>
             </div>
           </div></>}
         </div>
       </div>
 
+      {/* Single fixed feedback area: the latest found threat replaces the previous text */}
+      <div className="phishing-analysis mt-4 p-4 bg-cyber-neonBlue/10 border border-cyber-neonBlue/50 rounded-xl text-xs font-mono text-cyan-200 flex items-start gap-3" role="status">
+        <AlertTriangle size={18} className="text-cyber-neonYellow shrink-0 mt-0.5" />
+        <div>
+          <div className="font-bold text-cyber-neonYellow uppercase mb-1">ОТЧЕТ КИБЕР-ЭКСПЕРТИЗЫ:</div>
+          <p>{activeAnalysis ?? 'Нажми на подозрительную деталь письма — разбор появится здесь.'}</p>
+        </div>
+      </div>
+      </div>
+
       {/* Threats Checklist / Success Banner */}
       {completed ? (
-        <div className="p-4 bg-cyber-neonGreen/15 border border-cyber-neonGreen rounded-xl flex items-center justify-between text-white animate-fade-in">
+        <div className="phishing-success p-4 bg-cyber-neonGreen/15 border border-cyber-neonGreen rounded-xl flex items-center justify-between text-white animate-fade-in">
           <div className="flex items-center gap-3">
             <CheckCircle className="text-cyber-neonGreen" size={26} />
             <div>
@@ -254,21 +242,25 @@ export const PhishingInspectorGame: React.FC<PhishingInspectorGameProps> = ({ ta
           </GameButton>
         </div>
       ) : (
-        <div className="phishing-checklist grid grid-cols-2 md:grid-cols-4 gap-2">
-          {threats.map((t, idx) => (
+        <aside className="phishing-checklist flex flex-col gap-2" aria-label="Признаки опасности">
+          {threats.map((t, idx) => {
+            const slot = SLOT_META[t.id];
+            return (
             <div
               key={t.id}
-              className={`p-2.5 rounded-lg border text-center font-mono text-[10px] uppercase transition-colors ${
+              className={`phishing-slot p-2.5 rounded-lg border font-mono text-xs transition-colors ${
                 t.found
-                  ? 'bg-cyber-neonGreen/15 border-cyber-neonGreen text-cyber-neonGreen'
+                  ? 'is-found bg-cyber-neonGreen/15 border-cyber-neonGreen text-cyber-neonGreen'
                   : 'bg-gray-900/40 border-gray-800 text-gray-500'
               }`}
             >
-              {t.found ? `✓ ${t.label}` : `Признак ${idx + 1} ещё не найден`}
-            </div>
-          ))}
-        </div>
+              <span className="phishing-slot-head">{slot?.icon ?? <Search size={18} />}<strong>{slot?.title ?? `Признак ${idx + 1}`}</strong></span>
+              {t.found ? `✓ ${t.label}` : 'ещё не найден'}
+            </div>);
+          })}
+        </aside>
       )}
+      </div>
     </div>
   );
 };

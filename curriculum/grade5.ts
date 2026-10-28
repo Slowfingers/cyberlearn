@@ -1,4 +1,4 @@
-import { Course, Task } from '../types';
+import { Task } from '../types';
 import { MODULE1_TASKS } from './grade5/module1';
 import { MODULE2_TASKS } from './grade5/module2';
 import { MODULE3_TASKS } from './grade5/module3';
@@ -14,16 +14,8 @@ import { MODULE12_TASKS } from './grade5/module12';
 import { MODULE13_TASKS } from './grade5/module13';
 import { MODULE14_TASKS } from './grade5/module14';
 
-export const GRADE5_COURSE: Course = {
-  id: 'course_grade5',
-  title: '5 класс · Решаем цифровые задачи',
-  description: 'Сравниваем способы решения, работаем с данными и создаём понятные страницы. Проверяем источники и понимаем ограничения моделей.',
-  icon: 'Cpu',
-  difficulty: 'Beginner',
-  status: 'active',
-  totalModules: 14,
-  color: '#10b981'
-};
+import { GRADE5_COURSE } from './courseCatalog';
+export { GRADE5_COURSE } from './courseCatalog';
 
 export const GRADE5_TASKS: Task[] = [
   ...MODULE1_TASKS,

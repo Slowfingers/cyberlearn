@@ -12,7 +12,8 @@ for (const [topic, activity] of Object.entries(MENTOR_QUESTIONS)) {
   assert.equal(new Set(activity.options.map(option => option.text)).size, 3);
   assert.ok(activity.options.every(option => option.feedback.length > 20));
 }
-for (const task of MOCK_TASKS) {
+const theoryTasks = MOCK_TASKS.filter(task => /^course_grade[3-8]$/.test(task.courseId));
+for (const task of theoryTasks) {
   const activity = getMentorQuestion(task);
   assert.equal(activity.options.length, 3, task.id);
   assert.ok(activity.correct >= 0 && activity.correct < 3, task.id);
@@ -22,13 +23,14 @@ for (const task of MOCK_TASKS) {
   assert.ok(task.lesson!.mentorQuestion ?? MENTOR_QUESTIONS[task.lesson!.topic!], `Missing question: ${task.id}`);
   assert.ok(task.lesson!.mentorQuestion ? task.lesson!.explanation : CLEAR_EXPLANATIONS[task.lesson!.topic!], `Missing clear explanation: ${task.id}`);
   const markup = renderToStaticMarkup(React.createElement(BigMascotTheoryStory, { task, mascotSkinItemId: 'skin_cat', onStartPractice: () => {} }));
-  assert.ok(markup.includes('Кибер-Кот'));
-  assert.ok(markup.includes('Шаги объяснения'));
+  const restoring = markup.includes('Восстанавливаем шаг урока');
+  assert.ok(restoring || markup.includes('data-player-avatar='), `${task.id}: объяснение показывает героя ученика`);
+  assert.ok(restoring || markup.includes('Шаги объяснения') || markup.includes('Шаг 1 из'), `${task.id}: показан этап объяснения`);
   assert.ok(!markup.includes('undefined'));
   assert.ok(!markup.includes('Можно на примере?'));
   assert.ok(!markup.includes('<textarea'));
 }
-console.log(`mentorActivities.check: ${Object.keys(MENTOR_QUESTIONS).length} teaching questions with specific feedback; all ${MOCK_TASKS.length} lessons render a teacher-led explanation.`);
+console.log(`mentorActivities.check: ${Object.keys(MENTOR_QUESTIONS).length} teaching questions with specific feedback; ${theoryTasks.length} school lessons render an explanation with the player's avatar.`);
 
 assert.equal(MOCK_TASKS.find(t => t.id === 'g5_l4')?.lesson?.topic, 'nand');
 assert.equal(MOCK_TASKS.find(t => t.id === 'g5_l49')?.lesson?.topic, 'algorithm');

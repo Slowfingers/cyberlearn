@@ -1,21 +1,31 @@
+import { AvatarRoom } from './AvatarRoom';
+import { LESSON_MODES } from '../functions/lessonModes.mjs';
+import { lessonVersion } from '../functions/lessonCheckpoint.mjs';
+import { usePracticeDraft } from '../hooks/usePracticeDraft';
+import { PlayerAvatar } from './PlayerAvatar';
+import { getPlayerCharacter } from '../utils/playerCharacter';
 import {GameButton} from './GameUI';
 import {PlayerShop, PlayerProfile} from './PlayerPanels';
 import { AssessmentPlayer } from './AssessmentPanel';
 
 import React, { useState, useEffect, useRef, useCallback, useMemo, lazy, Suspense } from 'react';
-import { COSMETICS, SHOP_COSMETICS, ACHIEVEMENTS, COURSES } from '../constants';
-import { Task, ExecutionResult, User, Course, GridEvent } from '../types';
+import { COSMETICS, SHOP_COSMETICS, ACHIEVEMENTS } from '../curriculum/playerCatalog';
+import { COURSES } from '../curriculum/courseCatalog';
+import { Task, ExecutionResult, User, Course, GridEvent, LessonMode } from '../types';
 import { terminalLanguage } from '../services/terminal';
 import {applyCompletedTasks, nextUnfinishedTask} from '../services/taskProgress';
 import { evaluateCodeLocally, shuffledQuiz } from '../services/localEvaluation';
 import { getNextLevelThreshold, getAllTasks, getCoursesWithProgress, buyItem, equipItem, saveTaskProgress, getTaskAttempts, saveTaskAttempts, getHiddenCoursesForStudent, getStreak, recordActivity, StreakData } from '../services/mockBackend';
-import { fbCompleteTask } from '../services/firebase';
+import { fbCompleteTask, callServer } from '../services/firebase';
 import { rewardMultiplier } from '../services/scoring';
 import { stripStandardsPrefix } from '../utils/theoryText';
 import ShopAvatar, { STREET_AVATARS } from './ShopAvatar';
 import StudentHome from './StudentHome';
 import { PracticeSurface } from './PracticeSurface';
 import { LessonHeader } from './LessonHeader';
+import GridCommandBuilder from './GridCommandBuilder';
+import type { ViewMode } from './GameGrid';
+import { isSimpleCommandSet } from '../utils/gridCommands';
 import CyberToast, { ToastMessage } from './CyberToast';
 import { Play, RotateCcw, CheckCircle, Lock, BookOpen, Zap, ArrowRight, ChevronLeft, Trophy, X, Bot, Code, Terminal as TerminalIcon, Cpu, Globe, Grid, LayoutList, Eye, Loader2, HelpCircle, ShoppingBag, Coins, BrainCircuit, Puzzle, Award, Flame, Activity, ArrowUpDown, GitBranch, ShieldAlert, Brain, Lightbulb, Folder, Smartphone, ShieldCheck } from 'lucide-react';
 import { playSound } from '../utils/sound';
@@ -24,10 +34,13 @@ import { startTaskAttempt, recordError, endTaskAttempt, cleanupTracker, initActi
 // Тренажёры занимают большую часть клиентского кода. Загружаем каждый только тогда,
 // когда ребёнок действительно открывает соответствующий урок: быстрее старт на
 // школьных ноутбуках и меньше трафика, при этом весь курс остаётся доступен офлайн после загрузки.
+const PcBuilderCourse=lazy(()=>import('./PcBuilderCourse'));
+const SmartCityCourse=lazy(()=>import('./SmartCityCourse'));
+const ArduinoCourse=lazy(()=>import('./ArduinoCourse'));
 const GameGrid = lazy(() => import('./GameGrid'));
 const HanoiGame = lazy(() => import('./HanoiGame'));
 const BlockCoding = lazy(() => import('./BlockCoding'));
-const BigCharacter3D = lazy(() => import('./BigCharacter3D').then(m => ({ default: m.BigCharacter3D })));
+const BigCharacter3D = lazy(() => import('./LessonCharacter').then(m => ({ default: m.LessonCharacter })));
 const BigMascotTheoryStory = lazy(() => import('./BigMascotTheoryStory').then(m => ({ default: m.BigMascotTheoryStory })));
 const TypingGame = lazy(() => import('./interactives/TypingGame').then(m => ({ default: m.TypingGame })));
 const ProcessManagerGame = lazy(() => import('./interactives/ProcessManagerGame').then(m => ({ default: m.ProcessManagerGame })));
@@ -163,12 +176,22 @@ const StudentDashboard: React.FC<StudentDashboardProps> = ({ currentUser: propUs
   const [code, setCode] = useState('');
   const [terminalHistory, setTerminalHistory] = useState<string[]>(['> SYSTEM_INIT...', '> CONNECTED.']);
   const [isRunning, setIsRunning] = useState(false);
+  const [gridOutcome, setGridOutcome] = useState<'idle' | 'success' | 'retry'>('idle');
   const [logs, setLogs] = useState<string[]>([]);
   const [playerPos, setPlayerPos] = useState<[number, number]>([0,0]);
   const [pathHistory, setPathHistory] = useState<[number, number][]>([]);
 
   // Lesson stage: 1 = объяснение (Байтик + теория), 2 = практика
   const [lessonStage, setLessonStage] = useState<'explanation' | 'practice'>('explanation');
+  const [lessonMode,setLessonMode]=useState<LessonMode>('learn');
+  const [modeResult,setModeResult]=useState('');
+  const [modeBusy,setModeBusy]=useState(false);
+  const requestRef=useRef<{key:string;id:string}|null>(null);
+  const practiceDraft = usePracticeDraft(activeTask,lessonMode);
+  const restoredPractice = useRef<string|null>(null);
+  useEffect(()=>{restoredPractice.current=null;setQuizSubmitted(false);setQuizIsCorrect(false);setQuizSelectedOption(null);setModeResult('');requestRef.current=null;},[activeTask?.id,lessonMode]);
+  useEffect(()=>{if(!practiceDraft.pilot||!practiceDraft.loaded||restoredPractice.current===activeTask?.id)return;restoredPractice.current=activeTask?.id??null;if(practiceDraft.state.active && (lessonMode!=='learn'||activeTask?.status!=='completed')){setLessonStage('practice');setQuizSelectedOption(practiceDraft.state.option);}},[practiceDraft.loaded,activeTask?.id,lessonMode]);
+  useEffect(()=>{if(practiceDraft.pilot&&practiceDraft.loaded&&lessonStage==='practice'&&(lessonMode!=='learn'||!currentUser?.completedTaskIds?.includes(activeTask?.id??''))&&!practiceDraft.state.active)practiceDraft.update({active:true});},[lessonStage,practiceDraft.loaded,activeTask?.id,currentUser?.completedTaskIds,lessonMode]);
   // Стадия, которую выставить ПОСЛЕ смены задачи (эффект сброса перезаписывает state)
   const pendingLessonStage = useRef<'explanation' | 'practice'>('explanation');
 
@@ -176,6 +199,9 @@ const StudentDashboard: React.FC<StudentDashboardProps> = ({ currentUser: propUs
   const [activeGridAction, setActiveGridAction] = useState<GridEvent | null>(null);
   const [playerHeading, setPlayerHeading] = useState<'E'|'S'|'W'|'N'>('E');
   const [destroyedObstacles, setDestroyedObstacles] = useState<string[]>([]);
+  const [gridView, setGridView] = useState<ViewMode>('top');
+  const [showSource, setShowSource] = useState(false);
+  useEffect(() => { setShowSource(false); }, [activeTask?.id]);
 
   const [hint, setHint] = useState<string>('');
   const [isHintLoading, setIsHintLoading] = useState(false);
@@ -193,6 +219,7 @@ const StudentDashboard: React.FC<StudentDashboardProps> = ({ currentUser: propUs
 
   // Customization & Market
   const [showProfileModal, setShowProfileModal] = useState(false);
+  const [showRoom,setShowRoom]=useState(false);
   const [showMarketModal, setShowMarketModal] = useState(false);
 
   // Toast notifications
@@ -236,16 +263,22 @@ const StudentDashboard: React.FC<StudentDashboardProps> = ({ currentUser: propUs
 
   useEffect(() => {
       let cancelled = false;
+      let pending = false;
       const refresh = async () => {
+          if (pending) return;
+          pending = true;
           try {
-              const allTasks = await getAllTasks(propUser.id);
-              const hidden = await getHiddenCoursesForStudent(propUser.id);
+              const [allTasks, hidden] = await Promise.all([
+                  getAllTasks(propUser.id),
+                  getHiddenCoursesForStudent(propUser.id),
+              ]);
               if (cancelled) return;
               for(const task of allTasks) if(task.status==='completed') acknowledgedProgress.current.ids.add(task.id);
               const refreshed=applyCompletedTasks(allTasks,acknowledgedProgress.current.ids);
               setTasks(refreshed);
               setCourses(getCoursesWithProgress(refreshed, hidden));
           } catch { if (!cancelled) addToast('Не удалось загрузить задания. Обновите страницу.', 'error'); }
+          finally { pending = false; }
       };
       void refresh();
       const timer=setInterval(refresh,10000);
@@ -297,6 +330,7 @@ const StudentDashboard: React.FC<StudentDashboardProps> = ({ currentUser: propUs
     setHint('');
     setAiFeedback('');
     setMissionSuccess(false);
+    setGridOutcome('idle');
     setShowTheory(false);
     setLessonStage(pendingLessonStage.current);
     pendingLessonStage.current = 'explanation';
@@ -320,7 +354,7 @@ const StudentDashboard: React.FC<StudentDashboardProps> = ({ currentUser: propUs
     }
 
     if (window.innerWidth < 768) {
-         if (['grid', 'html', 'terminal'].includes(activeTask.type)) setTaskTab('info');
+         if (['grid', 'html', 'terminal'].includes(activeTask.type)) setTaskTab(activeTask.type === 'grid' ? 'visual' : 'info');
     }
 
     // For completed quizzes: show in read-only "already answered" state to prevent XP farming
@@ -343,6 +377,18 @@ const StudentDashboard: React.FC<StudentDashboardProps> = ({ currentUser: propUs
     }
   }, [activeTask?.id, currentUser?.id]);
 
+  const resetDraft = () => { if (activeTask) { playSound('click'); setCode(activeTask.lesson?.starterCode ?? activeTask.initialCode ?? ''); } };
+  const restartCharacter = () => {
+    if (isRunning || !activeTask?.mapConfig) return;
+    playSound('click');
+    setGridOutcome('idle');
+    setPlayerPos(activeTask.mapConfig.start);
+    setPathHistory([activeTask.mapConfig.start]);
+    setDestroyedObstacles([]);
+    setActiveGridAction(null);
+    setPlayerHeading('E');
+  };
+
   const handleRunCode = async () => {
     if (isRunning || !activeTask) return;
     if (!['grid', 'html', 'terminal'].includes(activeTask.type)) return;
@@ -350,6 +396,7 @@ const StudentDashboard: React.FC<StudentDashboardProps> = ({ currentUser: propUs
     playSound('click');
     setIsRunning(true);
     setMissionSuccess(false);
+    setGridOutcome('idle');
 
     // On Mobile, switch to Visual tab to see result
     if (window.innerWidth < 768) {
@@ -389,13 +436,13 @@ const StudentDashboard: React.FC<StudentDashboardProps> = ({ currentUser: propUs
             if(event.heading)setPlayerHeading(event.heading);
 
             if (event.type === 'move') {
-                await new Promise(r => setTimeout(r, 200));
                 setPlayerPos([event.x, event.y]);
                 setPathHistory(prev => [...prev, [event.x, event.y]]);
+                await new Promise(r => setTimeout(r, 260));
             } else if (event.type === 'jump') {
-                await new Promise(r => setTimeout(r, 400));
                 setPlayerPos([event.x, event.y]);
                 setPathHistory(prev => [...prev, [event.x, event.y]]);
+                await new Promise(r => setTimeout(r, 420));
             } else if (event.type === 'turn') {
                 await new Promise(r => setTimeout(r, 350));
             } else if (event.type === 'attack') {
@@ -456,6 +503,7 @@ const StudentDashboard: React.FC<StudentDashboardProps> = ({ currentUser: propUs
     }
 
     if (!stillActive()) { setIsRunning(false); return; }
+    if (activeTask.type === 'grid') setGridOutcome(result.success ? 'success' : 'retry');
     if (result.success) {
         setLogs(prev => [...prev, '>>> ЦЕЛЬ ДОСТИГНУТА. ПРОТОКОЛ ЗАВЕРШЕН <<<']);
         setMissionSuccess(true);
@@ -482,10 +530,26 @@ const StudentDashboard: React.FC<StudentDashboardProps> = ({ currentUser: propUs
     setIsRunning(false);
   };
 
+  const submitPilot = async (answer:string) => {
+      if(!activeTask||modeBusy)return null;
+      setModeBusy(true);setModeResult('Проверяем ответ…');
+      const key=JSON.stringify([activeTask.id,lessonMode,lessonVersion(activeTask),answer]);
+      if(requestRef.current?.key!==key)requestRef.current={key,id:crypto.randomUUID()};
+      try {
+          const result=await callServer<{correct:boolean}>('submitPilotAttempt',{taskId:activeTask.id,version:lessonVersion(activeTask),mode:lessonMode,answer,requestId:requestRef.current.id});
+          if(activeTaskIdRef.current!==activeTask.id)return null;
+          setModeResult(result.correct?'Ответ верный. Результат сохранён в выбранном режиме.':lessonMode==='check'?'Пока неверно. Сравни ответ с условием и попробуй снова.':'Пока неверно. Прочитай разбор и попробуй снова.');
+          return result;
+      } catch {setModeResult('Ответ не удалось проверить. Черновик остаётся на экране — повтори отправку.');return null;}
+      finally {setModeBusy(false);}
+  };
+
   const handleQuizSubmit = async () => {
       if (!activeTask || activeTask.type !== 'quiz' || quizSelectedOption === null) return;
 
-      const isCorrect = quizSelectedOption === quiz?.correctIndex;
+      const checked=practiceDraft.pilot?await submitPilot(quiz?.options[quizSelectedOption]??''):null;
+      if(practiceDraft.pilot&&!checked)return;
+      const isCorrect = checked?checked.correct:quizSelectedOption === quiz?.correctIndex;
       setQuizSubmitted(true);
       setQuizIsCorrect(isCorrect);
 
@@ -495,7 +559,7 @@ const StudentDashboard: React.FC<StudentDashboardProps> = ({ currentUser: propUs
               await endTaskAttempt(currentUser.id, true);
           }
           // Don't auto-advance instantly on quiz so user can see "Correct" state
-          await handleTaskCompletion(activeTask, false);
+          if(!practiceDraft.pilot||lessonMode==='learn')await handleTaskCompletion(activeTask, false);
       } else {
           playSound('error');
           recordError();
@@ -512,6 +576,7 @@ const StudentDashboard: React.FC<StudentDashboardProps> = ({ currentUser: propUs
       setQuizSubmitted(false);
       setQuizIsCorrect(false);
       setQuizSelectedOption(null);
+      requestRef.current=null;
       playSound('click');
   };
 
@@ -534,6 +599,7 @@ const StudentDashboard: React.FC<StudentDashboardProps> = ({ currentUser: propUs
               if (task.type === 'quiz') { setQuizSubmitted(true); setQuizIsCorrect(true); }
           }
           setCurrentUser(savedUser);
+          if(practiceDraft.pilot)practiceDraft.update({active:false});
           setLastXpAwarded(awarded);
           for(const id of savedUser.completedTaskIds ?? []) acknowledgedProgress.current.ids.add(id);
           const updatedTasks = applyCompletedTasks(tasks,acknowledgedProgress.current.ids);
@@ -561,6 +627,7 @@ const StudentDashboard: React.FC<StudentDashboardProps> = ({ currentUser: propUs
       } catch {
           setPendingCompletion({task,autoAdvance});
           setMissionSuccess(false);
+    setGridOutcome('idle');
           setQuizSubmitted(false);
           addToast('Результат не сохранён. Проверьте соединение и повторите отправку.', 'error');
       } finally { rewardedTaskIds.current.delete(task.id); setSavingCompletion(false); }
@@ -588,7 +655,7 @@ const StudentDashboard: React.FC<StudentDashboardProps> = ({ currentUser: propUs
       if (res.success && res.user) {
           setCurrentUser(res.user);
           playSound('click');
-      } else { throw new Error(res.error || 'Не удалось выбрать предмет'); }
+      } else { throw new Error('error' in res && typeof res.error === 'string' ? res.error : 'Не удалось выбрать предмет'); }
   };
 
   const handleNextTask = () => {
@@ -597,7 +664,7 @@ const StudentDashboard: React.FC<StudentDashboardProps> = ({ currentUser: propUs
     if (nextTask) {
         setActiveTask(nextTask);
         if (window.innerWidth < 768) {
-             if (['grid', 'html', 'terminal'].includes(nextTask.type)) setTaskTab('info');
+             if (['grid', 'html', 'terminal'].includes(nextTask.type)) setTaskTab(nextTask.type === 'grid' ? 'visual' : 'info');
         }
         playSound('open');
     } else {
@@ -667,20 +734,35 @@ const StudentDashboard: React.FC<StudentDashboardProps> = ({ currentUser: propUs
         <div className="academy-home-shell flex-1 w-full overflow-y-auto">
              <CyberToast toasts={toasts} onDismiss={dismissToast} />
              {currentUser && <StudentHome user={currentUser} courses={courses} tasks={tasks} progress={progressPercent} today={streak.tasksToday}
-               onShop={() => setShowMarketModal(true)} onProfile={() => { playSound('open'); setShowProfileModal(true); }}
-               onCourse={(id, resume) => {
+               onRoom={() => setShowRoom(true)} onShop={() => setShowMarketModal(true)} onProfile={() => { playSound('open'); setShowProfileModal(true); }}
+               onCourse={(id, resume, taskId) => {
+                 if (courses.find(c => c.id === id)?.status !== 'active') return;
                  playSound('click'); setActiveCourseId(id);
                  const courseTasks = tasks.filter(t => t.courseId === id);
-                 setActiveTask(courseTasks.find(t => t.status !== 'completed') || null);
+                 const picked = taskId ? courseTasks.find(t => t.id === taskId && t.status !== 'locked') : undefined;
+                 setActiveTask(picked || courseTasks.find(t => t.status === 'open') || null);
                  setLessonStage('explanation'); setShowMobileSidebar(!resume);
                  if (sidebarRef.current) sidebarRef.current.scrollTop = 0;
                }} />}
 
-             {showProfileModal && currentUser && <PlayerProfile user={currentUser} courses={courses} completed={tasks.filter(t=>t.status==='completed').length} streak={streak} currentLevel={currentLevel} nextLevelXP={nextLevelXP} progress={progressPercent} onClose={()=>setShowProfileModal(false)} onShop={()=>{setShowProfileModal(false);setShowMarketModal(true);}}/>}
-             {showMarketModal && currentUser && <PlayerShop user={currentUser} onClose={()=>setShowMarketModal(false)} onBuy={handleBuyItem} onEquip={handleEquipItem}/>}
+             {showProfileModal && currentUser && <PlayerProfile user={currentUser} courses={courses} completed={tasks.filter(t=>t.status==='completed').length} streak={streak} currentLevel={currentLevel} nextLevelXP={nextLevelXP} progress={progressPercent} onClose={()=>{setShowProfileModal(false);}} onShop={()=>{setShowProfileModal(false);setShowMarketModal(true);}}/>}
+             {showRoom && currentUser && <AvatarRoom user={currentUser} onUpdate={setCurrentUser} onClose={()=>setShowRoom(false)}/>}
+             {showMarketModal && currentUser && <PlayerShop user={currentUser} onClose={()=>setShowMarketModal(false)} onBuy={handleBuyItem} onEquip={handleEquipItem} onUpdate={setCurrentUser}/>}
 
         </div>
     );
+  }
+
+  if(activeCourseId==='course_pc_builder'&&currentUser&&filteredTasks.length){
+    return <Suspense fallback={<LessonLoader/>}><PcBuilderCourse user={currentUser} tasks={filteredTasks} selected={activeTask??filteredTasks[0]} onSelect={setActiveTask} onBack={()=>{setActiveCourseId(null);setActiveTask(null);}} onComplete={task=>handleTaskCompletion(task)} saving={savingCompletion} failed={pendingCompletion?.task.courseId==='course_pc_builder'?pendingCompletion.task:undefined} notifications={<CyberToast toasts={toasts} onDismiss={dismissToast}/>} /></Suspense>;
+  }
+
+  if(activeCourseId==='course_smart_city'&&currentUser&&filteredTasks.length){
+    return <Suspense fallback={<LessonLoader/>}><SmartCityCourse user={currentUser} tasks={filteredTasks} selected={activeTask??filteredTasks[0]} onSelect={setActiveTask} onBack={()=>{setActiveCourseId(null);setActiveTask(null);}} onComplete={task=>handleTaskCompletion(task)} saving={savingCompletion} failed={pendingCompletion?.task.courseId==='course_smart_city'?pendingCompletion.task:undefined} notifications={<CyberToast toasts={toasts} onDismiss={dismissToast}/>} /></Suspense>;
+  }
+
+  if(activeCourseId==='course_arduino'&&currentUser&&filteredTasks.length){
+    return <><Suspense fallback={<LessonLoader/>}><ArduinoCourse notifications={<CyberToast toasts={toasts} onDismiss={dismissToast}/>} user={currentUser} tasks={filteredTasks} selected={activeTask??filteredTasks[0]} onSelect={setActiveTask} onBack={()=>{setActiveCourseId(null);setActiveTask(null);}} onComplete={task=>handleTaskCompletion(task)} saving={savingCompletion} failed={pendingCompletion?.task.courseId==='course_arduino'?pendingCompletion.task:undefined}/></Suspense></>;
   }
 
   // --------------------------------------------------------------------------
@@ -689,24 +771,17 @@ const StudentDashboard: React.FC<StudentDashboardProps> = ({ currentUser: propUs
 
   const isCodingTask = activeTask ? ['grid', 'html', 'terminal'].includes(activeTask.type) : false;
   const isHanoiTask = activeTask?.type === 'hanoi';
+  const isGridMission = activeTask?.type === 'grid' && !!activeTask.mapConfig;
+  const useCommandBuilder = isGridMission && isSimpleCommandSet(activeTask?.allowedCommands);
 
-  const equippedDroneColorValue = (() => {
-      if (!currentUser?.equipped?.droneColor) return '#00f3ff';
-      const equipped = currentUser.equipped.droneColor;
-      const cosmetic = COSMETICS.find(c => c.type === 'droneColor' && c.id === equipped);
-      return cosmetic?.value || equipped;
-  })();
-
-  const equippedAvatarId = (() => {
-      if (!currentUser?.equipped?.avatar) return '2';
-      const cosmetic = COSMETICS.find(c => c.type === 'avatar' && c.id === currentUser.equipped.avatar);
-      return cosmetic?.value || '2';
-  })();
+  const equippedAvatarId = getPlayerCharacter(currentUser).avatarId;
 
   const currentCourse = courses.find(course => course.id === activeCourseId);
   const courseDone = filteredTasks.filter(task => task.status === 'completed').length;
   const coursePercent = filteredTasks.length ? Math.round(courseDone / filteredTasks.length * 100) : 0;
   const resumeTask = filteredTasks.find(task => task.status === 'open');
+
+  const draftStatus=practiceDraft.pilot?<div className="lesson-mode-panel"><div className="lesson-mode-buttons" aria-label="Режим урока">{Object.entries(LESSON_MODES).map(([mode,policy])=><GameButton size="compact" key={mode} aria-pressed={lessonMode===mode} disabled={modeBusy||practiceDraft.status==='Сохраняем черновик…'} onClick={()=>{setMissionSuccess(false);setLessonMode(mode as LessonMode);setLessonStage(mode==='learn'?'explanation':'practice');}}>{policy.label}</GameButton>)}</div><p>{lessonMode==='learn'?'Разбираем тему с твоим героем, пробуем и исправляем ошибки.':lessonMode==='train'?'Закрепляем знакомый навык. Разбор появляется после попытки. Награда повторно не начисляется.':'Решаем самостоятельно. Подсказки и разбор неверного ответа скрыты. Это самопроверка, не школьная отметка.'}</p>{modeResult&&<p role="status">{modeResult}</p>}{activeTask?.type==='typing'&&modeResult.includes('не удалось')&&<GameButton disabled={modeBusy} size="compact" onClick={async()=>{const checked=await submitPilot(practiceDraft.state.typed);if(checked?.correct&&lessonMode==='learn')await handleTaskCompletion(activeTask);}}>Повторить проверку текста</GameButton>}{lessonStage==='practice'&&<p className="practice-draft-status" role="status">{practiceDraft.status}</p>}{practiceDraft.status.includes('не сохранён')&&<GameButton size="compact" onClick={practiceDraft.retry}>Повторить сохранение</GameButton>}</div>:null;
 
   return (
     <div className="academy-lesson game-workspace flex-1 w-full relative flex flex-col md:flex-row overflow-hidden bg-black text-gray-300">
@@ -725,7 +800,7 @@ const StudentDashboard: React.FC<StudentDashboardProps> = ({ currentUser: propUs
                 }}
                 className="flex items-center gap-1 text-gray-200 active:text-white py-3 pr-4 text-xs font-bold uppercase tracking-wider hover:text-cyber-neonBlue transition-colors"
             >
-                <ChevronLeft size={18} /> На базу
+                <ChevronLeft size={18} /> К кампании
             </GameButton>
             {currentUser && (
                 <div className="flex items-center gap-2">
@@ -755,14 +830,14 @@ const StudentDashboard: React.FC<StudentDashboardProps> = ({ currentUser: propUs
                 return (
                 <details className="academy-module" data-completed={modCompleted === modTotal} key={modName} open={activeTask?.module === modName || (!activeTask && moduleIndex === 0)}>
                     <summary className="flex items-center justify-between gap-2 mb-2 py-2 pl-2 ml-1 border-l-2 border-gray-500 cursor-pointer">
-                        <h3 className="text-[10px] font-bold text-gray-300 uppercase tracking-widest">
+                        <h3 className="text-xs font-bold text-gray-300 uppercase tracking-widest">
                             {modName}
                         </h3>
                         <div className="flex items-center gap-1.5 pr-1">
                             <div className="w-12 h-1 bg-gray-700 rounded-full overflow-hidden">
                                 <div className="h-full bg-cyber-neonGreen transition-all duration-300" style={{ width: `${modProgress}%` }}></div>
                             </div>
-                            <span className="text-[9px] font-mono text-gray-400">{modCompleted}/{modTotal}</span>
+                            <span className="text-xs font-mono text-gray-400">{modCompleted}/{modTotal}</span>
                         </div>
                     </summary>
                     <div className="space-y-1">
@@ -821,7 +896,7 @@ const StudentDashboard: React.FC<StudentDashboardProps> = ({ currentUser: propUs
 
                                     <div className="flex-1 min-w-0">
                                         <div className="text-sm md:text-sm font-bold leading-tight font-sans break-words">{task.title}</div>
-                                        <div className="text-[11px] mt-1 text-gray-400">{task.status === 'completed' ? 'Пройдено · можно повторить' : task.status === 'locked' ? 'Пока закрыто' : activeTask?.id === task.id ? 'Ты здесь' : task.type === 'quiz' ? 'Проверяем понимание' : 'Практикуемся'}</div>
+                                        <div className="text-xs mt-1 text-gray-400">{task.status === 'completed' ? 'Пройдено · можно повторить' : task.status === 'locked' ? 'Пока закрыто' : activeTask?.id === task.id ? 'Ты здесь' : task.type === 'quiz' ? 'Проверяем понимание' : 'Практикуемся'}</div>
                                     </div>
                                 </GameButton>
 
@@ -835,7 +910,7 @@ const StudentDashboard: React.FC<StudentDashboardProps> = ({ currentUser: propUs
         </div>
       </div>
 
-      {activeTask?.type === 'assessment' && <div className={`flex flex-1 min-h-0 overflow-y-auto flex-col`}><LessonHeader title={activeTask.title} practice onMenu={() => setShowMobileSidebar(true)}/><button className="academy-secondary m-3 self-start" onClick={()=>setActiveCourseId(null)}>← К работам и курсам</button><AssessmentPlayer key={activeTask.id} task={activeTask}/></div>}
+      {activeTask?.type === 'assessment' && <div className={`flex flex-1 min-h-0 overflow-y-auto flex-col`}><LessonHeader player={currentUser ?? undefined} title={activeTask.title} practice onMenu={() => setShowMobileSidebar(true)}/><button className="academy-secondary m-3 self-start" onClick={()=>setActiveCourseId(null)}>← К работам и курсам</button><AssessmentPlayer key={activeTask.id} task={activeTask}/></div>}
       {/* 0. EMPTY TASK STATE */}
       {!activeTask && (
           <div className={`flex flex-1 items-center justify-center text-gray-600 bg-black`}>
@@ -846,7 +921,8 @@ const StudentDashboard: React.FC<StudentDashboardProps> = ({ currentUser: propUs
       {/* 1. EXPLANATION STAGE (Байтик + теория) — также покрывает type 'theory' */}
       {activeTask && activeTask.type !== 'assessment' && (lessonStage === 'explanation' || activeTask.type === 'theory') && (
           <div className={`flex flex-1 flex-col bg-black relative overflow-hidden`}>
-                <LessonHeader title={activeTask.title} practice={false} onMenu={() => setShowMobileSidebar(true)} onExplanation={() => setLessonStage('explanation')}/>
+                <LessonHeader player={currentUser ?? undefined} title={activeTask.title} practice={false} onMenu={() => setShowMobileSidebar(true)} onExplanation={practiceDraft.pilot&&lessonMode==='check'?undefined:() => setLessonStage('explanation')}/>
+                {draftStatus}
                 <div className="lesson-explanation-scroll flex-1 overflow-y-auto p-4 md:p-8">
                 <div className="max-w-4xl mx-auto w-full space-y-6">
                     <MascotErrorBoundary fallback={activeTask.theory ? (
@@ -857,6 +933,7 @@ const StudentDashboard: React.FC<StudentDashboardProps> = ({ currentUser: propUs
                         <Suspense fallback={<LessonLoader />}>
                             <BigMascotTheoryStory
                                 task={activeTask}
+                                user={currentUser}
                                 mascotSkinItemId={currentUser?.equipped?.mascotSkin}
                                 practiceGoal={getTaskPracticeGoal(activeTask)}
                                 onStartPractice={() => {
@@ -878,20 +955,28 @@ const StudentDashboard: React.FC<StudentDashboardProps> = ({ currentUser: propUs
       )}
 
       {/* 2. QUIZ VIEW */}
-      {activeTask?.type === 'quiz' && lessonStage === 'practice' && (
+      {activeTask?.type==='quiz'&&lessonStage==='practice'&&practiceDraft.pilot&&!practiceDraft.loaded&&<p role="status">Восстанавливаем черновик…</p>}
+      {activeTask?.type === 'quiz' && lessonStage === 'practice' && (!practiceDraft.pilot || practiceDraft.loaded) && (
           <div className={`flex flex-1 flex-col bg-black relative overflow-hidden`}>
-              <LessonHeader title={activeTask.title} practice={true} onMenu={() => setShowMobileSidebar(true)} onExplanation={() => setLessonStage('explanation')}/>
+              <LessonHeader player={currentUser ?? undefined} title={activeTask.title} practice={true} result={missionSuccess} onMenu={() => setShowMobileSidebar(true)} onExplanation={practiceDraft.pilot&&lessonMode==='check'?undefined:() => setLessonStage('explanation')}/>
+              {draftStatus}
               <div className="lesson-quiz-scroll flex-1 overflow-y-auto p-4 md:p-12 flex flex-col items-center justify-start md:justify-center">
               <div className="lesson-quiz-panel max-w-2xl w-full bg-[#0e0e12] border border-gray-800 p-6 md:p-12 relative shadow-2xl">
-                  {/* Decor */}
-                  <div className="absolute top-0 left-0 w-4 h-4 border-t-2 border-l-2 border-cyber-neonYellow"></div>
-                  <div className="absolute bottom-0 right-0 w-4 h-4 border-b-2 border-r-2 border-cyber-neonYellow"></div>
+                <div className="quiz-arena">
+                  <aside className="quiz-mentor">
+                      <Suspense fallback={null}>
+                          <BigCharacter3D user={currentUser} mood={!quizSubmitted ? 'idle' : quizIsCorrect ? 'celebrate' : 'thinking'} />
+                      </Suspense>
+                      <strong>{getPlayerCharacter(currentUser).name}</strong>
+                      <p className="quiz-mentor-bubble">{!quizSubmitted ? 'Выбери один ответ и нажми «Проверить».' : quizIsCorrect ? 'Верно! Посмотри, почему так.' : 'Не страшно. Прочитай разбор и попробуй ещё раз.'}</p>
+                  </aside>
 
-                  <div className="text-center mb-8">
+                  <div className="quiz-main">
+                  <div className="quiz-question-head mb-6">
                       <div className="inline-block px-3 py-1 bg-cyber-neonYellow/20 text-cyber-neonYellow text-xs font-bold uppercase tracking-widest mb-4 border border-cyber-neonYellow/50">
-                          Проверяем понимание
+                          Испытание
                       </div>
-                      <h2 className="text-xl md:text-2xl font-bold text-white mb-6 whitespace-pre-line break-words">
+                      <h2 className="text-xl md:text-2xl font-bold text-white mb-2 whitespace-pre-line break-words">
                           {activeTask.quizData?.question}
                       </h2>
                   </div>
@@ -899,31 +984,36 @@ const StudentDashboard: React.FC<StudentDashboardProps> = ({ currentUser: propUs
                   <div className="space-y-4">
                       {quiz?.options.map((opt, idx) => {
                           let stateClass = "border-gray-700 hover:border-cyber-neonBlue hover:bg-white/5 text-gray-300";
+                          let dataState = "idle";
                           if (quizSubmitted) {
-                              if (idx === quiz?.correctIndex) stateClass = "border-cyber-neonGreen bg-cyber-neonGreen/20 text-cyber-neonGreen";
-                              else if (idx === quizSelectedOption) stateClass = "border-red-500 bg-red-500/20 text-red-500";
-                              else stateClass = "border-gray-800 opacity-50";
+                              if (idx === quiz?.correctIndex && (!practiceDraft.pilot || lessonMode!=='check' || quizIsCorrect)) { stateClass = "border-cyber-neonGreen bg-cyber-neonGreen/20 text-cyber-neonGreen"; dataState = "correct"; }
+                              else if (idx === quizSelectedOption) { stateClass = "border-red-500 bg-red-500/20 text-red-500"; dataState = "wrong"; }
+                              else { stateClass = "border-gray-800 opacity-50"; dataState = "dim"; }
                           } else if (idx === quizSelectedOption) {
                               stateClass = "border-cyber-neonBlue bg-cyber-neonBlue/20 text-white";
+                              dataState = "selected";
                           }
 
                           return (
                             <GameButton size="compact"
                                 key={idx}
                                 disabled={quizSubmitted}
-                                onClick={() => { playSound('click'); setQuizSelectedOption(idx); }}
+                                onClick={() => { playSound('click'); setQuizSelectedOption(idx); if(practiceDraft.pilot)practiceDraft.update({option:idx}); }}
                                 aria-pressed={quizSelectedOption === idx}
+                                data-state={dataState}
                                 className={`lesson-answer w-full p-4 border text-left font-mono text-sm md:text-base transition-all duration-200 ${stateClass}`}
                             >
-                                <span className="mr-4 opacity-50">{idx + 1}.</span>
-                                {opt}
+                                <span className="quiz-answer-badge">{'АБВГДЕЖЗ'[idx]}</span>
+                                <span className="quiz-answer-text">{opt}</span>
+                                {dataState === 'correct' && <span className="quiz-answer-verdict">✓ Верный ответ</span>}
+                                {dataState === 'wrong' && <span className="quiz-answer-verdict">✗ Твой выбор</span>}
                             </GameButton>
                           )
                       })}
                   </div>
 
-                  {quizSubmitted && activeTask.quizData?.explanation && (
-                      <div className={`mt-6 p-4 border rounded text-sm ${quizIsCorrect ? 'border-cyber-neonGreen/30 bg-cyber-neonGreen/5 text-gray-300' : 'border-red-500/30 bg-red-500/5 text-gray-300'}`}>
+                  {quizSubmitted && activeTask.quizData?.explanation && (!practiceDraft.pilot||lessonMode!=='check'||quizIsCorrect) && (
+                      <div className={`quiz-explain mt-6 p-4 border rounded text-sm ${quizIsCorrect ? 'border-cyber-neonGreen/30 bg-cyber-neonGreen/5 text-gray-300' : 'border-red-500/30 bg-red-500/5 text-gray-300'}`}>
                           <span className="font-bold text-white block mb-1">{quizIsCorrect ? '💡 Пояснение:' : '📖 Разбор:'}</span>
                           {activeTask.quizData.explanation}
                       </div>
@@ -942,7 +1032,7 @@ const StudentDashboard: React.FC<StudentDashboardProps> = ({ currentUser: propUs
                       {!quizSubmitted ? (
                           <GameButton size="compact"
                              variant="primary" onClick={handleQuizSubmit}
-                             disabled={quizSelectedOption === null}
+                             disabled={quizSelectedOption === null || modeBusy}
                              className={`academy-primary lesson-check px-8 py-3 font-bold uppercase tracking-widest transition-all ${quizSelectedOption !== null ? 'bg-cyber-neonBlue text-black hover:bg-white' : 'bg-gray-800 text-gray-500 cursor-not-allowed'}`}
                           >
                               Проверить
@@ -950,10 +1040,10 @@ const StudentDashboard: React.FC<StudentDashboardProps> = ({ currentUser: propUs
                       ) : (
                           quizIsCorrect ? (
                               !missionSuccess && <GameButton size="compact"
-                                variant="primary" onClick={handleNextTask}
+                                variant="primary" onClick={practiceDraft.pilot&&lessonMode!=='learn'?()=>{setLessonMode('learn');setLessonStage('explanation');}:handleNextTask}
                                 className={`academy-primary flex px-6 py-3 bg-cyber-neonGreen text-black hover:bg-white border border-cyber-neonGreen font-bold uppercase items-center gap-2 text-sm md:text-base`}
                               >
-                                  {(tasks.filter(t => t.courseId === activeTask.courseId).findIndex(t => t.id === activeTask.id) < tasks.filter(t => t.courseId === activeTask.courseId).length - 1) ? 'Далее' : 'Завершить'} <ArrowRight size={18} />
+                                  {practiceDraft.pilot&&lessonMode!=='learn'?'Вернуться к изучению':(tasks.filter(t => t.courseId === activeTask.courseId).findIndex(t => t.id === activeTask.id) < tasks.filter(t => t.courseId === activeTask.courseId).length - 1) ? 'Далее' : 'Завершить'} <ArrowRight size={18} />
                               </GameButton>
                           ) : (
                               <GameButton size="compact"
@@ -965,6 +1055,8 @@ const StudentDashboard: React.FC<StudentDashboardProps> = ({ currentUser: propUs
                           )
                       )}
                   </div>
+                  </div>
+                </div>
               </div>
               </div>{/* end scroll container */}
           </div>
@@ -973,7 +1065,7 @@ const StudentDashboard: React.FC<StudentDashboardProps> = ({ currentUser: propUs
       {/* 3. BLOCKS (drag-and-drop) VIEW */}
       {activeTask?.type === 'blocks' && lessonStage === 'practice' && (
           <div className={`flex flex-1 flex-col bg-black relative overflow-hidden`}>
-              <LessonHeader title={activeTask.title} practice={true} onMenu={() => setShowMobileSidebar(true)} onExplanation={() => setLessonStage('explanation')}/>
+              <LessonHeader player={currentUser ?? undefined} title={activeTask.title} practice={true} result={missionSuccess} onMenu={() => setShowMobileSidebar(true)} onExplanation={practiceDraft.pilot&&lessonMode==='check'?undefined:() => setLessonStage('explanation')}/>
               <Suspense fallback={<LessonLoader />}>
                   <BlockCoding
                     key={activeTask.id}
@@ -990,7 +1082,7 @@ const StudentDashboard: React.FC<StudentDashboardProps> = ({ currentUser: propUs
       {/* 4. TOWER OF HANOI MINI GAME */}
       {isHanoiTask && lessonStage === 'practice' && (
         <div className={`flex flex-1 flex-col w-full relative overflow-hidden`}>
-            <LessonHeader title={activeTask!.title} practice={true} onMenu={() => setShowMobileSidebar(true)} onExplanation={() => setLessonStage('explanation')}/>
+            <LessonHeader player={currentUser ?? undefined} title={activeTask!.title} practice={true} result={missionSuccess} onMenu={() => setShowMobileSidebar(true)} onExplanation={practiceDraft.pilot&&lessonMode==='check'?undefined:() => setLessonStage('explanation')}/>
             <PracticeSurface kind={activeTask!.type} goal={getTaskPracticeGoal(activeTask!)}><Suspense fallback={<LessonLoader />}>
                 <HanoiGame key={activeTask!.id} task={activeTask!} onComplete={() => handleTaskCompletion(activeTask!)} />
             </Suspense></PracticeSurface>
@@ -1001,16 +1093,18 @@ const StudentDashboard: React.FC<StudentDashboardProps> = ({ currentUser: propUs
       {activeTask && lessonStage === 'practice' && (() => {
           const t = activeTask;
           const complete = () => handleTaskCompletion(t);
-          const header = <LessonHeader title={t.title} practice onMenu={() => setShowMobileSidebar(true)} onExplanation={() => setLessonStage('explanation')}/>;
-          const wrap = (game: React.ReactNode) => (
-              <div className={`flex flex-1 flex-col bg-black relative overflow-hidden`}>
+          if(practiceDraft.pilot&&!practiceDraft.loaded)return <p role="status">Восстанавливаем черновик…</p>;
+          const header = <LessonHeader player={currentUser ?? undefined} title={t.title} practice result={missionSuccess} onMenu={() => setShowMobileSidebar(true)} onExplanation={practiceDraft.pilot&&lessonMode==='check'?undefined:() => setLessonStage('explanation')}/>;
+          const wrap = (game: React.ReactNode) => {
+              const surface = <PracticeSurface kind={t.type} goal={getTaskPracticeGoal(t)}><Suspense key={t.id} fallback={<LessonLoader />}>{game}</Suspense></PracticeSurface>;
+              return <div className="flex flex-1 flex-col bg-black relative overflow-hidden">
                   {header}
-                  <PracticeSurface kind={t.type} goal={getTaskPracticeGoal(t)}><Suspense key={t.id} fallback={<LessonLoader />}>{game}</Suspense></PracticeSurface>
-              </div>
-          );
+                  {t.type === 'typing' && draftStatus ? <div className="typing-lesson-layout">{draftStatus}{surface}</div> : <>{draftStatus}{surface}</>}
+              </div>;
+          };
 
           switch (t.type) {
-              case 'typing': return wrap(<TypingGame task={t} onComplete={complete} />);
+              case 'typing': return wrap(<TypingGame key={`${t.id}:${lessonMode}`} task={t} hints={!practiceDraft.pilot||lessonMode!=='check'} onComplete={practiceDraft.pilot?async(answer)=>{const checked=await submitPilot(answer??'');if(checked?.correct&&lessonMode==='learn')complete();}:complete} initialInput={practiceDraft.pilot?practiceDraft.state.typed:undefined} onDraft={practiceDraft.pilot?typed=>practiceDraft.update({typed}):undefined}/>);
               case 'process_manager': return wrap(<ProcessManagerGame task={t} onComplete={complete} />);
               case 'spreadsheet': return wrap(<SpreadsheetGame task={t} onComplete={complete} />);
               case 'sorting': return wrap(<SortingGame task={t} onComplete={complete} />);
@@ -1033,25 +1127,24 @@ const StudentDashboard: React.FC<StudentDashboardProps> = ({ currentUser: propUs
 
       {/* 6. CODE/TERMINAL TASK VIEW */}
       {isCodingTask && activeTask && lessonStage === 'practice' && (
-          <div className={`flex ui-code-workspace flex-1 flex-col min-w-0 overflow-hidden`}>
-            {/* MOBILE TOP BAR (always visible for coding tasks) */}
-            <div className="lg:hidden flex items-center border-b border-gray-800 px-2 py-2 bg-gray-950 shrink-0 gap-2">
-                <GameButton size="compact" aria-label="Меню курса" onClick={() => setShowMobileSidebar(true)} className="p-2 text-gray-200 active:text-white shrink-0"><ChevronLeft size={20}/></GameButton>
-                <span className="text-xs font-bold text-gray-300 uppercase leading-tight break-words flex-1">{activeTask.title}</span>
-                  {lessonStage === 'practice' && <GameButton size="compact" onClick={() => setLessonStage('explanation')} className="text-sm text-cyan-300 px-3 py-2">К объяснению</GameButton>}
-                <GameButton size="compact" variant="primary"
-                    onClick={handleRunCode}
-                    disabled={isRunning}
-                    className={`shrink-0 px-4 py-2 text-xs font-bold uppercase flex items-center gap-1 ${isRunning ? 'bg-gray-700 text-gray-400' : 'bg-cyber-neonGreen text-black'}`}
-                >
-                    {isRunning ? <Loader2 size={14} className="animate-spin"/> : <Play size={14} className="fill-current"/>}
-                    {isRunning ? '...' : 'Запустить'}
-                </GameButton>
-            </div>
+          <div className={`flex ui-code-workspace flex-1 flex-col min-w-0 overflow-hidden${isGridMission ? ' mission-grid-workspace' : ''}`} data-tab={taskTab}>
+            <LessonHeader player={currentUser ?? undefined} title={activeTask.title} practice result={missionSuccess} onMenu={() => setShowMobileSidebar(true)} onExplanation={() => setLessonStage('explanation')}/>
 
-            <section className="academy-task-brief academy-code-brief" aria-label="Задача"><span>Твоя задача</span><p>{getTaskPracticeGoal(activeTask)}</p></section>
+            {isGridMission
+              ? <details className="academy-task-brief academy-code-brief mission-brief" open aria-label="Задача"><summary><span>Твоя задача</span></summary><p>{getTaskPracticeGoal(activeTask)}</p></details>
+              : <section className="academy-task-brief academy-code-brief" aria-label="Задача"><span>Твоя задача</span><p>{getTaskPracticeGoal(activeTask)}</p></section>}
             {/* CONTENT AREA: tabs on mobile, side-by-side on desktop */}
-            <div className="flex-1 flex flex-col lg:flex-row min-w-0 overflow-hidden">
+            <div className="flex-1 flex flex-col lg:flex-row min-w-0 overflow-hidden mission-content">
+
+            {isGridMission && <aside className="mission-lesson-brief" aria-label="Краткое объяснение задания">
+              <header><BookOpen size={25}/><h2>Коротко о главном</h2></header>
+              <div className="mission-lesson-copy"><p>{activeTask.lesson?.explanation?.split(/(?<=[.!?])\s+/).slice(0,3).join(' ') || 'Герой выполняет команды по очереди. Проверь направление движения и составь безопасный маршрут.'}</p>
+              <div className="mission-lesson-order" aria-label="Команды выполняются по порядку"><span>1</span><ArrowRight size={20}/><span>2</span><ArrowRight size={20}/><span>3</span><small>Порядок имеет значение</small></div>
+              <section><h3>Твоя задача</h3><p>{getTaskPracticeGoal(activeTask)}</p></section>
+              <ol>{(activeTask.lesson?.steps ?? ['Найди старт, портал и препятствия.','Собери команды для героя.','Запусти и проверь маршрут.']).slice(0,3).map(step => <li key={step}>{step}</li>)}</ol></div>
+              <GameButton size="compact" onClick={() => setLessonStage('explanation')}><Play size={18}/>Разобрать пример</GameButton>
+              <GameButton size="compact" onClick={handleGetHint} disabled={isHintLoading}>{isHintLoading ? <Loader2 className="animate-spin" size={18}/> : <Lightbulb size={18}/>}Подсказка</GameButton>
+            </aside>}
 
             {/* MOBILE: TASK INFO TAB */}
             <div className={`${taskTab === 'info' ? 'flex' : 'hidden'} lg:hidden flex-1 flex-col bg-gray-950 overflow-hidden`}>
@@ -1067,25 +1160,17 @@ const StudentDashboard: React.FC<StudentDashboardProps> = ({ currentUser: propUs
             </div>
 
             {/* EDITOR AREA / TERMINAL INPUT */}
-            <div className={`${taskTab === 'code' ? 'flex' : 'hidden'} lg:flex flex-1 flex-col relative min-w-0 bg-black overflow-hidden`}>
+            <div className={`${taskTab === 'code' ? 'flex' : 'hidden'} lg:flex flex-1 flex-col relative min-w-0 bg-black overflow-hidden mission-code`}>
                  {/* Top Bar Desktop Only */}
-                 <div className="hidden lg:flex min-h-[3.5rem] py-2 bg-gray-900 border-b border-cyber-neonBlue/20 items-center justify-between px-4 shrink-0">
-                     <div className="flex items-center gap-3 min-w-0">
-                         <div className="bg-cyber-neonPink/20 p-1.5 rounded text-cyber-neonPink border border-cyber-neonPink/50 shrink-0"><Code size={16} /></div>
-                         <div className="min-w-0">
-                             <h1 className="text-sm font-bold text-white uppercase leading-tight break-words flex-1">{activeTask.title}</h1>
-                             <div className="text-[10px] text-gray-500 font-mono leading-tight break-words">{stripStandardsPrefix(activeTask.description || '')}</div>
-                         </div>
-                     </div>
-                     <div className="flex gap-2">
-                         <GameButton size="compact" onClick={() => setLessonStage('explanation')} className="text-sm text-cyan-300 px-3 py-2">К объяснению</GameButton>
-                         <GameButton size="compact"
+                 <div className="hidden lg:flex flex-wrap gap-2 py-2 bg-gray-900 border-b border-cyber-neonBlue/20 items-center px-4 shrink-0">
+                     <div className="flex flex-wrap gap-2">
+                         {!useCommandBuilder && <GameButton size="compact"
                             title="Сбросить код к начальному"
                             onClick={() => { playSound('click'); setCode(activeTask.lesson?.starterCode ?? activeTask.initialCode ?? ''); }}
                             className="p-2 text-gray-500 hover:text-red-400"
                         >
                             <RotateCcw size={18} />
-                        </GameButton>
+                        </GameButton>}
                          <GameButton size="compact"
                             onClick={() => setShowTheory(!showTheory)}
                             className={`flex items-center gap-2 px-3 py-1.5 text-xs font-bold uppercase border transition-all ${showTheory ? 'bg-cyber-neonBlue text-black border-cyber-neonBlue' : 'border-cyber-neonBlue/30 text-cyber-neonBlue'}`}
@@ -1117,9 +1202,10 @@ const StudentDashboard: React.FC<StudentDashboardProps> = ({ currentUser: propUs
                                     aria-label="Код решения"
                                     autoFocus
                                     value={code}
+                                    rows={Math.max(8, code.split('\n').length + 1)}
                                     onChange={(e) => setCode(e.target.value)}
                                     // Removed Enter key binding to allow multiline typing
-                                    className="flex-1 bg-transparent border-none outline-none text-cyber-neonGreen font-mono resize-none min-h-[120px] lg:min-h-[200px]"
+                                    className="flex-1 bg-transparent border-none outline-none text-cyber-neonGreen font-mono resize-none min-h-[120px]"
                                     spellCheck={false}
                                 />
                             </div>
@@ -1128,9 +1214,12 @@ const StudentDashboard: React.FC<StudentDashboardProps> = ({ currentUser: propUs
                     ) : (
                         /* NORMAL CODE EDITOR */
                         <>
-                             {activeTask.allowedCommands && (
+                             {useCommandBuilder && (
+                                <GridCommandBuilder task={activeTask} code={code} view={gridView} disabled={isRunning} onCodeChange={setCode} onInsert={insertCommand} onResetDraft={resetDraft} onRestartCharacter={restartCharacter} showSource={showSource} onToggleSource={() => setShowSource(s => !s)} />
+                             )}
+                             {activeTask.allowedCommands && !useCommandBuilder && (
                                 <div className="bg-[#0e0e12] border-b border-gray-800 p-2 flex flex-wrap gap-2 shrink-0 items-center z-20">
-                                    <span className="text-[10px] font-bold text-gray-600 uppercase shrink-0 px-2">Команды:</span>
+                                    <span className="text-xs font-bold text-gray-600 uppercase shrink-0 px-2">Команды:</span>
                                     {activeTask.allowedCommands.map(cmd => (
                                         <GameButton size="compact"
                                             key={cmd}
@@ -1143,7 +1232,7 @@ const StudentDashboard: React.FC<StudentDashboardProps> = ({ currentUser: propUs
                                 </div>
                             )}
 
-                            <textarea
+                            {(!useCommandBuilder || showSource) && <textarea
                                 ref={editorRef}
                                     aria-label="Код решения"
                                 value={code}
@@ -1151,26 +1240,26 @@ const StudentDashboard: React.FC<StudentDashboardProps> = ({ currentUser: propUs
                                 className="flex-1 bg-black text-gray-200 p-4 font-mono text-sm resize-none focus:outline-none leading-relaxed whitespace-pre min-w-0 min-h-[200px] lg:min-h-[300px]"
                                 spellCheck={false}
                                 placeholder={activeTask.type === 'html' ? "<!-- Пиши HTML код здесь -->" : "// Введите код..."}
-                            />
+                            />}
                         </>
                     )}
 
                     {/* Execute Button Desktop */}
-                    <div className="ui-code-runbar hidden lg:flex">
+                    <div className="ui-code-runbar flex">
                         <GameButton size="compact" variant="primary"
                             onClick={handleRunCode}
                             disabled={isRunning}
                             className={`pl-6 pr-8 py-4 bg-cyber-neonGreen text-black font-bold font-sans text-lg uppercase tracking-widest clip-path-polygon hover:bg-white transition-all ${isRunning ? 'opacity-70 cursor-wait' : 'hover:scale-105'}`}
 
                         >
-                            <div className="flex items-center gap-3">{isRunning ? <Loader2 className="animate-spin" /> : <Play className="fill-current" />} {isRunning ? 'ВЫПОЛНЕНИЕ...' : 'ЗАПУСК'}</div>
+                            <div className="flex items-center gap-3">{isRunning ? <Loader2 className="animate-spin" /> : <Play className="fill-current" />} {isRunning ? 'Выполняется…' : 'Запустить'}</div>
                         </GameButton>
                     </div>
                  </div>
             </div>
 
             {/* VISUAL AREA */}
-            <div className={`${taskTab === 'visual' ? 'flex' : 'hidden'} lg:flex lg:w-96 bg-[#0c0c10] flex-col shrink-0 relative z-20 border-l border-gray-800 overflow-hidden`}>
+            <div className={`${taskTab === 'visual' ? 'flex' : 'hidden'} lg:flex lg:w-96 bg-[#0c0c10] flex-col shrink-0 relative z-20 border-l border-gray-800 overflow-hidden mission-visual`}>
 
                  {/* === HTML TASK: Full browser-like preview === */}
                  {activeTask.type === 'html' && (
@@ -1182,7 +1271,7 @@ const StudentDashboard: React.FC<StudentDashboardProps> = ({ currentUser: propUs
                              <div className="w-2.5 h-2.5 rounded-full bg-green-500"></div>
                              <div className="flex-1 ml-2 bg-black/50 rounded px-3 py-1 flex items-center gap-2">
                                  <Globe size={10} className="text-gray-600 shrink-0" />
-                                 <span className="text-[10px] text-gray-500 font-mono break-all leading-tight">localhost:3000/preview</span>
+                                 <span className="text-xs text-gray-500 font-mono break-all leading-tight">localhost:3000/preview</span>
                              </div>
                          </div>
                          {/* Live iframe preview - updates in real time */}
@@ -1199,10 +1288,10 @@ const StudentDashboard: React.FC<StudentDashboardProps> = ({ currentUser: propUs
                          <div className="shrink-0 border-t border-gray-800 bg-cyber-panel/50">
                              <div className="p-2 flex items-center gap-2 overflow-x-auto no-scrollbar">
                                  <Bot size={14} className="text-cyber-neonBlue shrink-0" />
-                                 <div className="text-[10px] text-gray-500 font-mono leading-tight break-words flex-1">
+                                 <div className="text-xs text-gray-500 font-mono leading-tight break-words flex-1">
                                      {logs.length > 0 ? logs[logs.length - 1] : '> Ready'}
                                  </div>
-                                 <GameButton size="compact" onClick={handleGetHint} disabled={isHintLoading} className="px-2 py-1 border border-cyber-neonBlue/30 bg-cyber-neonBlue/5 text-cyber-neonBlue font-bold text-[10px] uppercase flex items-center gap-1 shrink-0 rounded">{isHintLoading ? <Loader2 className="animate-spin w-3 h-3"/> : <Zap size={10}/>} Подсказка</GameButton>
+                                 <GameButton size="compact" onClick={handleGetHint} disabled={isHintLoading} className="px-2 py-1 border border-cyber-neonBlue/30 bg-cyber-neonBlue/5 text-cyber-neonBlue font-bold text-xs uppercase flex items-center gap-1 shrink-0 rounded">{isHintLoading ? <Loader2 className="animate-spin w-3 h-3"/> : <Zap size={10}/>} Подсказка</GameButton>
                              </div>
                          </div>
                      </div>
@@ -1212,17 +1301,16 @@ const StudentDashboard: React.FC<StudentDashboardProps> = ({ currentUser: propUs
                  {activeTask.type !== 'html' && (
                      <>
                          <div className="p-3 border-b border-gray-800 bg-cyber-panel flex justify-between items-center shrink-0">
-                             <span className="text-xs font-bold text-cyber-neonBlue tracking-widest uppercase flex items-center gap-2"><div className="w-2 h-2 rounded-full bg-red-500 animate-pulse"></div> Результат</span>
-                             <span className="text-[10px] font-mono text-gray-500">MODE: {activeTask.type === 'terminal' ? 'SHELL' : 'DRONE'}</span>
+                             <span className="text-xs font-bold text-cyber-neonBlue tracking-widest uppercase flex items-center gap-2"><div className="w-2 h-2 rounded-full bg-red-500 animate-pulse"></div> {activeTask.type === 'grid' ? 'Карта задания' : 'Результат'}</span>
+                             <span className="text-xs text-gray-500">{activeTask.type === 'terminal' ? 'Терминал' : 'Проведи героя к порталу'}</span>
                          </div>
 
                          {/* RENDER BOX */}
-                         <div className="w-full relative bg-black flex items-center justify-center overflow-hidden border-b border-cyber-neonBlue/20 shrink-0 aspect-square lg:max-h-[50vh]">
+                         <div className={`w-full relative bg-black flex items-center justify-center overflow-hidden border-b border-cyber-neonBlue/20 shrink-0 ${isGridMission ? 'mission-render' : 'aspect-square lg:max-h-[50vh]'}`}>
 
                              {activeTask.type === 'grid' && activeTask.mapConfig && (
                                 <Suspense fallback={<LessonLoader />}>
-                                    <GameGrid task={activeTask} playerPos={playerPos} heading={playerHeading} pathHistory={pathHistory} droneColor={equippedDroneColorValue} activeAction={activeGridAction} destroyedObstacles={destroyedObstacles} />
-                                    <p className="absolute bottom-1 inset-x-2 text-center text-xs bg-black/80 text-cyber-neonBlue p-1 pointer-events-none">Робот смотрит {{E:'→ вправо',S:'↓ вниз',W:'← влево',N:'↑ вверх'}[playerHeading]}. Вперёд — по направлению стрелки.</p>
+                                    <GameGrid task={activeTask} playerPos={playerPos} heading={playerHeading} pathHistory={pathHistory} outcome={gridOutcome} running={isRunning} activeAction={activeGridAction} destroyedObstacles={destroyedObstacles} player={currentUser ?? undefined} view={gridView} onViewChange={setGridView} />
                                 </Suspense>
                              )}
 
@@ -1231,10 +1319,9 @@ const StudentDashboard: React.FC<StudentDashboardProps> = ({ currentUser: propUs
                                      {/* Animated avatar */}
                                      <div className="flex items-end justify-center py-3 bg-gradient-to-b from-gray-900 to-black border-b border-gray-800/50 shrink-0">
                                          <div className="relative">
-                                             <ShopAvatar
-                                                 avatarId={equippedAvatarId}
+                                             <PlayerAvatar
+                                                 user={currentUser}
                                                  animation={isRunning ? 'Special' : 'Idle'}
-                                                 frameId={currentUser?.equipped.avatarFrame}
                                                  scale={3}
                                                  fps={isRunning ? 12 : 6}
                                              />
@@ -1247,7 +1334,7 @@ const StudentDashboard: React.FC<StudentDashboardProps> = ({ currentUser: propUs
                                      <div ref={liveOutputRef} className="flex-1 overflow-y-auto p-3 space-y-[3px]">
                                          {liveOutput.length === 0 && !isRunning && (
                                              <div className="flex flex-col items-center justify-center h-full text-gray-700 gap-2">
-                                                 <span className="text-[10px] uppercase tracking-widest">Нажми ЗАПУСК</span>
+                                                 <span className="text-xs uppercase tracking-widest">Нажми «Запустить»</span>
                                              </div>
                                          )}
                                          {isRunning && liveOutput.length === 0 && (
@@ -1277,7 +1364,7 @@ const StudentDashboard: React.FC<StudentDashboardProps> = ({ currentUser: propUs
                              )}
                          </div>
 
-                         <div className="flex-1 flex flex-col p-4 bg-cyber-panel/50 min-h-0 overflow-hidden">
+                         <div data-outcome={isGridMission ? gridOutcome : undefined} className={`flex-1 flex flex-col p-4 bg-cyber-panel/50 min-h-0 overflow-hidden ${isGridMission ? 'mission-run-feedback' : ''}`}>
                              <div className="flex items-center gap-2 mb-2 opacity-70 shrink-0"><Bot size={20} className="text-cyber-neonBlue" /><h3 className="font-bold text-gray-300 text-xs">Проверка решения</h3></div>
                              <div className="flex-1 border border-dashed border-gray-700 rounded-lg p-3 mb-3 bg-black/40 text-xs text-gray-400 font-mono overflow-y-auto">
                                  {logs.map((log, i) => <div key={i} className={log.includes('ОШИБКА') ? 'text-red-500' : 'text-gray-400'}>{log}</div>)}
@@ -1294,16 +1381,23 @@ const StudentDashboard: React.FC<StudentDashboardProps> = ({ currentUser: propUs
         <div className="lg:hidden h-14 bg-gray-900 border-t border-gray-800 flex items-stretch shrink-0 z-[60] w-full">
             <GameButton size="compact" aria-pressed={taskTab === 'info'} onClick={() => setTaskTab('info')} className={`flex flex-col items-center justify-center flex-1 py-2 gap-1 ${taskTab === 'info' ? 'text-cyber-neonBlue bg-black' : 'text-gray-500'}`}>
                 <LayoutList size={18} />
-                <span className="text-[9px] font-bold uppercase">Задача</span>
+                <span className="text-xs font-bold uppercase">Задача</span>
             </GameButton>
+            {isGridMission ? (
+              <GameButton size="compact" aria-pressed={taskTab !== 'info'} onClick={() => setTaskTab('visual')} className={`flex flex-col items-center justify-center flex-1 py-2 gap-1 ${taskTab !== 'info' ? 'text-cyber-neonBlue bg-black' : 'text-gray-500'}`}>
+                <Eye size={18} />
+                <span className="text-xs font-bold uppercase">Поле и команды</span>
+              </GameButton>
+            ) : (<>
             <GameButton size="compact" aria-pressed={taskTab === 'code'} onClick={() => setTaskTab('code')} className={`flex flex-col items-center justify-center flex-1 py-2 gap-1 ${taskTab === 'code' ? 'text-cyber-neonBlue bg-black' : 'text-gray-500'}`}>
                 <Code size={18} />
-                <span className="text-[9px] font-bold uppercase">Код</span>
+                <span className="text-xs font-bold uppercase">Код</span>
             </GameButton>
             <GameButton size="compact" aria-pressed={taskTab === 'visual'} onClick={() => setTaskTab('visual')} className={`flex flex-col items-center justify-center flex-1 py-2 gap-1 ${taskTab === 'visual' ? 'text-cyber-neonBlue bg-black' : 'text-gray-500'}`}>
                 <Eye size={18} />
-                <span className="text-[9px] font-bold uppercase">Результат</span>
+                <span className="text-xs font-bold uppercase">Результат</span>
             </GameButton>
+            </>)}
         </div>
       )}
 
@@ -1312,10 +1406,10 @@ const StudentDashboard: React.FC<StudentDashboardProps> = ({ currentUser: propUs
       )}
 
       {/* --- MISSION COMPLETE BANNER (compact, doesn't block LIVE FEED) --- */}
-      {(missionSuccess || activeTask?.status === 'completed') && activeTask && (
+      {(!practiceDraft.pilot||lessonMode==='learn') && (missionSuccess || activeTask?.status === 'completed') && activeTask && (
           <div className="academy-completion">
                <div className="bg-[#0a0a10] border border-cyber-neonYellow/50 rounded-lg p-4 shadow-[0_0_40px_rgba(252,238,10,0.15)] flex items-center gap-4">
-                   <Suspense fallback={<Trophy size={32} className="text-cyber-neonYellow shrink-0" />}><BigCharacter3D skin={currentUser.equipped.mascotSkin} mood="celebrate" className="mentor-completion-character" /></Suspense>
+                   <PlayerAvatar user={currentUser} scale={1.3} className="completion-player-avatar"/>
                    <div className="flex-1 min-w-0">
                        <h2 className="text-sm font-bold text-white">{missionSuccess ? 'Задание выполнено' : 'Урок уже пройден — можно повторить или идти дальше'}</h2>
                        {activeTask.lesson && <p className="text-sm text-gray-300 mt-2">{activeTask.lesson.reflection}</p>}

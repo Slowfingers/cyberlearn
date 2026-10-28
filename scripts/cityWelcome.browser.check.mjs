@@ -1,0 +1,74 @@
+// Welcome-only fixture. Requests never reach school data or sign-in services.
+import assert from 'node:assert/strict';
+import { mkdirSync } from 'node:fs';
+import { chromium } from '@playwright/test';
+import { createServer } from 'vite';
+const shots = 'artifacts/city-welcome';
+mkdirSync(shots, { recursive: true });
+const server = await createServer({ server: { host: '127.0.0.1', port: 3110, strictPort: true } });
+await server.listen();
+const browser = await chromium.launch();
+const page = await browser.newPage();
+const fontAudit = await page.context().newCDPSession(page);
+await fontAudit.send('DOM.enable');
+await fontAudit.send('CSS.enable');
+const problems = [];
+page.on('pageerror', e => problems.push(e.message));
+page.on('response', r => { if (r.status() >= 400) problems.push(`${r.status()} ${r.url()}`); });
+await page.route('**/api/**', route => route.fulfill({ json: { data: null } }));
+try {
+  await page.goto('http://127.0.0.1:3110/');
+  await page.getByRole('button', { name: 'Я ученик' }).waitFor();
+  for (const width of [320, 390, 768, 1440, 1920]) {
+    await page.setViewportSize({ width, height: width < 600 ? 844 : 1000 });
+    await page.emulateMedia({ reducedMotion: 'reduce' });
+    await page.evaluate(() => document.fonts.ready);
+    assert.equal(await page.locator('.future-city__panorama').getAttribute('href'), '/art/neo-academy/login-city-v1.webp');
+    assert.ok(await page.evaluate(()=>document.fonts.check('650 32px Tektur','Маленькие шаги')),'local Cyrillic heading font loaded');
+    assert.equal(await page.locator('.cyber-headline-line').count(),2);
+    const {root} = await fontAudit.send('DOM.getDocument');
+    const {nodeId} = await fontAudit.send('DOM.querySelector',{nodeId:root.nodeId,selector:'.cyber-headline-line'});
+    const {fonts} = await fontAudit.send('CSS.getPlatformFontsForNode',{nodeId});
+    assert.ok(fonts.length>0 && fonts.every(font=>font.familyName==='Tektur' && font.isCustomFont),'Russian heading is rendered by Tektur without system fallback');
+    assert.equal(await page.locator('.cyber-headline-line').first().evaluate(e=>getComputedStyle(e,'::before').animationName),'none','glitch disabled with reduced motion');
+    assert.equal(await page.locator('.academy-welcome-story>*').count(),2,'only headline and subtitle remain');
+    assert.equal(await page.locator('.academy-welcome-story .academy-pill, .academy-welcome-route, .academy-welcome-features').count(),0);
+    assert.match(await page.locator('.academy-auth-card').evaluate(e=>getComputedStyle(e).backdropFilter),/blur\(22px\)/,'sign-in panel uses glass blur');
+    assert.equal(await page.locator('.future-city__flight').count(), 6);
+    assert.equal(await page.locator('.future-city__car-art').count(),6);
+    assert.equal(await page.locator('.future-city__car-art').evaluateAll(es=>new Set(es.map(e=>e.getAttribute('href'))).size),3,'three separately illustrated car models');
+    assert.match(await page.locator('.future-city__flight--1>g').getAttribute('transform'),/scale\(-/,'westbound car faces its travel direction');
+    assert.ok(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth), `overflow @${width}`);
+    const tiny = await page.locator('button').evaluateAll(es => es.filter(e => e.getClientRects().length).map(e => { const r = e.getBoundingClientRect(); return { label:e.getAttribute('aria-label') || e.textContent, w:r.width,h:r.height }; }).filter(r => r.w < 43.5 || r.h < 43.5));
+    assert.deepEqual(tiny, [], `touch targets @${width}`);
+    await page.screenshot({ path: `${shots}/welcome-${width}.png`, fullPage: true });
+  }
+  await page.setViewportSize({ width: 1440, height: 1000 });
+  await page.emulateMedia({ reducedMotion: 'no-preference' });
+  assert.equal(await page.locator('.cyber-headline-line').first().evaluate(e=>getComputedStyle(e,'::before').animationName),'headline-glitch-cyan');
+  const beamBefore=await page.locator('.future-city__beam').first().evaluate(e=>getComputedStyle(e).transform);
+  const before = await page.locator('.future-city__flight--0').evaluate(e => getComputedStyle(e).transform);
+  await page.waitForTimeout(250);
+  assert.notEqual(await page.locator('.future-city__flight--0').evaluate(e => getComputedStyle(e).transform), before, 'cars move');
+  assert.notEqual(await page.locator('.future-city__beam').first().evaluate(e=>getComputedStyle(e).transform),beamBefore,'searchlights sweep');
+  await page.getByRole('button', { name: 'Остановить движение города' }).click();
+  assert.equal(await page.locator('.future-city__flight--0').evaluate(e => getComputedStyle(e).animationPlayState), 'paused');
+  assert.equal(await page.locator('.cyber-headline-line').first().evaluate(e=>getComputedStyle(e,'::before').animationPlayState),'paused','pause also stops headline glitch');
+  await page.getByRole('button', { name: 'Включить движение города' }).click();
+  await page.getByRole('button', { name: 'Я ученик' }).click();
+  await page.locator('#login-name').waitFor();
+  await page.screenshot({ path: `${shots}/student-form-1440.png`, fullPage: true });
+  await page.getByRole('button', { name: 'Назад', exact: true }).click();
+  await page.getByRole('button', { name: 'Вход для учителя' }).click();
+  assert.ok(await page.locator('input[type=password]').isVisible());
+  await page.setViewportSize({ width: 390, height: 844 });
+  assert.ok(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth));
+  await page.screenshot({ path: `${shots}/teacher-form-390.png`, fullPage: true });
+  await page.emulateMedia({ reducedMotion: 'reduce' });
+  assert.equal(await page.locator('.future-city__beam').first().evaluate(e => getComputedStyle(e).animationName), 'none');
+  assert.deepEqual(problems, []);
+  console.log('cityWelcome.browser.check: painted architectural environment, 6 flying cars, moving searchlights, pause, reduced motion, student/teacher forms; widths 320/390/768/1440/1920 OK');
+} catch (error) {
+  await page.screenshot({ path: `${shots}/failure.png`, fullPage: true });
+  throw error;
+} finally { await browser.close(); await server.close(); }

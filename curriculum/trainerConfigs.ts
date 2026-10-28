@@ -59,11 +59,64 @@ export const TRAINER_CONFIGS: Record<string, Partial<Task>> = {
 
   // --- Логические схемы ---
   // Урок 1: ток идёт, если цепь замкнута хотя бы одним путём — параллельное соединение
-  g3_m10_l1: { circuitConfig: { gates: ['or'] } },
-  g3_m10_l2: { circuitConfig: { gates: ['and'] } },
+  g3_m10_l1: { circuitConfig: { gates: ['or'], mission: 'single' } },
+  g3_m10_l2: { circuitConfig: { gates: ['and'], mission: 'explore' } },
+  // Урок 40: проверяем ИЛИ на всех сочетаниях входов
+  g4_l40: { circuitConfig: { gates: ['or'], mission: 'explore' } },
+  // Урок 42: сначала предсказываем выход OR, потом проверяем
+  g4_l42: { circuitConfig: { gates: ['or'], mission: 'predict' } },
 
   // --- Сети ---
   g3_m5_l1: { networkConfig: { startNode: 'client', endNode: 'server', maxLatencyMs: 50 } },
+  // Урок 50: прямое соединение r1–site закрыто — нужен обход через r3 (10+20+15=45)
+  g4_l50: {
+    networkConfig: {
+      startNode: 'home',
+      endNode: 'site',
+      maxLatencyMs: 45,
+      nodes: [
+        { id: 'home', label: 'Дом', x: 50, y: 150, status: 'online' },
+        { id: 'r1', label: 'Роутер 1', x: 180, y: 60, status: 'online' },
+        { id: 'r2', label: 'Роутер 2', x: 180, y: 240, status: 'online' },
+        { id: 'r3', label: 'Роутер 3', x: 330, y: 150, status: 'online' },
+        { id: 'site', label: 'Сайт школы', x: 470, y: 150, status: 'online' },
+      ],
+      edges: [
+        { from: 'home', to: 'r1', latencyMs: 10 },
+        { from: 'home', to: 'r2', latencyMs: 25 },
+        { from: 'r1', to: 'site', latencyMs: 25, status: 'down' },
+        { from: 'r1', to: 'r3', latencyMs: 20 },
+        { from: 'r2', to: 'r3', latencyMs: 10 },
+        { from: 'r3', to: 'site', latencyMs: 15 },
+      ],
+    },
+  },
+  // Урок 54: узел E к серверу не подключён, D перегружен — единственный путь pc→b→c→srv (40)
+  g4_l54: {
+    networkConfig: {
+      startNode: 'pc',
+      endNode: 'srv',
+      maxLatencyMs: 45,
+      nodes: [
+        { id: 'pc', label: 'Ноутбук', x: 50, y: 150, status: 'online' },
+        { id: 'a', label: 'Узел A', x: 170, y: 60, status: 'online' },
+        { id: 'b', label: 'Узел B', x: 170, y: 240, status: 'online' },
+        { id: 'e', label: 'Узел E', x: 300, y: 60, status: 'online' },
+        { id: 'c', label: 'Узел C', x: 300, y: 240, status: 'online' },
+        { id: 'd', label: 'Узел D', x: 420, y: 150, status: 'overloaded' },
+        { id: 'srv', label: 'Сервер', x: 540, y: 150, status: 'online' },
+      ],
+      edges: [
+        { from: 'pc', to: 'a', latencyMs: 10 },
+        { from: 'pc', to: 'b', latencyMs: 12 },
+        { from: 'a', to: 'e', latencyMs: 10 },
+        { from: 'b', to: 'c', latencyMs: 10 },
+        { from: 'c', to: 'srv', latencyMs: 18 },
+        { from: 'e', to: 'd', latencyMs: 10 },
+        { from: 'd', to: 'srv', latencyMs: 5 },
+      ],
+    },
+  },
   // 7 класс: маршрут проходит по уровням стека TCP/IP, а не по абстрактным роутерам
   g7_l44: {
     networkConfig: {
@@ -90,6 +143,45 @@ export const TRAINER_CONFIGS: Record<string, Partial<Task>> = {
       ],
     },
   },
+
+  // --- Конструктор экранов ---
+  // Урок 27: рабочая область редактора занимает центр, реклама — ловушка
+  g4_l27: { wireframeConfig: {
+    screenTitle: 'Редактор открыток',
+    slotLabels: { header: 'Название редактора', hero: 'Холст с открыткой', action: 'Инструменты', footer: 'Сохранение' },
+    widgets: [
+      { id: 'e1', name: 'Название «Редактор открыток»', slot: 'header', icon: '🏷️', desc: 'Название сверху объясняет, какой инструмент открыт.' },
+      { id: 'e2', name: 'Холст с открыткой', slot: 'hero', icon: '🖼️', desc: 'Холст — главное: там появляется рисунок.' },
+      { id: 'e3', name: 'Кисть, ластик и цвета', slot: 'action', icon: '🖌️', desc: 'Инструменты меняют рисунок, их держим рядом с холстом.' },
+      { id: 'e4', name: 'Кнопка «Сохранить открытку»', slot: 'footer', icon: '💾', desc: 'Сохранение — дополнительное действие, ему место внизу.' },
+      { id: 'e5', name: 'Большая реклама поверх холста', slot: 'none', icon: '📢', desc: 'Реклама закроет рисунок. Рабочую область нельзя прятать.' },
+    ],
+  } },
+  // Урок 58: результат отдельно от управления; палитра поверх значка — ловушка
+  g4_l58: { wireframeConfig: {
+    screenTitle: 'Конструктор значка',
+    slotLabels: { header: 'Заголовок', hero: 'Результат', action: 'Управление', footer: 'Готово' },
+    widgets: [
+      { id: 'b1', name: 'Заголовок «Конструктор значка»', slot: 'header', icon: '🏷️', desc: 'Заголовок говорит, что делает этот экран.' },
+      { id: 'b2', name: 'Значок крупно в центре', slot: 'hero', icon: '🛡️', desc: 'Результат должен быть хорошо виден.' },
+      { id: 'b3', name: 'Палитра цветов и форм', slot: 'action', icon: '🎨', desc: 'Управление отдельно от результата: меняешь цвет — сразу видишь значок.' },
+      { id: 'b4', name: 'Кнопки «Отменить» и «Готово»', slot: 'footer', icon: '✅', desc: 'Завершающие действия — внизу.' },
+      { id: 'b5', name: 'Палитра прямо поверх значка', slot: 'none', icon: '🚫', desc: 'Управление не должно закрывать результат.' },
+    ],
+  } },
+  // Урок 68: проверяем макет глазами новичка; нечитаемый текст и кнопки без подписей — ловушки
+  g4_l68: { wireframeConfig: {
+    screenTitle: 'Игра «Звёздный сад»',
+    slotLabels: { header: 'Заголовок', hero: 'Игровое поле', action: 'Кнопки управления', footer: 'Помощь' },
+    widgets: [
+      { id: 'a1', name: 'Крупный понятный заголовок', slot: 'header', icon: '🔠', desc: 'Крупный заголовок легко прочитать.' },
+      { id: 'a2', name: 'Игровое поле', slot: 'hero', icon: '🌱', desc: 'Поле — главная часть экрана.' },
+      { id: 'a3', name: 'Крупные кнопки с подписями', slot: 'action', icon: '🔘', desc: 'Подпись помогает понять кнопку даже без картинки.' },
+      { id: 'a4', name: 'Подсказка «Как играть»', slot: 'footer', icon: '❓', desc: 'Помощь новичку держим внизу.' },
+      { id: 'a5', name: 'Серый текст на сером фоне', slot: 'none', icon: '🌫️', desc: 'Такой текст плохо читается — это мешает многим людям.' },
+      { id: 'a6', name: 'Кнопки-значки без подписей', slot: 'none', icon: '❔', desc: 'Без подписи непонятно, что делает кнопка.' },
+    ],
+  } },
 
   // --- Фишинг ---
   g3_m6_l4: {

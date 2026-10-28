@@ -111,7 +111,7 @@ export const MODULE10_TASKS: Task[] = [
       question: 'Какая часть URL указывает на конкретный раздел или файл на сервере?',
       options: [
         'Путь: /games/level1.html',
-        'Протокол: https://',
+        'Протокол сайта: https://',
         'Домен: example.com',
         'Порт: :443'
       ],

@@ -1,8 +1,8 @@
-import {GameButton} from '../GameUI';
+import {GameButton, WorkshopHeader, WorkshopBadge} from '../GameUI';
 import React, { useState, useEffect, useRef } from 'react';
 import { Task } from '../../types';
 import { playSound } from '../../utils/sound';
-import { ArrowUpDown, RotateCcw, CheckCircle, Sparkles, HelpCircle, Layers, BookOpen, X, Lightbulb, Play, AlertCircle } from 'lucide-react';
+import { ArrowUpDown, CheckCircle, Sparkles, HelpCircle, Layers, BookOpen, X, Lightbulb, Play, AlertCircle } from 'lucide-react';
 
 interface SortingGameProps {
   task: Task;
@@ -132,54 +132,18 @@ export const SortingGame: React.FC<SortingGameProps> = ({ task, onComplete }) =>
   const maxVal = Math.max(...array, 100);
 
   return (
-    <div className="ui-trainer-family workshop-legacy flex flex-col h-full bg-gray-950 p-4 md:p-6 overflow-y-auto select-none">
+    <div className="ui-trainer-family workshop-legacy sorting-workshop flex flex-col h-full bg-gray-950 p-4 md:p-6 overflow-y-auto select-none">
       {/* Header */}
-      <div className="workshop-banner flex flex-wrap items-center justify-between gap-4 p-4 bg-black/70 border border-cyber-neonBlue/30 rounded-2xl mb-4 shadow-lg">
-        <div className="flex items-center gap-3">
-          <div className="p-2.5 rounded-xl bg-cyber-neonGreen/20 text-cyber-neonGreen border border-cyber-neonGreen/40 text-xl">
-            <ArrowUpDown size={22} />
-          </div>
-          <div>
-            <div className="text-[10px] font-mono text-gray-400 uppercase tracking-widest">АЛГОРИТМИЧЕСКИЙ ТРЕНАЖЕР</div>
-            <h2 className="text-base md:text-lg font-bold text-white">Пузырьковая Сортировка: Шаг за Шагом</h2>
-          </div>
-        </div>
-
-        <div className="flex items-center gap-2">
-          {/* Guide Button */}
-          <GameButton size="compact"
-            onClick={() => setShowGuide(!showGuide)}
-            className={`flex items-center gap-1.5 px-3 py-1.5 rounded-xl font-bold text-xs transition-all shadow-md ${
-              showGuide
-                ? 'bg-cyber-neonBlue text-black shadow-cyber-neonBlue/30'
-                : 'bg-gray-900 border border-cyber-neonBlue/40 text-cyber-neonBlue hover:bg-cyber-neonBlue/10'
-            }`}
-          >
-            <BookOpen size={14} />
-            <span>Шпаргалка Учителя</span>
-          </GameButton>
-
-          <div className="bg-gray-900 border border-gray-800 px-3 py-1 rounded-xl text-center font-mono">
-            <div className="text-[9px] text-gray-400">ПРОХОД</div>
-            <div className="text-sm font-bold text-cyber-neonBlue">№{passNumber}</div>
-          </div>
-          <div className="bg-gray-900 border border-gray-800 px-3 py-1 rounded-xl text-center font-mono">
-            <div className="text-[9px] text-gray-400">СРАВНЕНИЙ</div>
-            <div className="text-sm font-bold text-cyber-neonYellow">{comparisons}</div>
-          </div>
-          <div className="bg-gray-900 border border-gray-800 px-3 py-1 rounded-xl text-center font-mono">
-            <div className="text-[9px] text-gray-400">ОБМЕНОВ</div>
-            <div className="text-sm font-bold text-cyber-neonPink">{swaps}</div>
-          </div>
-          <GameButton size="compact"
-            onClick={resetGame}
-            className="p-2.5 bg-gray-900 hover:bg-gray-800 text-gray-300 border border-gray-800 rounded-xl transition-colors"
-            title="Начать заново"
-          >
-            <RotateCcw size={16} />
-          </GameButton>
-        </div>
-      </div>
+      <WorkshopHeader icon={<ArrowUpDown size={26}/>} eyebrow="Алгоритмический тренажер" title="Конвейер сортировки" description={task.lesson?.goal || 'Отсортируй соседние числа.'} onReset={resetGame}
+        badges={<><WorkshopBadge label="Проход">№{passNumber}</WorkshopBadge><WorkshopBadge label="Сравнений">{comparisons}</WorkshopBadge><WorkshopBadge label="Обменов">{swaps}</WorkshopBadge></>}>
+        <GameButton size="compact"
+          onClick={() => setShowGuide(!showGuide)} aria-expanded={showGuide}
+          className="workshop-guide-toggle"
+        >
+          <BookOpen size={14} />
+          <span>Шпаргалка Учителя</span>
+        </GameButton>
+      </WorkshopHeader>
 
       {/* Teacher Guide Panel (Collapsible) */}
       {showGuide && (
@@ -238,8 +202,10 @@ export const SortingGame: React.FC<SortingGameProps> = ({ task, onComplete }) =>
       )}
 
       {/* Visual Bars & Cards */}
-      <div className="flex-1 bg-black border border-gray-800 rounded-2xl p-6 flex flex-col justify-end items-center mb-4 min-h-[260px] relative overflow-hidden">
-        <div className="sorting-bars w-full flex items-end justify-center gap-3 md:gap-6 h-52 pb-4">
+      <div className="sorting-conveyor flex-1 border rounded-2xl flex flex-col justify-end items-center mb-4 relative">
+        <div className="conveyor-direction">От меньшего к большему <span aria-hidden="true">→</span></div>
+        <div className="conveyor-scroll" role="region" aria-label="Грузы на конвейере" tabIndex={0}>
+        <div className="sorting-bars conveyor-cargo">
           {array.map((num, idx) => {
             const isComparingLeft = idx === currentIndex;
             const isComparingRight = idx === currentIndex + 1;
@@ -247,10 +213,10 @@ export const SortingGame: React.FC<SortingGameProps> = ({ task, onComplete }) =>
             const heightPercent = Math.max(25, Math.round((num / maxVal) * 100));
 
             return (
-              <div key={idx} className="flex flex-col items-center gap-2 flex-1 max-w-[70px]">
+              <div key={idx} className="cargo-item" data-comparing={isBeingCompared && !isSorted} data-sorted={isSorted} data-value={num}>
                 {/* Number Badge */}
                 <div
-                  className={`text-xs md:text-sm font-bold font-mono px-2.5 py-1 rounded-lg transition-all ${
+                  className={`cargo-value text-xs md:text-sm font-bold font-mono px-2.5 py-1 rounded-lg transition-all ${
                     isBeingCompared
                       ? 'bg-cyber-neonYellow text-black scale-110 shadow-[0_0_20px_rgba(252,238,10,0.5)] ring-2 ring-white'
                       : isSorted
@@ -263,14 +229,14 @@ export const SortingGame: React.FC<SortingGameProps> = ({ task, onComplete }) =>
 
                 {/* Animated Vertical Bar */}
                 <div
-                  className={`w-full rounded-t-xl transition-all duration-300 relative ${
+                  className={`cargo-crate w-full rounded-t-xl transition-all duration-300 relative ${
                     isBeingCompared
                       ? 'bg-gradient-to-t from-amber-500 to-cyber-neonYellow border-t-2 border-white'
                       : isSorted
                       ? 'bg-gradient-to-t from-emerald-700 to-cyber-neonGreen'
                       : 'bg-gradient-to-t from-gray-800 to-cyber-neonBlue/70'
                   }`}
-                  style={{ height: `${heightPercent}%` }}
+                  style={{ height: `${heightPercent + 70}px` }}
                 >
                   {isBeingCompared && (
                     <div className="absolute inset-0 bg-white/20 animate-pulse rounded-t-xl" />
@@ -278,10 +244,11 @@ export const SortingGame: React.FC<SortingGameProps> = ({ task, onComplete }) =>
                 </div>
 
                 {/* Index label */}
-                <div className="text-[10px] font-mono text-gray-500">[{idx}]</div>
+                <div className="text-xs font-mono text-gray-500">[{idx}]</div>
               </div>
             );
           })}
+        </div>
         </div>
 
         {/* Pointer indicator */}
@@ -320,12 +287,7 @@ export const SortingGame: React.FC<SortingGameProps> = ({ task, onComplete }) =>
               </div>
             </div>
           </div>
-          <GameButton size="compact"
-            onClick={onComplete}
-            className="px-6 py-2.5 bg-cyber-neonGreen text-black font-bold uppercase rounded-xl text-xs hover:bg-white transition-all shadow-lg"
-          >
-            ЗАБРАТЬ НАГРАДУ (+{task.xpReward} XP)
-          </GameButton>
+          <p role="status" className="text-sm text-emerald-200">Готово — переходим к результату</p>
         </div>
       )}
     </div>

@@ -5,16 +5,18 @@
   "type": "module",
   "scripts": {
     "dev": "vite",
-    "build": "node scripts/buildCloud.mjs && vite build",
+    "build": "node scripts/prepareArduino.mjs && node scripts/buildCloud.mjs && vite build",
     "preview": "vite preview",
     "validate:curriculum": "node --import tsx scripts/validateCurriculum.ts",
     "typecheck": "tsc --noEmit -p .",
-    "check": "npm run typecheck && npm run validate:curriculum && npm run check:scenarios && node --import tsx scripts/taskProgress.check.ts && node --import tsx scripts/grade5.check.ts && node --import tsx scripts/grade6.check.ts && node --import tsx scripts/grade7.check.ts && node --import tsx scripts/grade8.check.ts && node --import tsx scripts/cosmetics.check.ts && node --import tsx scripts/scoring.check.ts && node --import tsx scripts/gridInterpreter.check.ts && node --import tsx scripts/trainerConfig.check.ts && node --import tsx scripts/theoryNarration.check.ts && node --import tsx scripts/pedagogy.check.ts && node --import tsx scripts/mentorActivities.check.ts && node --import tsx scripts/regressions.check.ts && node --import tsx scripts/sessionObserver.check.ts && node --import tsx scripts/cloudBackend.check.ts && node --import tsx scripts/firebaseStore.check.ts && node --import tsx scripts/importLegacySchool.check.ts && node scripts/activityTracker.check.mjs && npm run build:functions && node --test functions/domain.test.mjs functions/api.test.mjs",
+    "check": "npm run typecheck && npm run validate:curriculum && npm run check:scenarios && node --import tsx scripts/taskProgress.check.ts && node --import tsx scripts/grade5.check.ts && node --import tsx scripts/grade6.check.ts && node --import tsx scripts/grade7.check.ts && node --import tsx scripts/grade8.check.ts && node --import tsx scripts/cosmetics.check.ts && node --import tsx scripts/scoring.check.ts && node --import tsx scripts/gridInterpreter.check.ts && node --import tsx scripts/trainerConfig.check.ts && node --import tsx scripts/theoryNarration.check.ts && node --import tsx scripts/pedagogy.check.ts && node --import tsx scripts/lessonDemos.check.ts && node --import tsx scripts/mentorActivities.check.ts && node --import tsx scripts/regressions.check.ts && node --import tsx scripts/sessionObserver.check.ts && node --import tsx scripts/cloudBackend.check.ts && node --import tsx scripts/firebaseStore.check.ts && node --import tsx scripts/importLegacySchool.check.ts && node scripts/activityTracker.check.mjs && npm run build:functions && node --test functions/domain.test.mjs functions/api.test.mjs",
     "build:functions": "node scripts/buildFunctions.mjs",
     "check:browser": "node scripts/browser.check.mjs",
     "check:local": "node scripts/localDemo.browser.check.mjs",
     "check:workshop": "node scripts/workshop.browser.check.mjs",
     "check:layout": "node scripts/layout.browser.check.mjs",
+    "check:campaign": "node --import tsx scripts/gridCommands.check.ts && node --import tsx scripts/campaignGeometry.check.ts && node scripts/courseDistricts.browser.check.mjs && node scripts/campaign.browser.check.mjs && node scripts/campaignTraveler.browser.check.mjs && node scripts/dashboard.browser.check.mjs",
+    "art:city": "node scripts/generateCyberCity.mjs",
     "setup:teacher": "node --import tsx scripts/setupTeacher.ts",
     "check:school": "node --import tsx scripts/localServer.check.ts",
     "start": "vite preview --host 0.0.0.0 --port 3000 --strictPort",
@@ -22,14 +24,21 @@
     "check:cloud": "node --import tsx scripts/sessionObserver.check.ts && node --import tsx scripts/cloudBackend.check.ts && node --import tsx scripts/firebaseStore.check.ts && node --import tsx scripts/importLegacySchool.check.ts",
     "import:firebase": "node --import tsx scripts/importFirebaseSchool.ts",
     "check:scenarios": "node --import tsx scripts/taskScenarios.check.ts",
-    "check:grade7": "node --import tsx scripts/grade7.check.ts"
+    "check:grade7": "node --import tsx scripts/grade7.check.ts",
+    "art:arduino": "node scripts/prepareArduino.mjs",
+    "check:smart-city": "node --import tsx scripts/smartCity.check.ts && node scripts/smartCity.browser.check.mjs && node scripts/smartCityLayout.browser.check.mjs",
+    "setup:arduino-cpp": "docker build -t cyberlearn-avr:1 compiler",
+    "check:arduino-cpp": "node --import tsx scripts/arduinoCpp.check.ts && node scripts/smartCity.browser.check.mjs --cpp",
+    "check:pc-builder": "node --import tsx scripts/pcBuilder.check.ts && node --import tsx scripts/pcAssets.check.ts && node scripts/pcBuilder.browser.check.mjs && node scripts/pcCatalog.browser.check.mjs && node scripts/pcWiring.browser.check.mjs && node scripts/pcBalance.browser.check.mjs && node scripts/pcBoot.browser.check.mjs"
   },
   "dependencies": {
+    "avr8js": "^0.21.1",
     "firebase": "^12.11.0",
     "lucide-react": "^0.564.0",
     "react": "^19.2.4",
     "react-dom": "^19.2.4",
-    "recharts": "^3.7.0"
+    "recharts": "^3.7.0",
+    "three": "^0.186.1"
   },
   "devDependencies": {
     "@playwright/test": "^1.63.0",
@@ -37,6 +46,7 @@
     "@types/node": "^22.14.0",
     "@types/react": "^19.3.0",
     "@types/react-dom": "^19.3.0",
+    "@types/three": "^0.186.0",
     "@vitejs/plugin-react": "^5.0.0",
     "autoprefixer": "^10.4.27",
     "esbuild": "^0.28.2",

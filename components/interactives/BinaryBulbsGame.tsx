@@ -1,9 +1,8 @@
-import {GameButton} from '../GameUI';
+import {GameButton, WorkshopHeader, WorkshopBadge} from '../GameUI';
 import React, { useState, useMemo, useRef, useEffect } from 'react';
-import { WorkshopArt } from './WorkshopArt';
 import { Task } from '../../types';
 import { playSound } from '../../utils/sound';
-import { Lightbulb, CheckCircle2, Sparkles, Star, Trophy, RotateCcw, HelpCircle, BookOpen, X } from 'lucide-react';
+import { Lightbulb, CheckCircle2, Sparkles, Star, Trophy, HelpCircle, BookOpen, X } from 'lucide-react';
 
 const ROUNDS = [
   { target: 3, formula: '2 + 1', hint: 'Включи лампочки 2 и 1' },
@@ -74,37 +73,16 @@ export const BinaryBulbsGame: React.FC<{ task: Task; onComplete: () => void }> =
   return (
     <div className="ui-trainer-family workshop-legacy binary-workshop h-full flex flex-col bg-slate-950 p-4 select-none text-white overflow-y-auto">
       {/* Header Banner */}
-      <div className="workshop-banner flex flex-wrap items-center justify-between bg-slate-900/90 border-2 border-amber-500/40 p-3 md:p-4 rounded-2xl mb-4 shadow-lg gap-3">
-        <div className="flex items-center gap-3">
-          <div className="w-12 h-12 rounded-xl bg-amber-500/20 border border-amber-400 flex items-center justify-center text-2xl shrink-0">
-            💡
-          </div>
-          <div>
-            <h2 className="text-base md:text-xl font-bold text-amber-300">Двоичный шифратор: Считаем как компьютер!</h2>
-            <p className="text-xs text-slate-300">Включай лампочки (1) и выключай (0), чтобы собрать число</p>
-          </div>
-        </div>
-
-        <div className="flex items-center gap-2">
-          {/* Guide Button */}
-          <GameButton size="compact"
-            onClick={() => setShowGuide(!showGuide)}
-            className={`flex items-center gap-1.5 px-3 py-1.5 rounded-xl font-bold text-xs transition-all shadow-md ${
-              showGuide
-                ? 'bg-amber-400 text-black shadow-amber-400/30'
-                : 'bg-amber-950/80 border border-amber-500/50 text-amber-300 hover:bg-amber-900/80'
-            }`}
-          >
-            <BookOpen size={14} />
-            <span>Шпаргалка Учителя</span>
-          </GameButton>
-
-          <div className="flex items-center gap-1 px-3 py-1.5 bg-amber-950/80 border border-amber-500/40 rounded-xl text-amber-300 font-bold text-xs">
-            <Star size={14} className="fill-amber-400 text-amber-400" />
-            <span>Раунд {currentRoundIdx + 1} из {rounds.length}</span>
-          </div>
-        </div>
-      </div>
+      <WorkshopHeader icon={<Lightbulb size={26}/>} title="Пульт двоичной энергии" description="Включай лампочки (1) и выключай (0), чтобы собрать число"
+        badges={<WorkshopBadge label="Раунд"><Star size={12} className="workshop-badge-star"/> {currentRoundIdx + 1} из {rounds.length}</WorkshopBadge>}>
+        <GameButton size="compact"
+          onClick={() => setShowGuide(!showGuide)} aria-expanded={showGuide}
+          className="workshop-guide-toggle"
+        >
+          <BookOpen size={14} />
+          <span>Шпаргалка Учителя</span>
+        </GameButton>
+      </WorkshopHeader>
 
       {/* Teacher Guide Panel (Collapsible) */}
       {showGuide && (
@@ -128,11 +106,11 @@ export const BinaryBulbsGame: React.FC<{ task: Task; onComplete: () => void }> =
           <div className="grid grid-cols-2 sm:grid-cols-3 gap-2 text-xs mb-3">
             {weights.map((weight, i) => <div key={weight} className="p-2 bg-slate-900/80 border border-amber-500/30 rounded-lg text-center">
               <span className="font-bold text-amber-400 block text-sm">+{weight}</span>
-              <span className="text-[10px] text-slate-400">Разряд {weights.length-i}</span>
+              <span className="text-xs text-slate-400">Разряд {weights.length-i}</span>
             </div>)}
           </div>
 
-          <div className="p-2.5 bg-black/40 rounded-xl text-[11px] text-amber-200/90 font-mono space-y-1 border border-amber-500/20">
+          <div className="p-2.5 bg-black/40 rounded-xl text-xs text-amber-200/90 font-mono space-y-1 border border-amber-500/20">
             <div>💡 <strong>Пример:</strong> Как получить число <strong>5</strong>? ➔ 5 = 4 + 1 ➔ включаем лампы <strong>+4</strong> и <strong>+1</strong> (код 0101).</div>
             <div>💡 <strong>Пример:</strong> Как получить число <strong>12</strong>? ➔ 12 = 8 + 4 ➔ включаем лампы <strong>+8</strong> и <strong>+4</strong> (код 1100).</div>
           </div>
@@ -140,7 +118,7 @@ export const BinaryBulbsGame: React.FC<{ task: Task; onComplete: () => void }> =
       )}
 
       {/* Target Mission Card */}
-      <div className="bg-gradient-to-r from-amber-950/40 via-purple-950/30 to-amber-950/40 border-2 border-amber-500/50 p-4 md:p-5 rounded-2xl text-center mb-6 shadow-[0_0_25px_rgba(245,158,11,0.15)] relative overflow-hidden">
+      <div className="binary-mission bg-gradient-to-r from-amber-950/40 via-purple-950/30 to-amber-950/40 border-2 border-amber-500/50 p-4 md:p-5 rounded-2xl text-center mb-6 shadow-[0_0_25px_rgba(245,158,11,0.15)] relative overflow-hidden">
         <div className="text-xs uppercase tracking-widest text-amber-400 font-bold mb-1">ТВОЯ ЗАДАЧА:</div>
         <div className="binary-target text-2xl md:text-4xl font-extrabold text-white flex items-center justify-center gap-3">
           <span>Собери число:</span>
@@ -156,14 +134,19 @@ export const BinaryBulbsGame: React.FC<{ task: Task; onComplete: () => void }> =
       </div>
 
       {/* 4 Interactive Bulbs */}
-      <div className="flex-1 flex flex-col justify-center items-center max-w-2xl mx-auto w-full">
-        <div className={`binary-switch-grid grid ${weights.length > 4 ? 'grid-cols-5' : 'grid-cols-4'} gap-2.5 md:gap-6 w-full`}>
+      <div className="energy-console flex-1 flex flex-col justify-center items-center max-w-4xl mx-auto w-full">
+        <div className="console-readout" aria-live="polite">
+          <div><span>Двоичный код</span><strong>{bits.join('')}</strong></div>
+          <div data-matched={isMatched}><span>Сейчас на пульте</span><strong data-current-sum>{currentSum}</strong></div>
+        </div>
+        <div className="binary-switch-grid energy-cell-grid w-full">
           {weights.map((weight, idx) => {
             const isOn = bits[idx] === 1;
             return (
               <div
                 key={weight}
-                className={`flex flex-col items-center p-2.5 md:p-5 rounded-2xl border-2 transition-all duration-300 ${
+                data-powered={isOn}
+                className={`energy-cell flex flex-col items-center p-2.5 md:p-5 rounded-2xl border-2 transition-all duration-300 ${
                   isOn
                     ? 'bg-amber-500/15 border-amber-400 shadow-[0_0_30px_rgba(245,158,11,0.3)] scale-105'
                     : 'bg-slate-900/60 border-slate-800 opacity-80'
@@ -177,12 +160,12 @@ export const BinaryBulbsGame: React.FC<{ task: Task; onComplete: () => void }> =
                 </div>
 
                 {/* Lightbulb Visual */}
-                <div className={`p-3 md:p-4 rounded-full mb-3 transition-all duration-300 ${
+                <div className={`energy-cell-art transition-all duration-300 ${
                   isOn
                     ? 'bg-amber-400/30 text-amber-300 drop-shadow-[0_0_12px_rgba(245,158,11,0.25)]'
                     : 'bg-slate-800/80 text-slate-600'
                 }`}>
-                  <WorkshopArt kind={isOn ? 'bulb-on' : 'bulb-off'} className="workshop-bulb" />
+                  <img src={`/art/cyber-city/energy-cell-${isOn ? 'on' : 'off'}.png`} width={160} height={200} alt="" draggable={false} />
                 </div>
 
                 {/* Bit Value Display */}
@@ -195,7 +178,7 @@ export const BinaryBulbsGame: React.FC<{ task: Task; onComplete: () => void }> =
                 {/* Interactive Toggle Button */}
                 <GameButton size="compact"
                   onClick={() => toggleBit(idx)}
-                  aria-label={`Лампочка с весом ${weight}`} aria-pressed={isOn} disabled={completed}
+                  aria-label={`Лампочка с весом ${weight}`} aria-pressed={isOn} disabled={completed || transition.current}
                   className={`w-full py-2 md:py-2.5 rounded-xl font-bold text-xs uppercase tracking-wider transition-all transform active:scale-95 shadow-md flex items-center justify-center gap-1 ${
                     isOn
                       ? 'bg-amber-500 hover:bg-amber-400 text-black shadow-amber-500/20'
@@ -211,7 +194,7 @@ export const BinaryBulbsGame: React.FC<{ task: Task; onComplete: () => void }> =
 
         {/* Real-time Math Formula & Status */}
         <div className="mt-6 w-full bg-slate-900 border border-slate-800 p-4 rounded-2xl flex flex-col md:flex-row items-center justify-between gap-4 shadow-lg">
-          <div className="flex items-center gap-2 text-sm md:text-base font-mono">
+          <div className="energy-formula flex items-center gap-2 text-sm md:text-base font-mono">
             <span className="text-slate-400">Сумма:</span>
             <span className="font-bold text-cyan-300">
               {bits.map((bit, i) => bit * weights[i]).join(' + ')}

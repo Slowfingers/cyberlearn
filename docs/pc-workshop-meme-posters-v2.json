@@ -1,0 +1,11 @@
+{
+  "mode": "built-in image_gen",
+  "source": "public/art/pc-builder/sources/workshop-meme-posters-v2.png",
+  "asset": "public/art/pc-builder/workshop-meme-posters-v2.webp",
+  "layout": "Two portrait meme posters in one 1536x1024 atlas; existing framed wall meshes use left/right halves.",
+  "text": [
+    "РАБОТАЛО ДО АПГРЕЙДА",
+    "ЭТО НЕ БАГ. ЭТО КАБЕЛЬ НЕ ПОДКЛЮЧЁН."
+  ],
+  "prompt": "Create a professional illustrated Russian meme poster TEXTURE ATLAS for the walls of a cozy futuristic PC-building classroom. Single 1536x1024 landscape canvas divided EXACTLY into TWO equal 768x1024 portrait posters, edge-to-edge artwork, no physical frame or room mockup. The panels have separate backgrounds and layouts. Use large VERY LEGIBLE bold condensed Cyrillic typography, playful polished editorial cartoon illustration, dark navy/teal paper background, cream text with restrained amber/cyan accents, subtle screenprint paper texture. Friendly sarcastic computer-building humor, suitable for students. LEFT portrait poster: top two large lines EXACTLY 'РАБОТАЛО' / 'ДО АПГРЕЙДА'. Below, an original cartoon cat with round eyes and an innocent expression, sitting beside a handsome open desktop PC with one absurdly oversized graphics card and a single tiny loose screw on the desk. Charming slightly deadpan, not visual chaos. RIGHT portrait poster: top two large lines EXACTLY 'ЭТО НЕ БАГ.' / 'ЭТО КАБЕЛЬ'. Bottom two large lines EXACTLY 'НЕ' / 'ПОДКЛЮЧЁН.' In the central illustration, a puzzled small friendly robot holding an obviously unplugged power connector next to a dark monitor; gentle deadpan humor, original characters. All exact text must be correctly spelled in Russian Cyrillic, especially Ё in ПОДКЛЮЧЁН. Make typography the strongest feature, readable when posters appear small in a 3D room. Generous margins within each panel so letters aren't cropped; no additional tiny text, English labels, watermarks, logos, outer border, gutter, drop shadows or extra panels. Two coherent beautifully designed humorous wall prints, not screenshots of a meme website."
+}

@@ -1,0 +1,75 @@
+/* Motion lives on articulated limbs, preserving the saved appearance layers. */
+.character-rig .character-leg,.character-rig .character-arm{transform-box:view-box;}
+.character-rig[data-motion=walk] .character-leg--near,
+.mission-grid__hero[data-moving=true][data-jump=false] .character-leg--near{animation:orion-leg-near .5s ease-in-out infinite;}
+.character-rig[data-motion=walk] .character-leg--far,
+.mission-grid__hero[data-moving=true][data-jump=false] .character-leg--far{animation:orion-leg-far .5s ease-in-out infinite;}
+.character-rig[data-motion=walk] .character-arm--near,
+.mission-grid__hero[data-moving=true][data-jump=false] .character-arm--near{animation:orion-arm-near .5s ease-in-out infinite;}
+.character-rig[data-motion=walk] .character-arm--far,
+.mission-grid__hero[data-moving=true][data-jump=false] .character-arm--far{animation:orion-arm-far .5s ease-in-out infinite;}
+.character-rig[data-motion=walk] .character-head{animation:orion-head .25s ease-in-out infinite;}
+.mission-grid__hero[data-jump=true] .character-leg--near{transform:rotate(-14deg);}
+.mission-grid__hero[data-jump=true] .character-leg--far{transform:rotate(16deg);}
+@keyframes orion-leg-near{0%,100%{transform:rotate(-18deg);}50%{transform:rotate(18deg);}}
+@keyframes orion-leg-far{0%,100%{transform:rotate(18deg);}50%{transform:rotate(-18deg);}}
+@keyframes orion-arm-near{0%,100%{transform:rotate(12deg);}50%{transform:rotate(-12deg);}}
+@keyframes orion-arm-far{0%,100%{transform:rotate(-12deg);}50%{transform:rotate(12deg);}}
+@keyframes orion-head{50%{transform:translateY(-1px);}}
+@media(prefers-reduced-motion:reduce){.character-rig *,.mission-grid__hero .character-rig *{animation:none!important;transition:none!important;}}
+
+/* One situational vocabulary across every purchased hero, without replacing its artwork. */
+.avatar-motion-body{transform-box:fill-box;transform-origin:50% 92%;}
+[data-motion=idle]>.avatar-motion-body,.character-rig[data-motion=idle] .character-body{animation:avatar-breathe 4s ease-in-out infinite;}
+.avatar-reactions[data-motion=walk]>.avatar-motion-body{animation:avatar-walk .45s ease-in-out infinite;}
+[data-motion=success] .avatar-motion-body{animation:avatar-cheer .65s ease-in-out 2;}
+[data-motion=retry] .avatar-motion-body{animation:avatar-reconsider .55s ease-in-out;}
+[data-motion=thinking] .avatar-motion-body{animation:avatar-think 2.6s ease-in-out infinite;}
+[data-motion=speaking] .avatar-motion-body{animation:avatar-speak .65s ease-in-out infinite;}
+[data-motion=wave] .avatar-motion-body{animation:avatar-greet 1.1s ease-in-out 2;}
+.character-rig[data-motion=success] .character-arm--near{transform:rotate(140deg);}
+.character-rig[data-motion=success] .character-arm--far{transform:rotate(-140deg);}
+.character-rig[data-motion=thinking] .character-arm--near{transform:rotate(110deg);}
+.character-rig[data-motion=speaking] .character-arm--far{animation:orion-talk .9s ease-in-out infinite;}
+.character-rig[data-motion=wave] .character-arm--far{animation:character-wave 1.5s ease-in-out 2;}
+.character-rig[data-motion=idle][data-pose=bounce] .character-body{animation:avatar-cheer 1.8s ease-in-out infinite;}
+.character-rig[data-motion=idle][data-pose=focus] .character-head{transform:rotate(-6deg);transform-origin:80px 110px;}
+.character-rig[data-motion=idle][data-pose=focus] .character-arm--near{transform:rotate(100deg);}
+@keyframes avatar-breathe{50%{transform:translateY(-1px) scaleY(1.006);}}
+@keyframes avatar-walk{0%,100%{transform:rotate(-2deg) translateY(0);}50%{transform:rotate(2deg) translateY(-5px);}}
+@keyframes avatar-cheer{0%,100%{transform:translateY(0);}40%{transform:translateY(-10px) rotate(-3deg);}65%{transform:translateY(-4px) rotate(3deg);}}
+@keyframes avatar-reconsider{20%,60%{transform:translateX(-4px) rotate(-2deg);}40%,80%{transform:translateX(4px) rotate(2deg);}}
+@keyframes avatar-think{30%,70%{transform:rotate(-5deg);}50%{transform:rotate(-3deg) translateY(-2px);}}
+@keyframes avatar-speak{50%{transform:translateY(-2px) rotate(1deg);}}
+@keyframes avatar-greet{30%,70%{transform:rotate(-5deg);}50%{transform:rotate(5deg);}}
+@keyframes orion-talk{0%,100%{transform:rotate(-18deg);}50%{transform:rotate(-38deg);}}
+.character-motion-preview{display:flex;flex-wrap:wrap;justify-content:center;gap:6px;padding:12px;max-width:330px;}
+.character-editor-preview{align-self:start;position:sticky;top:12px;}
+@media(max-width:600px){.character-editor-preview{position:static;}}
+@media(prefers-reduced-motion:reduce){.avatar-motion-body,.character-rig[data-motion] .avatar-motion-body,.character-rig[data-motion] *{animation:none!important;}}
+
+[data-motion=jump] .avatar-motion-body{animation:avatar-cheer .6s ease-in-out;}
+@media(prefers-reduced-motion:reduce){[data-motion=jump] .avatar-motion-body{animation:none!important;}}
+
+/* Shared body rig: translation along the road is separate from the gait. */
+.character-rig[data-motion=walk] .avatar-motion-body{animation:character-step-body .5s linear infinite;}
+.character-rig[data-motion=jump] .character-leg--near{transform:rotate(-18deg);}
+.character-rig[data-motion=jump] .character-leg--far{transform:rotate(20deg);}
+.character-rig[data-motion=jump] .character-arm--near{transform:rotate(100deg);}
+.character-rig[data-motion=jump] .character-arm--far{transform:rotate(-100deg);}
+.character-rig[data-motion=retry] .character-head{animation:character-head-no .7s ease-in-out 2;transform-origin:50% 40%;}
+.character-rig[data-motion=success] .character-leg--near{animation:character-victory-step .55s ease-in-out 2;}
+.character-rig[data-motion=success] .character-leg--far{animation:character-victory-step .55s .275s ease-in-out 2;}
+.character-rig[data-motion=thinking] .character-head{animation:character-consider 2.8s ease-in-out infinite;transform-origin:50% 40%;}
+.character-rig[data-motion=wave] .character-head{animation:character-consider 1.2s ease-in-out 2;transform-origin:50% 40%;}
+.street-character-rig[data-motion=walk] .character-head{animation:street-step-head .25s ease-in-out infinite;}
+.street-character-rig[data-motion=speaking] .character-head{animation:street-talk-head .7s ease-in-out infinite;}
+@keyframes character-step-body{0%,50%,100%{transform:translateY(0);}25%,75%{transform:translateY(-2px);}}
+@keyframes street-step-head{50%{transform:translateY(-3px);}}
+@keyframes street-talk-head{50%{transform:translateY(-3px) rotate(1deg);}}
+@keyframes character-head-no{25%,75%{transform:rotate(-4deg);}50%{transform:rotate(4deg);}}
+@keyframes character-consider{30%,70%{transform:rotate(-5deg);}50%{transform:rotate(-2deg);}}
+@keyframes character-victory-step{50%{transform:rotate(-12deg);}}
+@media(prefers-reduced-motion:reduce){.character-rig[data-motion] *{animation:none!important;}}
+
+.character-shop-motion{display:flex;align-items:center;flex-wrap:wrap;gap:8px 14px;margin:12px 0;color:#b5d3e7;font-size:13px}.character-shop-motion select{max-width:100%;min-height:38px;padding:7px 10px;border:1px solid #496a88;background:#101e34;color:#c5f5fa;border-radius:6px;font:13px Arial,sans-serif}.street-character-rig[data-motion=success] .avatar-motion-body,.street-character-rig[data-motion=jump] .avatar-motion-body{animation:street-cheer .7s ease-in-out 2}@keyframes street-cheer{0%,100%{transform:translateY(0);}40%{transform:translateY(-28px) rotate(-3deg);}65%{transform:translateY(-10px) rotate(3deg);}}@media(prefers-reduced-motion:reduce){.street-character-rig[data-motion] .avatar-motion-body{animation:none!important}}

@@ -1,0 +1,52 @@
+import assert from 'node:assert/strict';
+import {roomSnapshot,ROOM_ITEMS,ROOM_PALETTES,ROOM_ENTRY,ROOM_CLUTTER,roomIsClean,roomCells,roomWalkingPath,updateAvatarRoom,validateRoomPlacement} from '../functions/avatarRoom.mjs';
+const fresh={id:'room-fixture',role:'student',currency:500,inventory:['av_1'],xp:90};
+assert.ok(!roomIsClean(roomSnapshot(fresh)));
+assert.throws(()=>updateAvatarRoom(fresh,'buyRoomItem',{itemId:'room_desk'}),/Сначала/);
+assert.throws(()=>updateAvatarRoom(fresh,'saveRoomLayout',{revision:0,placements:[]}),/Сначала/);
+assert.throws(()=>updateAvatarRoom(fresh,'cleanRoomSpot',{spotId:'fake'}),/Выбери/);
+let user=fresh;
+for(const spot of ROOM_CLUTTER){user=updateAvatarRoom(user,'cleanRoomSpot',{spotId:spot.id});assert.equal(user.currency,500);}
+assert.ok(roomIsClean(roomSnapshot(user)));assert.equal(user.avatarRoom.cleared.length,6);
+assert.equal(updateAvatarRoom(user,'cleanRoomSpot',{spotId:ROOM_CLUTTER[0].id}).avatarRoom.cleared.length,6);
+assert.equal(roomSnapshot(fresh).cleared.length,0,'no mutation of original user');
+for(const category of ['Мебель','Декор','Свет'])assert.ok(ROOM_ITEMS.filter(i=>i.category===category).length>=6);
+assert.equal(new Set(ROOM_ITEMS.map(i=>i.id)).size,ROOM_ITEMS.length);
+assert.equal(ROOM_ITEMS.length,40);
+let recolored={...user,currency:0};for(const p of ROOM_PALETTES){recolored=updateAvatarRoom(recolored,'saveRoomLayout',{revision:roomSnapshot(recolored).revision,placements:roomSnapshot(recolored).placements,palette:p.id});assert.equal(recolored.currency,0);assert.equal(recolored.avatarRoom.palette,p.id);}
+const starter=roomSnapshot({...user,currency:0});assert.equal(starter.placements.length,2);assert.equal(starter.owned.length,2);
+for(const p of starter.placements)validateRoomPlacement(p,starter.placements,starter.owned);
+assert.throws(()=>updateAvatarRoom({...user,currency:0},'buyRoomItem',{itemId:'room_desk',cost:0}),/монет/);
+let bought=updateAvatarRoom(user,'buyRoomItem',{itemId:'room_desk',cost:1});assert.equal(bought.currency,360);assert.equal(user.currency,500);assert.deepEqual(bought.inventory,user.inventory);assert.equal(bought.xp,90);
+assert.equal(updateAvatarRoom(bought,'buyRoomItem',{itemId:'room_desk'}).currency,360);
+assert.throws(()=>updateAvatarRoom({...user,role:'teacher'},'buyRoomItem',{itemId:'room_desk'}),/ученика/);
+const save=placements=>updateAvatarRoom(bought,'saveRoomLayout',{revision:0,palette:'rose',placements});
+assert.throws(()=>save([{itemId:'room_plant',x:0,y:0,rotation:0}]),/коллекции/);
+assert.throws(()=>save([{itemId:'room_desk',x:8,y:0,rotation:0}]),/границы/);
+assert.throws(()=>save([{itemId:'room_desk',x:0.5,y:0,rotation:0}]),/клетку/);
+assert.throws(()=>save([{itemId:'room_desk',...ROOM_ENTRY,rotation:1}]),/вход/);
+assert.throws(()=>save([{itemId:'room_bed',x:0,y:0,rotation:0},{itemId:'room_desk',x:1,y:1,rotation:0}]),/мебель/);
+assert.throws(()=>save([{itemId:'room_desk',x:0,y:0,rotation:0},{itemId:'room_desk',x:3,y:1,rotation:0}]),/дважды/);
+const layout=[...starter.placements,{itemId:'room_desk',x:0,y:1,rotation:1}];
+const saved=save(layout);assert.equal(saved.avatarRoom.cleared.length,6);assert.equal(saved.avatarRoom.revision,1);assert.equal(saved.avatarRoom.palette,'rose');assert.equal(saved.currency,360);
+assert.throws(()=>updateAvatarRoom(saved,'saveRoomLayout',{revision:0,placements:[]}),/другом окне/);
+const empty=updateAvatarRoom(saved,'saveRoomLayout',{revision:1,placements:[]});assert.equal(empty.avatarRoom.owned.length,3);assert.equal(empty.avatarRoom.placements.length,0);
+const blocked=new Set(layout.flatMap(p=>ROOM_ITEMS.find(i=>i.id===p.itemId).solid?roomCells(p):[]).map(p=>`${p.x},${p.y}`));
+const path=roomWalkingPath(ROOM_ENTRY,{x:0,y:0},layout);assert.ok(path.length>1);for(let i=0;i<path.length;i++){assert.ok(!blocked.has(`${path[i].x},${path[i].y}`));if(i)assert.equal(Math.abs(path[i].x-path[i-1].x)+Math.abs(path[i].y-path[i-1].y),1);}
+assert.deepEqual(roomWalkingPath(ROOM_ENTRY,{x:5,y:0},layout),[]);assert.ok(roomWalkingPath(ROOM_ENTRY,{x:3,y:3},layout).length,'rug remains walkable');
+console.log('avatarRoom: cleanup gating, persistence, idempotency, catalog categories, starter, authoritative prices, balance, idempotency, ownership, collisions, rotation, entry, revisions and walking OK');
+
+const wallItem=ROOM_ITEMS.find(i=>i.id==='room_poster_cosmos');let wallUser=updateAvatarRoom({...user,currency:200},'buyRoomItem',{itemId:wallItem.id});
+const poster={itemId:wallItem.id,x:2,y:0,rotation:0,wall:'left'};assert.equal(wallUser.currency,180);assert.deepEqual(roomCells(poster),[],'wall art occupies no floor cells');
+const withPoster=updateAvatarRoom(wallUser,'saveRoomLayout',{revision:0,placements:[...starter.placements,poster]});assert.equal(withPoster.avatarRoom.placements.at(-1).wall,'left');
+assert.throws(()=>validateRoomPlacement({...poster,wall:undefined},[],wallUser.avatarRoom.owned),/стене/);
+assert.throws(()=>validateRoomPlacement({...poster,wall:'ceiling'},[],wallUser.avatarRoom.owned),/стене/);
+assert.throws(()=>validateRoomPlacement({...poster,x:7},[],wallUser.avatarRoom.owned),/границы стены/);
+assert.throws(()=>validateRoomPlacement({...poster,y:2},[],wallUser.avatarRoom.owned),/границы стены/);
+assert.throws(()=>validateRoomPlacement({...poster,rotation:1},[],wallUser.avatarRoom.owned),/стене/);
+assert.throws(()=>validateRoomPlacement({...starter.placements[0],wall:'left'},[],wallUser.avatarRoom.owned),/на пол/);
+wallUser=updateAvatarRoom(wallUser,'buyRoomItem',{itemId:'room_poster_cat'});
+assert.throws(()=>validateRoomPlacement({itemId:'room_poster_cat',x:2,y:0,rotation:0,wall:'left'},[poster],wallUser.avatarRoom.owned),/уже висит/);
+assert.ok(validateRoomPlacement({itemId:'room_poster_cat',x:2,y:0,rotation:0,wall:'right'},[poster],wallUser.avatarRoom.owned),'opposite walls have independent occupancy');
+assert.deepEqual(roomWalkingPath(ROOM_ENTRY,{x:0,y:0},[poster]),roomWalkingPath(ROOM_ENTRY,{x:0,y:0},[]),'wall decor never blocks walking');
+console.log('Room walls: ownership, mounting, bounds, overlaps, separate walls, saving and walkable floor OK');

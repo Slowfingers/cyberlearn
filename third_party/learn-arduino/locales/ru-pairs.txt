@@ -1,0 +1,558 @@
+Meet the board|Знакомство с платой
+1. Meet the<br />board|1. Знакомство<br />с платой
+Blink an LED|Мигающий светодиод
+2. Blink an LED|2. Мигающий светодиод
+Push a button|Нажимаем кнопку
+3. Push a button|3. Нажимаем кнопку
+Turn a knob|Вращаем регулятор
+4. Turn a knob|4. Вращаем регулятор
+Mix colours|Смешиваем цвета
+5. Mix colours|5. Смешиваем цвета
+Sense light|Измеряем освещённость
+6. Sense light|6. Датчик света
+Read a sensor|Измеряем расстояние
+7. Read a sensor|7. Датчик расстояния
+Make a sound|Создаём мелодию
+8. Make a sound|8. Создаём мелодию
+Control a motor|Управляем мотором
+9. Control a motor|9. Управляем мотором
+Sweep a servo|Поворачиваем сервопривод
+10. Sweep a servo|10. Сервопривод
+Build a project|Собираем проект
+11. Build a project|11. Собираем проект
+Parking sensor|Парковочный датчик
+The Arduino Uno is a popular microcontroller board based on the ATmega328P. It’s easy to use and perfect for learning electronics, programming, and prototyping.|Arduino Uno — плата с микроконтроллером ATmega328P. На ней удобно знакомиться с электроникой, писать программы и создавать работающие устройства.
+Open-source hardware|Открытая аппаратная платформа
+Wide community support|Большое сообщество
+Used in education, hobby projects, and<br />real-world applications|Для обучения, творчества<br />и настоящих устройств
+Read buttons, drive LEDs. ~3, 5, 6, 9, 10, 11 do PWM.|Чтение кнопок и управление светодиодами. Выводы ~3, 5, 6, 9, 10, 11 поддерживают ШИМ.
+10-bit readings, 0–1023 for 0–5 V.|10-битное измерение: 0–1023 для напряжения 0–5 В.
+Regulated supply for sensors and modules.|Стабилизированное питание датчиков и модулей.
+Every circuit returns here.|Общий провод: сюда возвращается ток цепи.
+Raw jack voltage, 7–12 V.|Вход внешнего питания: 7–12 В.
+Pull LOW to restart the sketch.|Низкий уровень LOW перезапускает программу.
+<code>setup()</code> runs once when the board powers up or resets.|<code>setup()</code> выполняется один раз при включении или перезапуске платы.
+<code>pinMode(LED_BUILTIN, OUTPUT)</code> makes pin 13 — wired to the on-board “L” LED — an output.|<code>pinMode(LED_BUILTIN, OUTPUT)</code> настраивает вывод 13 как выход. К нему подключён встроенный светодиод L.
+<code>loop()</code> then repeats forever. <code>digitalWrite(…, HIGH)</code> puts 5 V on the pin and lights the LED.|<code>loop()</code> повторяется непрерывно. <code>digitalWrite(…, HIGH)</code> подаёт 5 В на выход и зажигает светодиод.
+Press <b>Run</b> to upload: watch TX/RX flicker, then the L LED come on. Click any part to learn what it does.|Нажми <b>Запустить</b>: мигнут TX/RX, затем загорится L. Нажимай на детали, чтобы узнать их назначение.
+Connects to your computer<br />for programming and power.|Соединение с компьютером<br />для программирования и питания.
+ATmega328P runs<br />your code.|ATmega328P выполняет<br />твою программу.
+Pins 0–13 for digital<br />input/output.<br />(~ PWM on some pins)|Цифровые входы<br />и выходы 0–13.<br />Знак ~ означает ШИМ.
+External DC power<br />(7–12V recommended).|Внешнее питание<br />постоянным током 7–12 В.
+5V, 3.3V, GND and<br />VIN for power.|Выводы питания:<br />5V, 3.3V, GND, VIN.
+A0–A5 for reading<br />analog signals.|A0–A5 для измерения<br />аналоговых сигналов.
+Your first circuit: an LED and a resistor on a breadboard, driven by pin 13. Switching the pin on and off with a pause in between makes it blink.|Первая схема: светодиод с резистором на макетной плате подключён к выводу 13. Включай и выключай его с паузами — получится мигание.
+Digital output with <code>digitalWrite()</code>|Цифровой выход: <code>digitalWrite()</code>
+Click the resistor to try other values|Нажми на резистор и измени сопротивление
+Click the LED to change its colour and timing|Нажми на светодиод: выбери цвет и время мигания
+The sketch switches this pin HIGH and LOW.|Программа переключает выход между HIGH и LOW.
+The short leg returns current to the board.|Короткая ножка соединяется с общим проводом платы.
+<code>const int LED_PIN = 13;</code> gives the pin a readable name.|<code>const int LED_PIN = 13;</code> задаёт понятное имя для номера вывода.
+In <code>setup()</code>, <code>pinMode(LED_PIN, OUTPUT)</code> lets the pin drive current.|В <code>setup()</code> команда <code>pinMode(LED_PIN, OUTPUT)</code> настраивает вывод как выход.
+<code>loop()</code> writes HIGH, waits, writes LOW, waits again. The two delays set the rhythm.|В <code>loop()</code> идут HIGH, пауза, LOW и ещё одна пауза. Две задержки задают ритм мигания.
+A bigger resistor lets less current through: try 10 kΩ and watch the LED dim.|Большее сопротивление уменьшает ток. Попробуй 10 кОм: светодиод станет тусклее.
+5 mm, 1.8–3.2 V forward|5 мм; прямое напряжение 1,8–3,2 В
+220 Ω (red-red-brown)|220 Ом: красный, красный, коричневый
+40 mA absolute max|40 мА — предельное значение, не рабочий ток
+About 14 mA: bright and safe.|Около 14 мА: яркое свечение.
+About 3 mA: noticeably dimmer.|Около 3 мА: заметно тусклее.
+About 0.3 mA: barely glowing.|Около 0,3 мА: едва светится.
+Lights up whenever pin 13 goes HIGH.|Светится, когда на выводе 13 высокий уровень HIGH.
+Your sketch switches it HIGH and LOW.|Программа переключает HIGH и LOW.
+The short leg (−) returns current here.|Сюда подключена короткая ножка (−).
+Stops the LED drawing too much current.|Ограничивает ток через светодиод.
+The “L” LED mirrors pin 13 on the board.|Встроенный светодиод L повторяет состояние вывода 13.
+Inputs let the board sense the world. A push button connects pin 2 to 5 V while you hold it; a pull-down resistor keeps the pin at 0 V when you let go.|Через входы плата получает сигналы. Нажатая кнопка соединяет вывод 2 с 5 В. Когда кнопку отпускают, подтягивающий к земле резистор удерживает на входе 0 В.
+Click and hold the button in the scene|Нажми и удерживай кнопку в 3D-сцене
+Read a pin with <code>digitalRead()</code>|Читай вход командой <code>digitalRead()</code>
+Switch between “hold” and “toggle” logic|Сравни удержание и переключение
+One side of the switch.|Один контакт кнопки.
+Reads HIGH while the button is held.|При нажатии на входе высокий уровень HIGH.
+Pulls D2 LOW when the button is up.|Удерживает D2 в LOW, пока кнопка отпущена.
+The output you control.|Выход, которым ты управляешь.
+<code>pinMode(BUTTON, INPUT)</code> makes pin 2 listen instead of drive.|<code>pinMode(BUTTON, INPUT)</code> настраивает вывод 2 на чтение сигнала.
+<code>digitalRead(BUTTON)</code> returns HIGH while the button is down, LOW otherwise.|<code>digitalRead(BUTTON)</code> возвращает HIGH при нажатии и LOW после отпускания.
+In <b>hold</b> mode the LED simply copies the button.|В режиме <b>удержания</b> светодиод горит, пока нажата кнопка.
+In <b>toggle</b> mode the sketch remembers the last reading and flips the LED on each new press.|В режиме <b>переключения</b> программа запоминает состояние: каждое новое нажатие включает или выключает светодиод.
+12 mm tactile switch|Тактовая кнопка 12 мм
+10 kΩ to GND|10 кОм между входом и GND
+Contacts chatter for ~5 ms|Дребезг контактов длится около 5 мс
+<code>INPUT_PULLUP</code> needs no resistor|<code>INPUT_PULLUP</code> использует встроенную подтяжку; схема подключения меняется
+The LED is on only while you hold the button.|Светодиод горит, только пока ты держишь кнопку.
+Each press flips the LED on or off.|Каждое нажатие меняет состояние светодиода.
+Click and hold it — pin 2 reads HIGH.|Нажми и удерживай: на выводе 2 будет HIGH.
+10 kΩ keeps pin 2 LOW when released.|10 кОм удерживает на выводе 2 уровень LOW после отпускания.
+Your sketch decides when it lights.|Программа решает, когда его включать.
+<code>digitalRead()</code> sees HIGH or LOW.|<code>digitalRead()</code> считывает HIGH или LOW.
+A potentiometer is a resistor with a slider. Turning the knob moves the middle leg anywhere from 0 V to 5 V, and an analog pin turns that into a number.|Потенциометр — резистор с подвижным контактом. При повороте ручки напряжение на средней ножке меняется от 0 до 5 В, а аналоговый вход превращает его в число.
+Drag around the knob to turn it|Потяни вокруг ручки, чтобы повернуть её
+<code>analogRead()</code> gives 0–1023|<code>analogRead()</code> возвращает 0–1023
+<code>analogWrite()</code> dims the LED, 0–255|<code>analogWrite()</code> меняет яркость: 0–255
+Top of the voltage divider.|Верхняя точка делителя напряжения.
+The wiper: 0–5 V as you turn.|Подвижный контакт: 0–5 В при повороте.
+Bottom of the divider.|Нижняя точка делителя напряжения.
+PWM output sets the brightness.|ШИМ на выходе задаёт яркость.
+<code>analogRead(POT)</code> measures the wiper voltage: 0 V is 0, 5 V is 1023.|<code>analogRead(POT)</code> измеряет напряжение: 0 В соответствует 0, а 5 В — 1023.
+PWM only goes up to 255, so <code>value / 4</code> scales the reading to fit.|Диапазон ШИМ — до 255. Деление <code>value / 4</code> переводит показание в этот диапазон.
+<code>analogWrite(LED, …)</code> pulses pin 9 so fast the LED looks dimmed.|<code>analogWrite(LED, …)</code> быстро включает и выключает вывод 9: глаз воспринимает это как изменение яркости.
+Open the serial monitor (press Run) to watch the numbers as you turn.|Нажми «Запустить» и следи за числами в мониторе порта при вращении ручки.
+10 kΩ linear, 270° travel|Линейный, 10 кОм, поворот 270°
+≈ 4.9 mV per step|Около 4,9 мВ на шаг
+8-bit, 0–255 at ~490 Hz|8 бит, 0–255; около 490 Гц
+≈ 100 µs per <code>analogRead()</code>|Около 100 мкс на <code>analogRead()</code>
+Drag around the knob to turn it.|Потяни вокруг ручки, чтобы повернуть её.
+Reads the knob as a number, 0–1023.|Считывает положение ручки: 0–1023.
+Brightness follows the knob.|Яркость меняется вместе с положением ручки.
+Dims the LED with fast pulses.|Регулирует яркость быстрыми импульсами.
+An RGB LED is three LEDs — red, green and blue — under one milky lens. Dim each one with PWM and the light blends into almost any colour you like.|В RGB-светодиоде под одной линзой находятся красный, зелёный и синий светодиоды. Меняй яркость каждого с помощью ШИМ и смешивай цвета.
+One PWM pin per colour, 0–255 each|Отдельный ШИМ-выход для каждого цвета: 0–255
+Light mixes: red + green makes yellow|Красный и зелёный свет вместе дают жёлтый
+Click the LED to mix your own colour|Нажми на светодиод и смешай свой цвет
+Brightness of the red LED.|Яркость красного светодиода.
+Brightness of the green LED.|Яркость зелёного светодиода.
+Brightness of the blue LED.|Яркость синего светодиода.
+All three LEDs return here.|Общий провод для всех трёх светодиодов.
+Pins <code>9</code>, <code>10</code> and <code>11</code> all support PWM, so each colour can be dimmed on its own.|Выводы <code>9</code>, <code>10</code> и <code>11</code> поддерживают ШИМ. Каждый цвет регулируется независимо.
+<code>analogWrite(RED, 170)</code> runs the red LED at 170 out of 255 — about two-thirds brightness.|<code>analogWrite(RED, 170)</code> задаёт красному значение 170 из 255 — около двух третей диапазона.
+Mixing happens in your eye: red and blue together look purple, all three at 255 look white.|Красный и синий вместе выглядят фиолетовым. Три канала со значением 255 дают белый свет.
+Each colour gets its own 220 Ω resistor, so no single LED draws too much current.|У каждого цвета свой резистор 220 Ом: он ограничивает ток соответствующего светодиода.
+5 mm RGB, common cathode|RGB 5 мм, общий катод
+256³ ≈ 16.7 million|256³ — около 16,7 млн цветов
+Three colours in one lens — click it to mix.|Три цвета под одной линзой. Нажми, чтобы смешать их.
+One PWM pin for each colour.|Отдельный ШИМ-вывод для каждого цвета.
+The longest leg is the shared ground.|Самая длинная ножка — общий катод, подключённый к GND.
+220 Ω on each colour keeps the current safe.|220 Ом в каждом канале ограничивает ток.
+A light-dependent resistor (LDR) conducts better the more light falls on it. Paired with a fixed resistor it turns brightness into a voltage — just right for a night light that comes on when it gets dark.|Чем больше света попадает на фоторезистор LDR, тем меньше его сопротивление. Вместе с обычным резистором он превращает освещённость в напряжение. Так можно сделать ночник, включающийся в темноте.
+Read brightness with <code>analogRead()</code>|Измеряй освещённость через <code>analogRead()</code>
+Drag the lamp away, or switch it off|Отодвинь лампу или выключи её
+Switch the LED on below a threshold|Включай светодиод ниже выбранного порога
+The middle of the divider: higher when brighter.|Середина делителя: больше света — выше напряжение.
+The night light.|Светодиод ночника.
+The LED’s return path.|Общий провод светодиода.
+The LDR and the 10 kΩ resistor form a voltage divider: more light, lower LDR resistance, higher voltage on A0.|LDR и резистор 10 кОм образуют делитель: больше света — меньше сопротивление LDR и выше напряжение на A0.
+<code>analogRead(SENSOR)</code> turns that voltage into a number from 0 (dark) to 1023 (very bright).|<code>analogRead(SENSOR)</code> превращает напряжение в число от 0 (темно) до 1023 (ярко).
+If the reading drops below the threshold the sketch decides it is dark and switches the LED on.|Если показание меньше порога, программа включает светодиод.
+Move the lamp and watch the reading in the serial monitor — light falls off quickly with distance.|Двигай лампу и следи за монитором порта: с увеличением расстояния освещённость падает.
+GL5528 photoresistor|Фоторезистор GL5528
+Comes on when the reading says “dark”.|Включается, когда показание соответствует темноте.
+Less resistance the more light it gets.|Чем больше света, тем меньше сопротивление.
+Reads the divider as 0–1023.|Измеряет сигнал делителя: 0–1023.
+Drag it away, or switch it off.|Передвинь лампу или выключи её.
+The HC-SR04 sends out a burst of ultrasound and listens for the echo. Timing how long it takes tells you how far away the obstacle is — click it to swap it or drag it closer.|HC-SR04 посылает ультразвук и принимает эхо. По времени его возвращения вычисляют расстояние. Нажми на препятствие, чтобы заменить его, или передвинь ближе.
+Trigger a ping, time the echo with <code>pulseIn()</code>|Измеряй время эха командой <code>pulseIn()</code>
+Every 58 µs of echo is about 1 cm|58 мкс времени эха — примерно 1 см расстояния
+Swap the obstacle: some echo better than others|Сравни препятствия: они по-разному отражают звук
+Powers the sensor.|Питание датчика.
+Common ground.|Общий провод.
+A 10 µs HIGH pulse starts a ping.|Импульс HIGH длительностью 10 мкс запускает измерение.
+Stays HIGH for as long as the sound travels.|Длительность HIGH соответствует времени полёта звука.
+<code>Serial.begin(9600)</code> opens the serial monitor at 9600 baud.|<code>Serial.begin(9600)</code> задаёт скорость обмена 9600 бод.
+A 10 µs pulse on <code>TRIG</code> fires eight 40 kHz pulses from the transmitter.|Импульс 10 мкс на <code>TRIG</code> запускает пакет из восьми импульсов 40 кГц.
+<code>pulseIn(ECHO, HIGH)</code> measures the echo time in microseconds.|<code>pulseIn(ECHO, HIGH)</code> измеряет длительность эха в микросекундах.
+Dividing by 58 converts it to centimetres (sound travels there and back).|Деление на 58 даёт расстояние в сантиметрах с учётом пути туда и обратно.
+Pings at 40 kHz and times the echo.|Излучает звук 40 кГц и измеряет время эха.
+Pin 9 fires the ping, pin 10 hears the echo.|Вывод 9 запускает измерение, вывод 10 принимает эхо.
+Power for the sensor, straight from the board.|Питание датчика от платы.
+Click to swap it, drag to move it.|Нажми для замены, потяни для перемещения.
+A piezo buzzer clicks every time its pin flips. Flip it hundreds of times a second and you hear a note — <code>tone()</code> does exactly that.|Пьезоизлучатель колеблется при переключении сигнала. Сотни переключений в секунду создают музыкальный тон. Команда <code>tone()</code> задаёт его частоту.
+Play notes with <code>tone(pin, Hz, ms)</code>|Играй ноты: <code>tone(pin, Hz, ms)</code>
+Store a tune in an array|Храни мелодию в массиве
+Click the buzzer to pick a tune and tempo|Нажми на излучатель: выбери мелодию и темп
+Toggled at the note’s frequency.|Переключается с частотой выбранной ноты.
+Return path.|Общий провод.
+The <code>melody</code> array holds each note’s frequency in hertz: 262 Hz is middle C.|Массив <code>melody</code> хранит частоты нот в герцах. 262 Гц — нота до первой октавы.
+<code>tone(BUZZER, hz, ms)</code> plays a square wave for <code>ms</code> milliseconds.|<code>tone(BUZZER, hz, ms)</code> создаёт прямоугольный сигнал заданной частоты на <code>ms</code> миллисекунд.
+The <code>delay</code> after each note leaves a short gap so repeated notes sound separate.|<code>delay</code> оставляет небольшой промежуток, чтобы повторяющиеся ноты не сливались.
+After the last note the loop rests for a second, then starts again.|После последней ноты — пауза в секунду, затем мелодия повторяется.
+Passive piezo, 12 mm|Пассивный пьезоизлучатель, 12 мм
+An active buzzer only beeps at one pitch|Активный зуммер звучит на одной частоте
+C major, one octave.|До мажор, одна октава.
+Twinkle, twinkle, little star.|Мелодия «Маленькая звёздочка».
+Beethoven’s Ninth, first phrase.|Первая фраза «Оды к радости» Бетховена.
+Click it to pick a tune and tempo.|Нажми, чтобы выбрать мелодию и темп.
+<code>tone()</code> toggles it at the note’s pitch.|<code>tone()</code> задаёт частоту звука.
+The buzzer’s other leg.|Вторая ножка пьезоизлучателя.
+A hardware timer keeps each note in tune.|Аппаратный таймер поддерживает частоту ноты.
+A pin can’t power a motor on its own, so a transistor does the heavy lifting. PWM switches it on and off very fast to set the speed.|Мотор нельзя питать напрямую от сигнального вывода. Ток мотора коммутирует транзистор, а ШИМ быстро включает и выключает его, меняя скорость.
+Speed from 0 to 255 with <code>analogWrite()</code>|Скорость 0–255: <code>analogWrite()</code>
+TIP120 switches the motor current|TIP120 коммутирует ток мотора
+Click the motor to change the ramp|Нажми на мотор и измени разгон
+PWM signal from the sketch.|ШИМ-сигнал программы.
+Motor supply.|Питание мотора.
+The transistor completes the motor circuit.|Транзистор замыкает цепь мотора.
+Shared ground.|Общий провод.
+<code>analogWrite(MOTOR, s)</code> sets the PWM duty cycle: 0 is off, 255 is fully on.|<code>analogWrite(MOTOR, s)</code> задаёт ШИМ: 0 — выключено, 255 — постоянно включено.
+The <code>for</code> loop raises <code>s</code> step by step every 40 ms — a smooth ramp.|Цикл <code>for</code> увеличивает <code>s</code> каждые 40 мс: получается плавный разгон.
+After holding top speed, writing 0 lets the motor coast to a stop.|После работы на максимальной скорости значение 0 отключает питание: мотор останавливается по инерции.
+Pins ~3, 5, 6, 9, 10 and 11 support PWM; the ~ on the board marks them.|Выводы ~3, 5, 6, 9, 10 и 11 поддерживают ШИМ. Они отмечены знаком ~.
+TIP120 Darlington, 5 A|Составной транзистор TIP120, до 5 А
+1 kΩ (brown-black-red)|1 кОм: коричневый, чёрный, красный
+Add a flyback diode across the motor|Параллельно мотору нужен защитный диод от выбросов напряжения
+A small base current switches the motor.|Небольшой ток базы управляет током мотора.
+Keeps the base current safe for the pin.|Ограничивает ток базы и нагрузку на вывод.
+<code>analogWrite()</code> sets the speed, 0–255.|<code>analogWrite()</code> задаёт скорость: 0–255.
+Click it to change the ramp.|Нажми, чтобы изменить разгон.
+A servo is a motor that knows where it is. Tell it an angle from 0° to 180° and it turns there and holds — perfect for arms, flaps and pointers.|Сервопривод поворачивается на заданный угол и удерживает положение. Диапазон здесь — от 0° до 180°. Это удобно для манипуляторов, заслонок и указателей.
+Position with <code>arm.write(angle)</code>|Задай угол: <code>arm.write(angle)</code>
+The Servo library makes the pulses for you|Библиотека Servo создаёт управляющие импульсы
+Click the servo to change the sweep|Нажми на сервопривод и измени диапазон
+Power for the motor.|Питание сервопривода.
+Signal: a 1–2 ms pulse every 20 ms.|Сигнал: импульс 1–2 мс каждые 20 мс.
+<code>#include &lt;Servo.h&gt;</code> brings in the library; <code>Servo arm;</code> makes one servo.|<code>#include &lt;Servo.h&gt;</code> подключает библиотеку. <code>Servo arm;</code> создаёт объект сервопривода.
+<code>arm.attach(9)</code> starts sending position pulses on pin 9.|<code>arm.attach(9)</code> включает управляющие импульсы на выводе 9.
+The first <code>for</code> loop steps the angle up one degree at a time, the second steps it back.|Первый цикл <code>for</code> увеличивает угол по одному градусу, второй уменьшает его.
+The <code>delay</code> sets how fast it sweeps: smaller is faster.|<code>delay</code> задаёт скорость движения: меньше задержка — быстрее поворот.
+SG90 micro, 9 g|Микросервопривод SG90, 9 г
+≈ 0.1 s per 60°|Около 0,1 с на 60°
+50 Hz, 0.5–2.4 ms pulses|50 Гц; импульсы 0,5–2,4 мс
+Click it to change how far it sweeps.|Нажми, чтобы изменить диапазон поворота.
+Pulse width sets the angle.|Ширина импульса задаёт угол.
+The servo’s red and brown wires.|Красный и коричневый провода сервопривода.
+Put it all together: the distance sensor watches the obstacle and a traffic light tells the driver when to stop. Click the lights to move the thresholds.|Соберём всё вместе: датчик измеряет расстояние, а светофор подсказывает водителю, когда остановиться. Нажми на светофор и измени пороги переключения.
+Decisions with comparisons|Принимай решения с помощью сравнений
+Three outputs, one for each colour|Три выхода — по одному для каждого цвета
+Reuses the distance code from lesson 7|Используй код датчика из урока 7
+GND is bridged to the light module.|Общий провод соединён с модулем светофора.
+Same as lesson 7.|Так же, как в уроке 7.
+On when the obstacle is close.|Горит, когда препятствие близко.
+On in between.|Горит на среднем расстоянии.
+On when it is far away.|Горит, когда препятствие далеко.
+The loop measures distance exactly as in lesson 7.|Цикл измеряет расстояние так же, как в уроке 7.
+A comparison like <code>cm &gt; 30</code> is either true (1) or false (0).|Сравнение <code>cm &gt; 30</code> возвращает истину (1) или ложь (0).
+Writing it straight to a pin turns that LED on or off — no <code>if</code> needed.|Результат сравнения можно передать в <code>digitalWrite()</code>: он включит или выключит светодиод без <code>if</code>.
+Only one condition can be true at a time, so exactly one light is lit.|Условия не пересекаются: в каждый момент горит только один цвет.
+Uno, HC-SR04, traffic light module|Uno, HC-SR04, модуль светофора
+≈ 15 times a second|Около 15 раз в секунду
+Add a buzzer from lesson 8|Добавь пьезоизлучатель из урока 8
+Keeps an eye on the obstacle.|Следит за расстоянием до препятствия.
+Click it to change the thresholds.|Нажми, чтобы изменить пороги.
+Comparisons choose which light is on.|Сравнения определяют, какой цвет включён.
+Drag it closer and watch the lights.|Подвинь препятствие и наблюдай за светофором.
+Microcontroller|Микроконтроллер
+Operating voltage|Рабочее напряжение
+Input voltage|Входное напряжение
+Digital I/O pins|Цифровые входы/выходы
+Analog inputs|Аналоговые входы
+Flash memory|Флеш-память
+Clock speed|Тактовая частота
+Size|Размер
+Colour|Цвет
+Red|Красный
+Yellow|Жёлтый
+Green|Зелёный
+Blue|Синий
+White|Белый
+Purple|Фиолетовый
+Pink|Розовый
+Orange|Оранжевый
+Teal|Бирюзовый
+Obstacle|Препятствие
+Distance|Расстояние
+Car|Машина
+Box|Коробка
+Ball|Мяч
+Wall|Стена
+Drive back and forth while running|Двигать препятствие при запуске
+Digital I/O|Цифровой вход/выход
+Analog in|Аналоговый вход
+Power out|Выход питания
+Power in|Вход питания
+Ground|Общий провод
+Reset|Сброс
+USB Port|USB-порт
+Digital Pins|Цифровые выводы
+Power Jack|Разъём питания
+Power Pins|Выводы питания
+Analog Pins|Аналоговые выводы
+Resistor → LED (+)|Резистор → светодиод (+)
+LED (−)|Светодиод (−)
+Max current|Максимальный ток
+Resistor|Резистор
+LED current|Ток светодиода
+Pin 13 limit|Предел вывода 13
+Built-in LED|Встроенный светодиод
+On for|Время свечения
+Off for|Время паузы
+Button (left)|Кнопка (левый контакт)
+Button (right) + 10 kΩ|Кнопка (правый контакт) + 10 кОм
+10 kΩ pull-down|Подтяжка к земле 10 кОм
+220 Ω → LED|220 Ом → светодиод
+Logic levels|Логические уровни
+Bounce|Дребезг
+Tip|Совет
+Hold|Удержание
+Toggle|Переключение
+Behaviour|Режим работы
+Push Button|Кнопка
+Pin 2 (input)|Вывод 2 (вход)
+Pot (left)|Потенциометр (слева)
+Pot (middle)|Потенциометр (движок)
+Pot (right)|Потенциометр (справа)
+Potentiometer|Потенциометр
+Resolution|Разрешение
+Read time|Время измерения
+Knob position|Положение ручки
+Pin ~9 (PWM)|Вывод ~9 (ШИМ)
+220 Ω → Red leg|220 Ом → красный канал
+220 Ω → Green leg|220 Ом → зелёный канал
+220 Ω → Blue leg|220 Ом → синий канал
+Common (longest leg)|Общий катод (длинная ножка)
+Forward voltage|Прямое напряжение
+Colours|Цвета
+PWM pins used|ШИМ-выводы
+Presets|Готовые цвета
+RGB LED|RGB-светодиод
+Pins ~9 ~10 ~11|Выводы ~9 ~10 ~11
+3 Resistors|Три резистора
+LDR (left leg)|LDR (левая ножка)
+LDR + 10 kΩ|LDR + 10 кОм
+In daylight|На свету
+In the dark|В темноте
+Divider resistor|Резистор делителя
+Response time|Время отклика
+Lamp distance|Расстояние до лампы
+Lamp switched on|Лампа включена
+Dark below|Темно при значении ниже
+Night Light|Ночник
+Light Sensor|Датчик света
+Lamp|Лампа
+Range|Диапазон
+Accuracy|Точность
+Beam angle|Угол обзора
+Frequency|Частота
+Distance Sensor|Датчик расстояния
+Piezo Buzzer|Пьезоизлучатель
+Buzzer|Пьезоизлучатель
+Tune|Мелодия
+Melody|Мелодия
+Scale|Гамма
+Twinkle|Звёздочка
+Ode to Joy|Ода к радости
+Note length|Длительность ноты
+Speaker volume|Громкость
+Type|Тип
+Band|Диапазон частот
+Motor|Мотор
+Transistor|Транзистор
+Base resistor|Резистор базы
+1 kΩ → Base|1 кОм → база
+Motor (−) → Collector|Мотор (−) → коллектор
+PWM on pin 6|ШИМ на выводе 6
+Top speed|Максимальная скорость
+Ramp step|Шаг разгона
+1 kΩ Resistor|Резистор 1 кОм
+Pin ~6 (PWM)|Вывод ~6 (ШИМ)
+Servo|Сервопривод
+Orange wire|Оранжевый провод
+Speed|Скорость
+Torque|Крутящий момент
+Signal|Сигнал
+From angle|Начальный угол
+To angle|Конечный угол
+Step delay|Задержка шага
+Pin 9 (signal)|Вывод 9 (сигнал)
+Sensor power|Питание датчика
+Parts|Детали
+Wires|Провода
+8 jumpers|8 перемычек
+Thresholds|Пороги
+Adjustable|Настраиваются
+Update rate|Частота обновления
+Next step|Следующий шаг
+Green beyond|Зелёный дальше
+Red within|Красный ближе
+Traffic Light|Светофор
+Pinout|Подключение
+How the code works|Как работает программа
+Specifications|Характеристики
+Overview|Обзор
+Example|Пример
+Lessons|Уроки
+Components|Компоненты
+Settings|Настройки
+Progress|Прогресс
+Home|Начало
+Help|Помощь
+Close|Закрыть
+Collapse panel|Свернуть панель
+Expand panel|Развернуть панель
+Click to change|Нажми, чтобы изменить
+Collapse code|Свернуть код
+Expand code|Развернуть код
+Stop sketch|Остановить программу
+Earlier lessons|Предыдущие уроки
+More lessons|Следующие уроки
+Collapse sidebar|Свернуть меню
+Expand sidebar|Развернуть меню
+Callout labels|Подписи деталей
+Cards and pointers around the 3D view|Подписи и указатели вокруг 3D-модели
+The faint grid under the board|Сетка под платой
+Turn a quarter every few seconds when idle|Поворачивать плату во время ожидания
+Let the buzzer play out loud|Включить звук пьезоизлучателя
+Reduce motion|Меньше анимации
+Near-instant transitions|Почти мгновенные переходы
+Reset progress|Сбросить прогресс лаборатории
+or drag it in the scene|или перемещай в 3D-сцене
+or drag around the knob|или вращай ручку в сцене
+Hold it down in the scene|Удерживай кнопку в сцене
+Zoom to it|Приблизить
+Run to see it|Запусти и посмотри
+Loading fonts|Загружаем шрифты
+Loading the 3D view|Загружаем 3D-сцену
+Building the board|Собираем плату
+Drawing the lessons|Рисуем уроки
+Something went wrong while starting. Try reloading the page.|Не удалось запустить лабораторию. Попробуй обновить страницу.
+The 3D board is drawn with WebGL, which this browser has turned off. Turn on hardware acceleration in its settings, or try another browser — the lessons and their code still work.|Для 3D-модели нужен WebGL. Включи аппаратное ускорение или попробуй другой браузер. Объяснения и примеры кода доступны и без 3D.
+3D view unavailable|3D-модель недоступна
+the Uno’s headers are grouped|расположены выводы Uno
+this circuit is wired|подключена схема
+Compiling sketch…|Подготавливаем программу…
+Done uploading.|Программа запущена.
+Stopped.|Остановлено.
+Ready|Готово
+Uploading|Подготовка
+Running|Работает
+Stop|Остановить
+Run|Запустить
+Copy|Копировать
+Copied|Скопировано
+Code|Код
+Serial monitor|Монитор порта
+Serial Monitor|Монитор порта
+Auto rotate|Автоповорот
+Auto-rotate|Автоповорот
+Grid|Сетка
+Sound|Звук
+Learn Arduino|Лаборатория Arduino
+Uploads sketches and powers the board from your computer.|Загружает программы и питает плату от компьютера.
+DC power jack|Разъём внешнего питания
+Run the board from a 7–12 V adapter or battery.|Питание от адаптера или батареи 7–12 В.
+Reset button|Кнопка сброса
+Restarts your sketch from the top.|Запускает программу сначала.
+The 8-bit microcontroller that runs your code at 16 MHz.|8-битный микроконтроллер: выполняет программу на частоте 16 МГц.
+ICSP header|Разъём ICSP
+Programs the ATmega328P directly, without the bootloader.|Программирование ATmega328P напрямую, без загрузчика.
+ICSP header (USB chip)|ICSP микросхемы USB
+Programs the ATmega16U2 USB interface.|Программирование USB-интерфейса ATmega16U2.
+47 µF capacitor|Конденсатор 47 мкФ
+Smooths the supply voltage.|Сглаживает напряжение питания.
+16 MHz crystal|Кварцевый резонатор 16 МГц
+Keeps time for the USB interface chip.|Задаёт частоту микросхемы USB-интерфейса.
+Turns USB into serial so your computer can talk to the board.|Преобразует USB в последовательный интерфейс для связи с компьютером.
+Resettable fuse|Самовосстанавливающийся предохранитель
+Protects your USB port from short circuits.|Защищает USB-порт от короткого замыкания.
+5 V regulator|Стабилизатор 5 В
+Steps the jack voltage down to a steady 5 V.|Преобразует внешнее питание в стабильные 5 В.
+LMV358 op-amp|Операционный усилитель LMV358
+Switches between USB and jack power automatically.|Автоматическое переключение USB и внешнего питания.
+Protection diode|Защитный диод
+Blocks reverse voltage from the power jack.|Защита от обратной полярности внешнего питания.
+A tiny switch used by the power circuitry.|Миниатюрный ключ цепи питания.
+16 MHz resonator|Резонатор 16 МГц
+Clocks the ATmega328P.|Задаёт тактовую частоту ATmega328P.
+Ferrite bead|Ферритовый фильтр
+Filters noise on the USB supply.|Фильтрует помехи питания USB.
+Wired to pin 13 — blinks with LED_BUILTIN.|Подключён к выводу 13, управляется как LED_BUILTIN.
+Flickers when the board sends serial data.|Мигает при передаче данных платой.
+Flickers when the board receives serial data.|Мигает при приёме данных платой.
+Lit whenever the board has power.|Горит, пока на плату подано питание.
+A surface-mount resistor.|Резистор поверхностного монтажа.
+A surface-mount decoupling capacitor.|Развязывающий конденсатор поверхностного монтажа.
+Resistor network|Резисторная сборка
+Four resistors in one package.|Четыре резистора в одном корпусе.
+Digital pins 8–13|Цифровые выводы 8–13
+Plus GND, AREF and the I²C pins SDA/SCL.|Также GND, AREF и выводы I²C SDA/SCL.
+Digital pins 0–7|Цифровые выводы 0–7
+Pins 0 and 1 double as serial RX/TX.|Выводы 0 и 1 также служат RX/TX последовательного порта.
+5 V, 3.3 V, GND and VIN for your circuits.|Питание схем: 5 В, 3,3 В, GND и VIN.
+Analog pins A0–A5|Аналоговые выводы A0–A5
+Read voltages between 0 and 5 V.|Измерение напряжения от 0 до 5 В.
+Hover the parts to learn what they do.|Наведи курсор на деталь, чтобы узнать её назначение.
+Holes in each short row of five are connected underneath.|Пять отверстий каждого короткого ряда соединены внутри платы.
+Lights when current flows from the long leg (anode) to the short leg.|Светится, когда ток идёт от длинной ножки (анода) к короткой (катоду).
+220 Ω resistor|Резистор 220 Ом
+Limits the current flowing through the circuit.|Ограничивает ток цепи.
+Jumper wire|Соединительный провод
+Carries a signal or power between two points.|Передаёт сигнал или питание между двумя точками.
+HC-SR04 ultrasonic sensor|Ультразвуковой датчик HC-SR04
+Measures distance by timing a 40 kHz sound echo.|Измеряет расстояние по времени возвращения ультразвукового эха.
+Spins faster as the average voltage across it rises.|Чем выше среднее напряжение, тем быстрее вращается.
+TIP120 transistor|Транзистор TIP120
+A small base current switches the motor’s much larger current.|Небольшой ток базы управляет значительно большим током мотора.
+Traffic light module|Модуль светофора
+Three LEDs with built-in resistors: red, yellow and green.|Красный, жёлтый и зелёный светодиоды со встроенными резисторами.
+Something for the sensor to measure.|Препятствие, до которого измеряется расстояние.
+1 kΩ resistor|Резистор 1 кОм
+10 kΩ resistor|Резистор 10 кОм
+Its flat bumper sends back a clear echo.|Плоский бампер хорошо отражает эхо.
+Cardboard box|Картонная коробка
+Flat and hard: a strong, steady echo.|Твёрдая плоская поверхность: сильное стабильное эхо.
+Round surfaces scatter the sound, so readings wobble.|Круглая поверхность рассеивает звук, поэтому показания колеблются.
+A big flat surface: the cleanest echo of all.|Большая плоская поверхность даёт самое чёткое эхо.
+Push button|Кнопка
+Press and hold it: the two sides connect while it is down.|При нажатии контакты кнопки соединяются.
+10 kΩ potentiometer|Потенциометр 10 кОм
+Drag the knob to turn it: the middle leg slides from 0 V to 5 V.|Вращай ручку: напряжение на средней ножке меняется от 0 до 5 В.
+Piezo buzzer|Пьезоизлучатель
+A disc that flexes when the pin toggles — that is the sound you hear.|Диск изгибается при переключении сигнала и создаёт звук.
+A motor with gears and a sensor inside: you tell it an angle, it holds it.|Мотор с редуктором и датчиком положения: удерживает заданный угол.
+Three LEDs — red, green and blue — under one lens, sharing the long ground leg.|Красный, зелёный и синий светодиоды под одной линзой с общим катодом.
+Light sensor (LDR)|Фоторезистор LDR
+Its resistance drops as more light falls on it: about 1 MΩ in the dark, 10 kΩ in daylight.|Сопротивление уменьшается на свету: около 1 МОм в темноте и 10 кОм при дневном освещении.
+Shines on the light sensor. Drag it closer or further away.|Освещает датчик. Перемещай лампу ближе или дальше.
+Desk Lamp|Настольная лампа
+Read every|Период измерения
+DC Motor|Мотор постоянного тока
+Brown wire|Коричневый провод
+Red wire|Красный провод
+1.8 kg·cm at 4.8 V|1,8 кг·см при 4,8 В
+Your Logic|Логика программы
+Main|Главное меню
+Explore|Исследуй
+Understand|Разбирайся
+Build|Создавай
+Loading|Загрузка
+Simulator|Симулятор
+Run simulation|Запустить симуляцию
+Designed by|Автор
+Basics|Основы
+Try it yourself|Попробуй сам
+Copy code|Копировать код
+Run sketch|Запустить программу
+Resize serial monitor|Изменить высоту монитора порта
+Lesson information|Объяснение урока
+Part inspector|Настройки детали
+Minimap: click or drag to move the view|Миникарта: нажми или перетащи для перемещения
+3D view|3D-сцена
+Interactive 3D view. Drag or use WASD to pan, Q and E to rotate, scroll to zoom.|3D-сцена: перетаскивай или используй WASD для перемещения, Q/E для поворота, колесо для приближения.
+Drag or WASD to pan · Q / E to rotate · Scroll to zoom|Перемещение: мышь / WASD · Поворот: Q / E · Приближение: колесо
+Turn left|Повернуть влево
+Turn right|Повернуть вправо
+Zoom out|Отдалить
+Zoom in|Приблизить
+Reset view|Сбросить вид
+Stopped|Остановлено
+Space|Пробел
+interactive 3D lessons for beginners|интерактивные 3D-уроки для начинающих
+ done| пройдено
+ in view| в сцене
+ · dark, night light ON| · темно, ночник включён
+ · bright, night light off| · светло, ночник выключен
+YELLOW · slow down|ЖЁЛТЫЙ · медленнее
+GREEN · all clear|ЗЕЛЁНЫЙ · свободно
+JAN|ЯНВ
+FEB|ФЕВ
+MAR|МАР
+APR|АПР
+MAY|МАЙ
+JUN|ИЮН
+JUL|ИЮЛ
+AUG|АВГ
+SEP|СЕН
+OCT|ОКТ
+NOV|НОЯ
+DEC|ДЕК
+RED · stop|КРАСНЫЙ · стоп
+Lesson|Урок
+How|Как
+Custom|Свой цвет

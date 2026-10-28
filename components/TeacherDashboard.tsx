@@ -8,7 +8,7 @@ import { Classroom, User, StudentProgress, Task } from '../types';
 import { createClassroom, getClassStudents, createTaskForClass, updateClassroom, deleteClassroom } from '../services/mockBackend';
 import { fbResetStudentPassword, LOCAL_SERVER, callServer } from '../services/firebase';
 import { validateMap } from '../functions/domain.mjs';
-import { COURSES } from '../constants';
+import { COURSES } from '../curriculum/courseCatalog';
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts';
 import { Users, Activity, BrainCircuit, Key, Copy, PlusCircle, RefreshCw, Layers, ChevronRight, Hash, Edit3, Save, Flag, PlayCircle, Ban, Menu, X, ArrowLeft, LogOut, BookOpen, EyeOff, Eye, Flame, Trophy, ChevronDown, ChevronUp, CheckCircle, ArrowUpDown, Target, Trash2, ExternalLink } from 'lucide-react';
 import { playSound } from '../utils/sound';
@@ -47,6 +47,29 @@ const TeacherDashboard: React.FC<TeacherDashboardProps> = ({
 
   // Student detail view
   const [selectedStudent, setSelectedStudent] = useState<StudentProgress | null>(null);
+
+  const [coinAmount,setCoinAmount]=useState('50');
+  const [coinReason,setCoinReason]=useState('');
+  const [coinPending,setCoinPending]=useState(false);
+  const coinRequest=React.useRef<{signature:string;id:string}|null>(null);
+  useEffect(()=>{setCoinAmount('50');setCoinReason('');coinRequest.current=null;},[selectedStudent?.studentId]);
+  const adjustCoins=async(action:'award'|'fine')=>{
+    if(!selectedStudent||coinPending)return;
+    const amount=Number(coinAmount);
+    if(!Number.isInteger(amount)||amount<1||amount>100000){addToast('Введите целое число от 1 до 100 000','error');return;}
+    const studentId=selectedStudent.studentId,reason=coinReason.trim();
+    const signature=JSON.stringify([studentId,action,amount,reason]);
+    if(coinRequest.current?.signature!==signature)coinRequest.current={signature,id:crypto.randomUUID()};
+    setCoinPending(true);
+    try{
+      const updated=await callServer<User>('adjustStudentCoins',{studentId,action,amount,reason,requestId:coinRequest.current.id});
+      setStudents(list=>list.map(s=>s.studentId===studentId?{...s,currency:updated.currency}:s));
+      setSelectedStudent(s=>s?.studentId===studentId?{...s,currency:updated.currency}:s);
+      coinRequest.current=null;setCoinReason('');
+      addToast(`${action==='award'?'Начислено':'Списано'} ${amount} монет. Баланс: ${updated.currency}`,'success');
+    }catch(e){addToast(e instanceof Error?e.message:'Не удалось изменить баланс','error');}
+    finally{setCoinPending(false);}
+  };
 
   // Sorting
   const [sortKey, setSortKey] = useState<SortKey>('totalXP');
@@ -291,7 +314,7 @@ const TeacherDashboard: React.FC<TeacherDashboardProps> = ({
                 </h2>
                 {/* On Desktop sidebar, no close button needed usually, but for consistency */}
                 {!isMobile && (
-                    <div className="text-[10px] text-gray-600 font-mono">SEC_LIST_V1</div>
+                    <div className="text-xs text-gray-600 font-mono">SEC_LIST_V1</div>
                 )}
           </div>
 
@@ -321,7 +344,7 @@ const TeacherDashboard: React.FC<TeacherDashboardProps> = ({
                             <div className="flex-1">
                                 <div className="font-bold text-sm break-words">{cls.name}</div>
                                 {cls.folder && <div className="text-xs text-cyan-300 break-words">{cls.folder}</div>}
-                                <div className="text-[10px] font-mono opacity-50">CODE: {cls.inviteCode}</div>
+                                <div className="text-xs font-mono opacity-50">CODE: {cls.inviteCode}</div>
                             </div>
                             <ChevronRight size={16} className={activeClassId === cls.id ? 'text-cyber-neonBlue' : 'text-gray-600'} />
                         </GameButton>
@@ -542,12 +565,12 @@ const TeacherDashboard: React.FC<TeacherDashboardProps> = ({
                         <div className="grid grid-cols-2 md:grid-cols-4 gap-3 md:gap-4 mb-8">
                             <div className="bg-cyber-panel border border-cyber-neonBlue/30 p-4 relative overflow-hidden group hover:border-cyber-neonBlue transition-colors rounded">
                                 <div className="absolute top-0 right-0 p-2 opacity-10 group-hover:opacity-20 transition-opacity"><Users size={48} /></div>
-                                <h3 className="text-gray-400 font-mono text-[10px] mb-1">СТУДЕНТЫ</h3>
+                                <h3 className="text-gray-400 font-mono text-xs mb-1">СТУДЕНТЫ</h3>
                                 <div className="text-2xl md:text-3xl font-bold text-white">{students.length}</div>
                             </div>
                             <div className="bg-cyber-panel border border-cyber-neonPink/30 p-4 relative overflow-hidden group hover:border-cyber-neonPink transition-colors rounded">
                                 <div className="absolute top-0 right-0 p-2 opacity-10 group-hover:opacity-20 transition-opacity"><Activity size={48} /></div>
-                                <h3 className="text-gray-400 font-mono text-[10px] mb-1">СРЕДНИЙ %</h3>
+                                <h3 className="text-gray-400 font-mono text-xs mb-1">СРЕДНИЙ %</h3>
                                 <div className="text-2xl md:text-3xl font-bold text-white">{avgCompletion}%</div>
                                 <div className="w-full h-1 bg-gray-800 mt-3 rounded-full overflow-hidden">
                                     <div className="h-full bg-cyber-neonPink transition-all" style={{ width: `${avgCompletion}%` }}></div>
@@ -555,12 +578,12 @@ const TeacherDashboard: React.FC<TeacherDashboardProps> = ({
                             </div>
                             <div className="bg-cyber-panel border border-cyber-neonYellow/30 p-4 relative overflow-hidden group hover:border-cyber-neonYellow transition-colors rounded">
                                 <div className="absolute top-0 right-0 p-2 opacity-10 group-hover:opacity-20 transition-opacity"><Target size={48} /></div>
-                                <h3 className="text-gray-400 font-mono text-[10px] mb-1">ЗАДАЧ РЕШЕНО</h3>
+                                <h3 className="text-gray-400 font-mono text-xs mb-1">ЗАДАЧ РЕШЕНО</h3>
                                 <div className="text-2xl md:text-3xl font-bold text-white">{totalTasksDone}</div>
                             </div>
                             <div className="bg-cyber-panel border border-cyber-neonGreen/30 p-4 relative overflow-hidden group hover:border-cyber-neonGreen transition-colors rounded">
                                 <div className="absolute top-0 right-0 p-2 opacity-10 group-hover:opacity-20 transition-opacity"><Trophy size={48} /></div>
-                                <h3 className="text-gray-400 font-mono text-[10px] mb-1">ЛУЧШИЙ XP</h3>
+                                <h3 className="text-gray-400 font-mono text-xs mb-1">ЛУЧШИЙ XP</h3>
                                 <div className="text-2xl md:text-3xl font-bold text-white">{students.length > 0 ? Math.max(...students.map(s => s.totalXP)) : 0}</div>
                             </div>
                         </div>
@@ -589,7 +612,7 @@ const TeacherDashboard: React.FC<TeacherDashboardProps> = ({
                                                 itemStyle={{ color: '#00f3ff' }}
                                                 cursor={{fill: 'rgba(0, 243, 255, 0.1)'}}
                                             />
-                                            <Bar dataKey="totalXP" fill="#00f3ff" radius={[4, 4, 0, 0]} name="XP" />
+                                            <Bar dataKey="totalXP" fill="#00f3ff" barSize={56} maxBarSize={56} radius={[4, 4, 0, 0]} name="XP" />
                                         </BarChart>
                                     </ResponsiveContainer>
                                 </div>
@@ -606,7 +629,7 @@ const TeacherDashboard: React.FC<TeacherDashboardProps> = ({
                                 </div>
                                 <div className="overflow-x-auto">
                                     <table className="w-full text-left text-sm font-mono text-gray-400">
-                                        <thead className="bg-black text-cyber-neonBlue uppercase text-[10px]">
+                                        <thead className="bg-black text-cyber-neonBlue uppercase text-xs">
                                             <tr>
                                                 {([
                                                     ['name', 'Имя'],
@@ -672,7 +695,7 @@ const TeacherDashboard: React.FC<TeacherDashboardProps> = ({
                                                             <div className="w-16 h-1.5 bg-gray-800 rounded-full overflow-hidden">
                                                                 <div className="h-full bg-cyber-neonGreen transition-all" style={{ width: `${pct}%` }}></div>
                                                             </div>
-                                                            <span className="text-[10px] text-gray-500">{pct}%</span>
+                                                            <span className="text-xs text-gray-500">{pct}%</span>
                                                         </div>
                                                     </td>
                                                     {LOCAL_SERVER && <td className="p-2"><button type="button" disabled={classActionPending} onClick={e=>{e.stopPropagation();void removeStudent(student);}} className="student-remove-icon" title="Убрать из класса" aria-label={`Удалить ${student.name} из класса`}><Trash2 size={17}/></button></td>}
@@ -694,7 +717,7 @@ const TeacherDashboard: React.FC<TeacherDashboardProps> = ({
                                     <BookOpen size={16} className="text-cyber-neonPink" />
                                     ДОСТУП К КУРСАМ
                                 </h3>
-                                <span className="text-gray-600 text-[10px] font-mono">ВИДИМОСТЬ ДЛЯ УЧЕНИКОВ</span>
+                                <span className="text-gray-600 text-xs font-mono">ВИДИМОСТЬ ДЛЯ УЧЕНИКОВ</span>
                             </div>
                             <div className="divide-y divide-gray-800/50">
                                 {COURSES.map(course => {
@@ -710,7 +733,7 @@ const TeacherDashboard: React.FC<TeacherDashboardProps> = ({
                                                     <div className={`font-bold text-sm leading-tight break-words ${isHidden ? 'text-gray-600 line-through' : 'text-white'}`}>
                                                         {course.title}
                                                     </div>
-                                                    <div className="text-[10px] text-gray-600 font-mono break-words">
+                                                    <div className="text-xs text-gray-600 font-mono break-words">
                                                         {course.totalModules} модулей • {course.difficulty}
                                                     </div>
                                                 </div>
@@ -769,27 +792,35 @@ const TeacherDashboard: React.FC<TeacherDashboardProps> = ({
                                             <span className="text-cyber-neonYellow font-mono text-sm">УРОВЕНЬ {selectedStudent.level}</span>
                                         </div>
 
+                                        <section className="teacher-coins" aria-label="Монеты ученика">
+                                            <h4>Монеты ученика <strong aria-label="Баланс монет">{selectedStudent.currency??0}</strong></h4>
+                                            <label>Сумма монет<input type="number" min="1" max="100000" step="1" inputMode="numeric" value={coinAmount} disabled={coinPending} onChange={e=>setCoinAmount(e.target.value)}/></label>
+                                            <label>Причина (необязательно)<input maxLength={200} value={coinReason} disabled={coinPending} placeholder="Например, помощь однокласснику" onChange={e=>setCoinReason(e.target.value)}/></label>
+                                            <div><GameButton disabled={coinPending} onClick={()=>void adjustCoins('award')}>Начислить монеты</GameButton><GameButton disabled={coinPending} onClick={()=>void adjustCoins('fine')}>Штрафовать монетами</GameButton></div>
+                                            <p role="status">{coinPending?'Сохраняем баланс…':'Штраф не может превышать баланс ученика.'}</p>
+                                        </section>
+
                                         {/* Stats */}
                                         <div className="grid grid-cols-2 sm:grid-cols-5 gap-2 mb-6">
                                             <div className="bg-gray-900 border border-gray-800 rounded p-2 text-center">
                                                 <div className="text-cyber-neonBlue font-mono font-bold">{selectedStudent.totalXP}</div>
-                                                <div className="text-gray-500 text-[9px] uppercase">XP</div>
+                                                <div className="text-gray-500 text-xs uppercase">XP</div>
                                             </div>
                                             <div className="bg-gray-900 border border-gray-800 rounded p-2 text-center">
                                                 <div className="text-cyber-neonGreen font-mono font-bold">{selectedStudent.tasksCompleted}</div>
-                                                <div className="text-gray-500 text-[9px] uppercase">Задач</div>
+                                                <div className="text-gray-500 text-xs uppercase">Задач</div>
                                             </div>
                                             <div className="bg-gray-900 border border-red-500/30 rounded p-2 text-center">
                                                 <div className="text-red-400 font-mono font-bold">{selectedStudent.totalErrors}</div>
-                                                <div className="text-gray-500 text-[9px] uppercase">Ошибки</div>
+                                                <div className="text-gray-500 text-xs uppercase">Ошибки</div>
                                             </div>
                                             <div className="bg-gray-900 border border-orange-500/30 rounded p-2 text-center">
                                                 <div className="text-orange-400 font-mono font-bold">{selectedStudent.streak}</div>
-                                                <div className="text-gray-500 text-[9px] uppercase">Streak</div>
+                                                <div className="text-gray-500 text-xs uppercase">Streak</div>
                                             </div>
                                             <div className="bg-gray-900 border border-gray-800 rounded p-2 text-center overflow-hidden">
                                                 <div className="text-white font-mono font-bold text-xs truncate">{selectedStudent.lastActive}</div>
-                                                <div className="text-gray-500 text-[9px] uppercase">Был</div>
+                                                <div className="text-gray-500 text-xs uppercase">Был</div>
                                             </div>
                                         </div>
 
@@ -815,13 +846,13 @@ const TeacherDashboard: React.FC<TeacherDashboardProps> = ({
                                                     <div className={`text-lg font-bold font-mono ${selectedStudent.totalTabSwitches > 20 ? 'text-red-500' : selectedStudent.totalTabSwitches > 10 ? 'text-orange-500' : 'text-gray-400'}`}>
                                                         {selectedStudent.totalTabSwitches}
                                                     </div>
-                                                    <div className="text-[9px] text-gray-500 uppercase">Переключений вкладки</div>
+                                                    <div className="text-xs text-gray-500 uppercase">Переключений вкладки</div>
                                                 </div>
                                                 <div className="text-center">
                                                     <div className="text-lg font-bold font-mono text-gray-400">
                                                         {selectedStudent.avgErrorsPerTask}
                                                     </div>
-                                                    <div className="text-[9px] text-gray-500 uppercase">Ср. ошибок</div>
+                                                    <div className="text-xs text-gray-500 uppercase">Ср. ошибок</div>
                                                 </div>
                                             </div>
                                         </div>
@@ -832,7 +863,7 @@ const TeacherDashboard: React.FC<TeacherDashboardProps> = ({
                                                 <h4 className="text-xs font-bold text-gray-400 uppercase tracking-widest mb-3">Последние попытки</h4>
                                                 <div className="space-y-2 max-h-40 overflow-y-auto custom-scrollbar">
                                                     {selectedStudent.recentAttempts.map((attempt, idx) => (
-                                                        <div key={idx} className="bg-gray-900/50 border border-gray-800 rounded p-2 text-[10px]">
+                                                        <div key={idx} className="bg-gray-900/50 border border-gray-800 rounded p-2 text-xs">
                                                             <div className="flex items-center justify-between mb-1">
                                                                 <span className="text-gray-400 font-mono">{attempt.taskId}</span>
                                                                 <span className={`font-bold ${attempt.success ? 'text-green-500' : 'text-red-500'}`}>
@@ -860,7 +891,7 @@ const TeacherDashboard: React.FC<TeacherDashboardProps> = ({
                                                         <div key={cp.courseId}>
                                                             <div className="flex items-center justify-between mb-1">
                                                                 <span className="text-xs text-gray-300">{cp.title}</span>
-                                                                <span className="text-[10px] font-mono text-gray-500">{cp.completed}/{cp.total} ({pct}%)</span>
+                                                                <span className="text-xs font-mono text-gray-500">{cp.completed}/{cp.total} ({pct}%)</span>
                                                             </div>
                                                             <div className="w-full h-1.5 bg-gray-800 rounded-full overflow-hidden">
                                                                 <div className="h-full rounded-full transition-all" style={{ width: `${pct}%`, backgroundColor: cp.color }}></div>
@@ -943,19 +974,19 @@ const TeacherDashboard: React.FC<TeacherDashboardProps> = ({
                                     <div className="grid grid-cols-3 md:grid-cols-1 gap-2">
                                         <GameButton size="compact"
                                             onClick={() => setEditorMode('wall')}
-                                            className={`p-2 md:p-3 border rounded flex flex-col md:flex-row items-center justify-center md:justify-start gap-2 text-[10px] md:text-sm font-bold uppercase transition-all ${editorMode === 'wall' ? 'border-red-500 bg-red-500/10 text-red-500' : 'border-gray-700 text-gray-400 hover:border-gray-500'}`}
+                                            className={`p-2 md:p-3 border rounded flex flex-col md:flex-row items-center justify-center md:justify-start gap-2 text-xs md:text-sm font-bold uppercase transition-all ${editorMode === 'wall' ? 'border-red-500 bg-red-500/10 text-red-500' : 'border-gray-700 text-gray-400 hover:border-gray-500'}`}
                                         >
                                             <Ban size={16} /> Стена
                                         </GameButton>
                                         <GameButton size="compact"
                                             onClick={() => setEditorMode('start')}
-                                            className={`p-2 md:p-3 border rounded flex flex-col md:flex-row items-center justify-center md:justify-start gap-2 text-[10px] md:text-sm font-bold uppercase transition-all ${editorMode === 'start' ? 'border-cyber-neonBlue bg-cyber-neonBlue/10 text-cyber-neonBlue' : 'border-gray-700 text-gray-400 hover:border-gray-500'}`}
+                                            className={`p-2 md:p-3 border rounded flex flex-col md:flex-row items-center justify-center md:justify-start gap-2 text-xs md:text-sm font-bold uppercase transition-all ${editorMode === 'start' ? 'border-cyber-neonBlue bg-cyber-neonBlue/10 text-cyber-neonBlue' : 'border-gray-700 text-gray-400 hover:border-gray-500'}`}
                                         >
                                             <PlayCircle size={16} /> Старт
                                         </GameButton>
                                         <GameButton size="compact"
                                             onClick={() => setEditorMode('end')}
-                                            className={`p-2 md:p-3 border rounded flex flex-col md:flex-row items-center justify-center md:justify-start gap-2 text-[10px] md:text-sm font-bold uppercase transition-all ${editorMode === 'end' ? 'border-cyber-neonGreen bg-cyber-neonGreen/10 text-cyber-neonGreen' : 'border-gray-700 text-gray-400 hover:border-gray-500'}`}
+                                            className={`p-2 md:p-3 border rounded flex flex-col md:flex-row items-center justify-center md:justify-start gap-2 text-xs md:text-sm font-bold uppercase transition-all ${editorMode === 'end' ? 'border-cyber-neonGreen bg-cyber-neonGreen/10 text-cyber-neonGreen' : 'border-gray-700 text-gray-400 hover:border-gray-500'}`}
                                         >
                                             <Flag size={16} /> Финиш
                                         </GameButton>
@@ -998,7 +1029,7 @@ const TeacherDashboard: React.FC<TeacherDashboardProps> = ({
                                             >
                                                 {isStart && <div className="w-2 md:w-3 h-2 md:h-3 bg-cyber-neonBlue rounded-full animate-pulse shadow-[0_0_10px_#00f3ff]"></div>}
                                                 {isEnd && <div className="w-2 md:w-3 h-2 md:h-3 bg-cyber-neonGreen rotate-45 shadow-[0_0_10px_#00ff41]"></div>}
-                                                {isWall && <div className="text-red-500 font-mono text-[10px] md:text-xs">X</div>}
+                                                {isWall && <div className="text-red-500 font-mono text-xs md:text-xs">X</div>}
                                             </div>
                                         )
                                     })}

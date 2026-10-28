@@ -1,9 +1,9 @@
-import {GameButton} from '../GameUI';
+import {GameButton, WorkshopHeader, WorkshopBadge} from '../GameUI';
 import React, { useState, useEffect } from 'react';
 import { Task } from '../../types';
 import {getTreeScenario, type PositionedNode as TreeNode} from '../../services/treeScenario';
 import { playSound } from '../../utils/sound';
-import { GitBranch, CheckCircle, RotateCcw, Zap, Compass } from 'lucide-react';
+import { GitBranch, CheckCircle, Zap, Compass } from 'lucide-react';
 
 interface BinaryTreeGameProps {
   task: Task;
@@ -82,37 +82,10 @@ export const BinaryTreeGame: React.FC<BinaryTreeGameProps> = ({ task, onComplete
   };
 
   return (
-    <div className="ui-trainer-family workshop-legacy flex flex-col h-full bg-gray-950 p-4 md:p-6 overflow-y-auto">
+    <div className="ui-trainer-family workshop-legacy archive-workshop flex flex-col h-full bg-gray-950 p-4 md:p-6 overflow-y-auto">
       {/* Header */}
-      <div className="workshop-banner flex flex-wrap items-center justify-between gap-4 p-4 bg-black/70 border border-cyber-neonBlue/30 rounded-xl mb-4">
-        <div className="flex items-center gap-3">
-          <div className="p-2 rounded bg-cyber-neonGreen/20 text-cyber-neonGreen border border-cyber-neonGreen/40">
-            <GitBranch size={22} />
-          </div>
-          <div>
-            <div className="text-[10px] font-mono text-gray-400 uppercase tracking-widest">ДВОИЧНОЕ ДЕРЕВО ПОИСКА (BST)</div>
-            <h2 className="text-base md:text-lg font-bold text-white">Поиск со скоростью молнии O(log N)</h2>
-          </div>
-        </div>
-
-        <div className="flex items-center gap-4">
-          <div className="bg-gray-900 border border-cyber-neonYellow/40 px-3 py-1.5 rounded-lg text-center font-mono">
-            <div className="text-[9px] text-gray-400">ЦЕЛЬ ПОИСКА</div>
-            <div className="text-lg font-bold text-cyber-neonYellow">{target}</div>
-          </div>
-          <div className="bg-gray-900 border border-gray-800 px-3 py-1.5 rounded-lg text-center font-mono">
-            <div className="text-[9px] text-gray-400">ШАГОВ (ОПЕРАЦИЙ)</div>
-            <div className="text-lg font-bold text-cyber-neonGreen">{steps}</div>
-          </div>
-          <GameButton size="compact"
-            onClick={resetGame}
-            className="p-2.5 bg-gray-900 hover:bg-gray-800 text-gray-300 border border-gray-800 rounded-lg transition-colors"
-            title="Сброс"
-          >
-            <RotateCcw size={16} />
-          </GameButton>
-        </div>
-      </div>
+      <WorkshopHeader icon={<GitBranch size={26}/>} eyebrow="Двоичное дерево поиска (BST)" title="Архив поиска" description={task.lesson?.goal || `Найди число ${target} в дереве.`} onReset={resetGame}
+        badges={<><WorkshopBadge label="Цель поиска">{target}</WorkshopBadge><WorkshopBadge label="Шагов (операций)">{steps}</WorkshopBadge></>}/>
 
       {/* Guide / Hint Box */}
       <div className="bg-gray-900/80 border border-cyber-neonBlue/30 rounded-xl p-3.5 mb-4 text-xs font-mono text-gray-200 flex items-center justify-between">
@@ -126,8 +99,8 @@ export const BinaryTreeGame: React.FC<BinaryTreeGameProps> = ({ task, onComplete
       </div>
 
       {/* Interactive SVG Tree View */}
-      <div className="flex-1 bg-black border border-gray-800 rounded-xl p-4 flex items-center justify-center min-h-[300px] relative overflow-hidden">
-        <svg viewBox="0 0 500 280" className="w-full max-w-xl h-auto select-none">
+      <div className="archive-scene flex-1 border rounded-xl p-4 flex items-center justify-center relative">
+        <svg viewBox={`0 0 500 ${Math.max(280,...nodes.map(n=>n.y+40))}`} className="w-full max-w-xl h-auto select-none" role="img" aria-label={`Дерево поиска. Текущий узел ${currentNode.val}. Цель ${target}.`}>
           {nodes.flatMap(node => [node.left,node.right].filter(Boolean).map(child => <line key={`${node.val}-${child!.val}`} x1={node.x} y1={node.y} x2={child!.x} y2={child!.y} stroke={visitedPath.includes(child!.val)?'#00ff41':'#374151'} strokeWidth="3"/>))}
           {nodes.map(node => {
             const isCurrent = currentNode.val === node.val;
@@ -135,16 +108,10 @@ export const BinaryTreeGame: React.FC<BinaryTreeGameProps> = ({ task, onComplete
             const isTargetNode = node.val === target;
 
             return (
-              <g key={node.val} className="transition-all duration-300">
-                <circle
-                  cx={node.x}
-                  cy={node.y}
-                  r={isCurrent ? 24 : 20}
-                  fill={isCurrent ? '#fcee0a' : isVisited ? '#00ff41' : '#111827'}
-                  stroke={isTargetNode && completed ? '#00ff41' : isCurrent ? '#ffffff' : isVisited ? '#00ff41' : '#4b5563'}
-                  strokeWidth={isCurrent ? '3' : '2'}
-                  filter={isCurrent ? 'drop-shadow(0px 0px 8px #fcee0a)' : ''}
-                />
+              <g key={node.val} data-current={isCurrent} data-visited={isVisited}>
+                <rect x={node.x-29} y={node.y-30} width={58} height={63} rx={6} fill="#0b192a" stroke={isTargetNode && completed ? '#87efb2' : isCurrent ? '#f3d26c' : isVisited ? '#7eece0' : '#415a70'} strokeWidth={isCurrent ? 3 : 1} />
+                <image href="/art/cyber-city/archive-node.png" x={node.x-28} y={node.y-29} width={56} height={56} />
+                <rect x={node.x-16} y={node.y-11} width={32} height={22} rx={2} fill={isCurrent ? '#f3d26c' : isVisited ? '#7eece0' : '#071321'} />
                 <text
                   x={node.x}
                   y={node.y + 5}
@@ -195,16 +162,11 @@ export const BinaryTreeGame: React.FC<BinaryTreeGameProps> = ({ task, onComplete
             <div>
               <div className="font-bold text-sm text-cyber-neonGreen uppercase">ПОИСК УСПЕШНО ЗАВЕРШЕН!</div>
               <div className="text-xs text-gray-300">
-                Благодаря дереву поиска сложность составила O(log₂ 7) ≈ <span className="font-bold text-white">{steps} шага</span> вместо полного сканирования!
+                Найдено число {target}. Выполнено переходов: <span className="font-bold text-white">{steps}</span>.
               </div>
             </div>
           </div>
-          <GameButton size="compact"
-            onClick={onComplete}
-            className="px-5 py-2 bg-cyber-neonGreen text-black font-bold uppercase rounded-lg text-xs hover:bg-white transition-colors"
-          >
-            ПРИНЯТЬ НАГРАДУ (+{task.xpReward} XP)
-          </GameButton>
+          <p role="status" className="text-sm text-emerald-200">Результат поиска получен</p>
         </div>
       )}
     </div>

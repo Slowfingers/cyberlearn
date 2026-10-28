@@ -1,8 +1,8 @@
-import {GameButton} from '../GameUI';
+import {GameButton, WorkshopHeader, WorkshopBadge} from '../GameUI';
 import React, { useState, useRef, useEffect } from 'react';
 import { Task } from '../../types';
 import { playSound } from '../../utils/sound';
-import { Zap, Lightbulb, CheckCircle2, RotateCcw, Sparkles, BookOpen, X, Star, HelpCircle, ArrowRight } from 'lucide-react';
+import { Zap, Lightbulb, CheckCircle2, Sparkles, BookOpen, X, Star, HelpCircle, ArrowRight } from 'lucide-react';
 
 interface GateChallenge {
   id: 'and' | 'or' | 'xor' | 'nand';
@@ -59,7 +59,7 @@ export const resolveCircuitGates = (task: Task): GateChallenge[] => {
   const ids = cfg?.gates?.length
     ? cfg.gates.map(String)
     : (cfg?.gate ?? cfg?.targetGate) != null
-      ? [String(cfg.gate ?? cfg.targetGate)]
+      ? [String(cfg?.gate ?? cfg?.targetGate)]
       : [];
   const found = ids
     .map(g => CHALLENGES.find(c => c.id === g.toLowerCase()))
@@ -75,9 +75,18 @@ export const resolveCircuitGates = (task: Task): GateChallenge[] => {
   }));
 };
 
+export const resolveCircuitMission = (task: Task): 'target' | 'single' | 'explore' | 'predict' =>
+  task.circuitConfig?.mission ?? 'target';
+
+const PAIR_KEY = (a: boolean, b: boolean) => `${a ? 1 : 0}${b ? 1 : 0}`;
+const PREDICT_PAIRS: [boolean, boolean][] = [[false, false], [false, true], [true, false], [true, true]];
+
 export const CircuitBuilderGame: React.FC<{ task: Task; onComplete: () => void }> = ({ task, onComplete }) => {
   const challenges = resolveCircuitGates(task);
+  const mission = resolveCircuitMission(task);
   const transition = useRef(false);
+  const finished = useRef(false);
+  const [locked, setLocked] = useState(false);
   const timer = useRef<ReturnType<typeof setTimeout> | null>(null);
   useEffect(() => () => {if(timer.current) clearTimeout(timer.current);}, []);
   const [error,setError]=useState('');
@@ -87,6 +96,10 @@ export const CircuitBuilderGame: React.FC<{ task: Task; onComplete: () => void }
   const [showGuide, setShowGuide] = useState(false);
   const [completed, setCompleted] = useState(false);
   const [stars, setStars] = useState(0);
+  // explore: посещённые строки таблицы; predict: текущая строка и раскрыт ли выход
+  const [visited, setVisited] = useState<Set<string>>(new Set([PAIR_KEY(false, false)]));
+  const [predictIdx, setPredictIdx] = useState(0);
+  const [predictRevealed, setPredictRevealed] = useState(false);
 
   const currentChallenge = challenges[levelIdx];
   const mode = currentChallenge.id;
@@ -101,48 +114,107 @@ export const CircuitBuilderGame: React.FC<{ task: Task; onComplete: () => void }
     }
   };
 
-  const isPowered = calculateOutput(switchA, switchB, mode);
-  const isGoalMet = currentChallenge.isTargetMet(switchA, switchB);
+  const predicting = mission === 'predict';
+  const pair = PREDICT_PAIRS[predictIdx] ?? PREDICT_PAIRS[PREDICT_PAIRS.length - 1];
+  const effA = predicting ? pair[0] : switchA;
+  const effB = predicting ? pair[1] : switchB;
+
+  const isPowered = calculateOutput(effA, effB, mode);
+  const isGoalMet = mission === 'single'
+    ? isPowered && effA !== effB
+    : currentChallenge.isTargetMet(effA, effB);
+
+  const missionDesc = mission === 'single'
+    ? 'Зажги лампу, включив только ОДИН вход — проверь, что одного достаточно.'
+    : mission === 'explore'
+      ? 'Проверь все четыре сочетания входов и посмотри, когда горит лампа.'
+      : predicting
+        ? 'Сначала скажи, загорится ли лампа, а потом проверь.'
+        : currentChallenge.targetStateDesc;
+
+  const finishLevel = () => {
+    if (finished.current) return;
+    if (levelIdx + 1 < challenges.length) {
+      transition.current = true;
+      setLocked(true);
+      timer.current = setTimeout(() => {
+        setLevelIdx(prev => prev + 1);
+        setSwitchA(false);
+        setSwitchB(false);
+        setVisited(new Set([PAIR_KEY(false, false)]));
+        setPredictIdx(0);
+        setPredictRevealed(false);
+        transition.current = false;
+        setLocked(false);
+      }, 1200);
+    } else {
+      finished.current = true;
+      playSound('success');
+      setCompleted(true);
+      onComplete();
+    }
+  };
+
+  const applyToggle = (nextA: boolean, nextB: boolean) => {
+    setSwitchA(nextA);
+    setSwitchB(nextB);
+    setError('');
+    setVisited(prev => { const next = new Set(prev); next.add(PAIR_KEY(nextA, nextB)); return next; });
+  };
 
   const toggleSwitchA = () => {
-    if (transition.current || completed) return;
+    if (transition.current || completed || predicting) return;
     playSound('click');
-    const nextA = !switchA;
-    setSwitchA(nextA);
-    setError('');
+    applyToggle(!switchA, switchB);
   };
 
   const toggleSwitchB = () => {
-    if (transition.current || completed) return;
+    if (transition.current || completed || predicting) return;
     playSound('click');
-    const nextB = !switchB;
-    setSwitchB(nextB);
-    setError('');
+    applyToggle(switchA, !switchB);
   };
 
   const checkProgress = (a: boolean, b: boolean) => {
     if(transition.current || completed)return;
-    if(!currentChallenge.isTargetMet(a,b)){setError('Выход пока не соответствует условию. Сравни входы с правилом схемы.');playSound('error');return;}
-    setError('');
-    if (currentChallenge.isTargetMet(a, b)) {
-      transition.current = true;
+    if (mission === 'single' && a && b && calculateOutput(a, b, mode)) {
+      setError('Лампа горит, но включены оба входа. Оставь только один.');
+      playSound('error');
+      return;
+    }
+    if (mission === 'explore') {
+      setVisited(prev => { const next = new Set(prev); next.add(PAIR_KEY(a, b)); return next; });
+      if (visited.size < 4) { setError('Сначала проверь все четыре сочетания входов — щёлкай рубильники.'); playSound('error'); return; }
+      setError('');
       playSound('hit');
       setStars(prev => prev + 1);
+      finishLevel();
+      return;
+    }
+    const goalMet = mission === 'single' ? calculateOutput(a, b, mode) && a !== b : currentChallenge.isTargetMet(a, b);
+    if(!goalMet){setError('Выход пока не соответствует условию. Сравни входы с правилом схемы.');playSound('error');return;}
+    setError('');
+    playSound('hit');
+    setStars(prev => prev + 1);
+    finishLevel();
+  };
 
-      if (levelIdx + 1 < challenges.length) {
-        timer.current = setTimeout(() => {
-          setLevelIdx(prev => prev + 1);
-          setSwitchA(false);
-          setSwitchB(false);
-          transition.current = false;
-        }, 1200);
-      } else {
-        playSound('success');
-        setCompleted(true);
-        timer.current = setTimeout(() => {
-          onComplete();
-        }, 1800);
-      }
+  const predictGuess = (guess: boolean) => {
+    if (completed || finished.current) return;
+    setPredictRevealed(true);
+    const actual = calculateOutput(pair[0], pair[1], mode);
+    if (guess !== actual) {
+      setError(`Не так. ${currentChallenge.rule} Попробуй ещё раз.`);
+      playSound('error');
+      return;
+    }
+    setError('');
+    playSound('hit');
+    setStars(prev => prev + 1);
+    if (predictIdx + 1 < PREDICT_PAIRS.length) {
+      setPredictIdx(prev => prev + 1);
+      setPredictRevealed(false);
+    } else {
+      finishLevel();
     }
   };
 
@@ -157,40 +229,16 @@ export const CircuitBuilderGame: React.FC<{ task: Task; onComplete: () => void }
   return (
     <div className="ui-trainer-family workshop-legacy circuit-workshop h-full flex flex-col bg-slate-950 p-4 select-none text-white overflow-y-auto">
       {/* Header Banner */}
-      <div className="workshop-banner flex flex-wrap items-center justify-between bg-slate-900/90 border-2 border-yellow-500/40 p-4 rounded-2xl mb-4 shadow-lg gap-3">
-        <div className="flex items-center gap-3">
-          <div className="w-12 h-12 rounded-xl bg-yellow-500/20 border border-yellow-400 flex items-center justify-center text-2xl shrink-0">
-            ⚡
-          </div>
-          <div>
-            <div className="flex items-center gap-2">
-              <h2 className="text-base md:text-xl font-bold text-yellow-300">
-                {currentChallenge.title}
-              </h2>
-            </div>
-            <p className="text-xs text-slate-300">{currentChallenge.targetStateDesc}</p>
-          </div>
-        </div>
-
-        <div className="flex items-center gap-2">
-          <GameButton size="compact"
-            onClick={() => setShowGuide(!showGuide)} aria-expanded={showGuide}
-            className={`flex items-center gap-1.5 px-3 py-1.5 rounded-xl font-bold text-xs transition-all shadow-md ${
-              showGuide
-                ? 'bg-yellow-400 text-black shadow-yellow-400/30'
-                : 'bg-yellow-950/80 border border-yellow-500/50 text-yellow-300 hover:bg-yellow-900/80'
-            }`}
-          >
-            <BookOpen size={14} />
-            <span>Как работает правило</span>
-          </GameButton>
-
-          <div className="flex items-center gap-1 px-3 py-1.5 bg-yellow-950/80 border border-yellow-500/40 rounded-xl text-yellow-300 font-bold text-xs font-mono">
-            <Star size={14} className="fill-yellow-400 text-yellow-400" />
-            <span>Уровень {levelIdx + 1} из {challenges.length}</span>
-          </div>
-        </div>
-      </div>
+      <WorkshopHeader icon={<Zap size={26}/>} eyebrow="Логическая схема" title={`Вентиль ${currentChallenge.nameRu}`} description={missionDesc}
+        badges={<WorkshopBadge label="Уровень"><Star size={12} className="workshop-badge-star"/> {levelIdx + 1} из {challenges.length}</WorkshopBadge>}>
+        <GameButton size="compact"
+          onClick={() => setShowGuide(!showGuide)} aria-expanded={showGuide}
+          className="workshop-guide-toggle"
+        >
+          <BookOpen size={14} />
+          <span>Как работает правило</span>
+        </GameButton>
+      </WorkshopHeader>
 
       {/* Teacher Guide Panel (Collapsible) */}
       {showGuide && (
@@ -224,89 +272,43 @@ export const CircuitBuilderGame: React.FC<{ task: Task; onComplete: () => void }
 
       {/* Main Visual Circuit Board */}
       <div className="flex-1 flex flex-col items-center justify-center max-w-4xl mx-auto w-full gap-4">
-        <div className="w-full bg-slate-900/90 border-2 border-slate-700 rounded-3xl p-6 shadow-2xl relative">
+        <div className="logic-workbench w-full border-2 border-slate-700 rounded-3xl p-6 shadow-2xl relative">
 
           {/* Circuit Components Grid */}
-          <div className="grid grid-cols-1 md:grid-cols-12 gap-6 items-center">
+          <div className="logic-circuit">
 
             {/* 1. Battery Power Source (3 cols) */}
-            <div className="md:col-span-3 flex flex-col items-center p-4 rounded-2xl bg-slate-950 border border-slate-800 text-center">
-              <div className="text-[11px] uppercase font-bold text-slate-400 mb-2">1. Источник тока</div>
-              <div className="w-16 h-24 bg-gradient-to-b from-amber-500 to-amber-700 rounded-2xl border-2 border-amber-300 flex flex-col items-center justify-between p-2 shadow-lg">
-                <div className="w-6 h-2.5 bg-slate-300 rounded-t -mt-3.5 border border-slate-400"></div>
-                <div className="text-xl">🔋</div>
-                <div className="text-[9px] font-extrabold text-black font-mono">9V BATT</div>
-              </div>
-              <div className="text-[11px] text-amber-300 font-bold mt-2">Питание подано</div>
-            </div>
+            <div className="logic-power"><Zap size={16} aria-hidden="true" /> Питание платы подано · входы → правило → выход</div>
 
             {/* 2. Logic Gate & Switches (6 cols) */}
-            <div className="md:col-span-6 flex flex-col gap-3">
-              <div className="p-2.5 bg-slate-950 border border-slate-800 rounded-xl flex items-center justify-between text-xs">
-                <span className="text-slate-400 font-mono">Вентиль на плате:</span>
-                <span className="px-2.5 py-0.5 bg-yellow-400/20 text-yellow-300 border border-yellow-400/40 rounded-lg font-bold font-mono">
-                  {currentChallenge.nameRu}
-                </span>
-              </div>
-
+            <div className="logic-inputs">
               {/* Switch A */}
-              <div className={`p-3.5 rounded-xl border-2 flex items-center justify-between transition-all ${
-                switchA ? 'bg-cyan-950/40 border-cyan-400 shadow-[0_0_15px_rgba(6,182,212,0.2)]' : 'bg-slate-950 border-slate-800'
-              }`}>
-                <div>
-                  <div className="font-bold text-xs flex items-center gap-1.5">
-                    <span>🔘 Рубильник А (Вход 1)</span>
-                  </div>
-                  <div className="text-[10px] text-slate-400 font-mono">
-                    Сигнал: <span className={switchA ? 'text-cyan-300 font-bold' : 'text-slate-500'}>{switchA ? '1 (ВКЛ)' : '0 (ВЫКЛ)'}</span>
-                  </div>
-                </div>
-                <GameButton size="compact"
-                  onClick={toggleSwitchA} aria-label="Рубильник A" aria-pressed={switchA} disabled={completed}
-                  className={`px-4 py-2 rounded-xl text-xs font-bold font-mono transition-all ${
-                    switchA ? 'bg-cyan-400 text-black shadow-lg scale-105' : 'bg-slate-800 text-slate-300 hover:bg-slate-700'
-                  }`}
-                >
-                  {switchA ? '1: ВКЛ' : '0: ВЫКЛ'}
+              <div className="logic-input-row" data-powered={effA}>
+                <div><strong>Вход A</strong><span>Сигнал: {effA ? '1' : '0'}</span></div>
+                <GameButton size="compact" onClick={toggleSwitchA} aria-label="Рубильник A" aria-pressed={effA} disabled={completed || locked || predicting}>
+                  <span className="logic-toggle" aria-hidden="true" />{effA ? '1: ВКЛ' : '0: ВЫКЛ'}
                 </GameButton>
               </div>
 
               {/* Switch B */}
-              <div className={`p-3.5 rounded-xl border-2 flex items-center justify-between transition-all ${
-                switchB ? 'bg-cyan-950/40 border-cyan-400 shadow-[0_0_15px_rgba(6,182,212,0.2)]' : 'bg-slate-950 border-slate-800'
-              }`}>
-                <div>
-                  <div className="font-bold text-xs flex items-center gap-1.5">
-                    <span>🚪 Рубильник B (Вход 2)</span>
-                  </div>
-                  <div className="text-[10px] text-slate-400 font-mono">
-                    Сигнал: <span className={switchB ? 'text-cyan-300 font-bold' : 'text-slate-500'}>{switchB ? '1 (ВКЛ)' : '0 (ВЫКЛ)'}</span>
-                  </div>
-                </div>
-                <GameButton size="compact"
-                  onClick={toggleSwitchB} aria-label="Рубильник B" aria-pressed={switchB} disabled={completed}
-                  className={`px-4 py-2 rounded-xl text-xs font-bold font-mono transition-all ${
-                    switchB ? 'bg-cyan-400 text-black shadow-lg scale-105' : 'bg-slate-800 text-slate-300 hover:bg-slate-700'
-                  }`}
-                >
-                  {switchB ? '1: ВКЛ' : '0: ВЫКЛ'}
+              <div className="logic-input-row" data-powered={effB}>
+                <div><strong>Вход B</strong><span>Сигнал: {effB ? '1' : '0'}</span></div>
+                <GameButton size="compact" onClick={toggleSwitchB} aria-label="Рубильник B" aria-pressed={effB} disabled={completed || locked || predicting}>
+                  <span className="logic-toggle" aria-hidden="true" />{effB ? '1: ВКЛ' : '0: ВЫКЛ'}
                 </GameButton>
               </div>
             </div>
+            <div className="logic-chip" data-powered={isPowered}>
+              <img src="/art/cyber-city/logic-chip.png" width={192} height={160} alt="" draggable={false} />
+              <strong>{mode.toUpperCase()}</strong>
+              <span>{currentChallenge.nameRu}</span>
+            </div>
 
-            {/* 3. Output Lamp (3 cols) */}
-            <div className="md:col-span-3 flex flex-col items-center p-4 rounded-2xl bg-slate-950 border border-slate-800 text-center">
-              <div className="text-[11px] uppercase font-bold text-slate-400 mb-2">3. Выходной сигнал</div>
-              <div className={`w-24 h-24 rounded-full flex items-center justify-center transition-all duration-300 ${
-                isPowered
-                  ? 'bg-yellow-400/25 border-4 border-yellow-300 shadow-[0_0_40px_rgba(250,204,21,0.8)] animate-pulse'
-                  : 'bg-slate-900 border-2 border-slate-800'
-              }`}>
-                <Lightbulb size={48} className={isPowered ? 'text-yellow-300 fill-yellow-300 animate-bounce' : 'text-slate-700'} />
-              </div>
-              <div className={`text-xs font-bold mt-2 font-mono ${isPowered ? 'text-yellow-300' : 'text-slate-500'}`}>
-                {isPowered ? 'ВЫХОД = 1 (СВЕТ!)' : 'ВЫХОД = 0 (ТЕМНО)'}
-              </div>
+            {/* 3. Output Lamp (3 cols); в predict выход раскрывается только после ответа */}
+            <div className="logic-output" data-powered={predicting && !predictRevealed ? false : isPowered}>
+              <span>Выходной сигнал</span>
+              <img src={`/art/cyber-city/energy-cell-${predicting && !predictRevealed ? 'off' : isPowered ? 'on' : 'off'}.png`} width={160} height={200} alt="" draggable={false} />
+              <strong aria-live="polite">{predicting && !predictRevealed ? 'ВЫХОД = ? (СКАЖИ САМ)' : isPowered ? 'ВЫХОД = 1 (СВЕТ!)' : 'ВЫХОД = 0 (ТЕМНО)'}</strong>
             </div>
 
           </div>
@@ -315,11 +317,16 @@ export const CircuitBuilderGame: React.FC<{ task: Task; onComplete: () => void }
           <div className="mt-5 pt-4 border-t border-slate-800">
             <div className="text-xs font-bold font-mono text-slate-400 uppercase tracking-wider mb-2 flex items-center justify-between">
               <span>📊 Таблица истинности для {currentChallenge.nameRu}:</span>
-              <span className="text-[10px] text-yellow-400">Жёлтая строка — текущее состояние цепи</span>
+              <span className="text-xs text-yellow-400">Жёлтая строка — текущее состояние цепи</span>
             </div>
             <div className="circuit-truth-grid grid grid-cols-4 gap-2 text-center text-xs font-mono">
               {truthTable.map((row, idx) => {
-                const isActive = row.a === switchA && row.b === switchB;
+                const isActive = row.a === effA && row.b === effB;
+                const seen = visited.has(PAIR_KEY(row.a, row.b));
+                // predict: выход раскрывается только для уже решённых строк; explore: только после посещения
+                const hiddenOut = predicting
+                  ? !(isActive && predictRevealed) && PREDICT_PAIRS.findIndex(p => p[0] === row.a && p[1] === row.b) >= predictIdx
+                  : mission === 'explore' && !seen;
                 return (
                   <div
                     key={idx}
@@ -329,12 +336,13 @@ export const CircuitBuilderGame: React.FC<{ task: Task; onComplete: () => void }
                         : 'bg-slate-950/60 border-slate-800 text-slate-400'
                     }`}
                   >
-                    <div className="text-[10px] opacity-75">
+                    <div className="text-xs opacity-75">
                       А={row.a ? '1' : '0'}, В={row.b ? '1' : '0'}
                     </div>
                     <div className="text-sm font-black mt-0.5">
-                      👉 {row.out ? '1 (ВКЛ)' : '0 (ВЫКЛ)'}
+                      👉 {hiddenOut ? '?' : row.out ? '1 (ВКЛ)' : '0 (ВЫКЛ)'}
                     </div>
+                    {mission === 'explore' && <div className={`mt-0.5 text-[11px] ${seen ? 'text-emerald-400' : 'text-slate-600'}`}>{seen ? '✓ проверено' : 'ещё нет'}</div>}
                   </div>
                 );
               })}
@@ -346,21 +354,35 @@ export const CircuitBuilderGame: React.FC<{ task: Task; onComplete: () => void }
             <div className="flex items-center gap-2 text-xs">
               <Zap size={16} className={isPowered ? 'text-yellow-400 fill-yellow-400' : 'text-slate-600'} />
               <span className={isPowered ? 'text-yellow-300 font-bold' : 'text-slate-400'}>
-                {isGoalMet ? 'Выход соответствует условию. Нажми «Проверить схему».' : currentChallenge.targetStateDesc}
+                {predicting ? `Строка ${predictIdx + 1} из ${PREDICT_PAIRS.length}. Входы выставлены — какой будет выход?` : isGoalMet && !predicting ? 'Выход соответствует условию. Нажми «Проверить схему».' : missionDesc}
               </span>
             </div>
-            {isGoalMet && (
-              <div className="flex items-center gap-1 text-emerald-400 text-xs font-bold animate-bounce">
+            {isGoalMet && !predicting && (
+              <div className="flex items-center gap-1 text-emerald-400 text-xs font-bold">
                 <CheckCircle2 size={16} />
-                <span>ОТЛИЧНО!</span>
+                <span>Можно проверять</span>
               </div>
             )}
           </div>
+          {mission === 'explore' && mode === 'and' && (effA !== effB) && (
+            <p className="mt-2 text-xs text-amber-300">Подсказка: для «И» одного входа мало.</p>
+          )}
 
         </div>
       </div>
-      {!completed && <GameButton variant="primary" size="compact" className="workshop-primary mt-4" disabled={transition.current} onClick={()=>checkProgress(switchA,switchB)}>Проверить схему</GameButton>}
-      {error && <p role="alert" className="text-rose-300 mt-3">{error}</p>}
+      {predicting && !completed && (
+        <div className="mt-4 flex flex-wrap gap-3 justify-center" role="group" aria-label="Твоё предсказание">
+          <GameButton variant="primary" size="compact" className="min-h-[56px] min-w-[170px]" onClick={() => predictGuess(true)}>Лампа загорится (1)</GameButton>
+          <GameButton variant="secondary" size="compact" className="min-h-[56px] min-w-[170px]" onClick={() => predictGuess(false)}>Лампа не загорится (0)</GameButton>
+        </div>
+      )}
+      {!predicting && !completed && <GameButton variant="primary" size="compact" className="workshop-primary mt-4" disabled={locked} onClick={()=>checkProgress(effA,effB)}>Проверить схему</GameButton>}
+      {error && <p role="alert" className="workshop-feedback workshop-feedback--error mt-3">{error}</p>}
+      {completed && (
+        <div role="status" className="mt-4 p-4 bg-emerald-500/15 border border-emerald-400 rounded-xl text-emerald-200 text-sm font-bold text-center">
+          Схема работает! Нажми «Далее» внизу.
+        </div>
+      )}
     </div>
   );
 };

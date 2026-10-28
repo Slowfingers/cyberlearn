@@ -1,8 +1,8 @@
-import {GameButton} from '../GameUI';
+import {GameButton, WorkshopHeader, WorkshopBadge} from '../GameUI';
 import React, { useState, useRef, useEffect } from 'react';
 import { Task } from '../../types';
 import { playSound } from '../../utils/sound';
-import { ShieldCheck, ShieldAlert, Sparkles, CheckCircle2, RotateCcw, Award, BookOpen, HelpCircle, X } from 'lucide-react';
+import { ShieldCheck, ShieldAlert, ShieldQuestion, Sparkles, CheckCircle2, Award, BookOpen, HelpCircle, X } from 'lucide-react';
 
 interface CaseItem {
   id: string;
@@ -150,44 +150,16 @@ export const FakeDetectorGame: React.FC<{ task: Task; onComplete: () => void }> 
   return (
     <div className="ui-trainer-family safety-workshop workshop-legacy h-full flex flex-col bg-slate-950 p-4 select-none text-white overflow-y-auto">
       {/* Header Banner */}
-      <div className="workshop-banner flex flex-wrap items-center justify-between bg-slate-900/90 border-2 border-emerald-500/40 p-3 md:p-4 rounded-2xl mb-4 shadow-lg gap-3">
-        <div className="flex items-center gap-3">
-          <div className="w-12 h-12 rounded-xl bg-emerald-500/20 border border-emerald-400 flex items-center justify-center text-2xl shrink-0">
-            🕵️‍♂️
-          </div>
-          <div>
-            <h2 className="text-base md:text-xl font-bold text-emerald-300">Кибер-Детектив: Правда или Опасный Фейк?</h2>
-            <p className="text-xs text-slate-300">{verification ? 'Изучи сообщение: оно подтверждено или его ещё нужно проверить?' : 'Изучи карточку и реши: это безопасно или это ловушка?'}</p>
-          </div>
-        </div>
-
-        <div className="flex items-center gap-2">
-          {/* Rules Guide Button */}
-          <GameButton size="compact"
-            onClick={() => setShowRules(!showRules)}
-            className={`flex items-center gap-1.5 px-3 py-1.5 rounded-xl font-bold text-xs transition-all shadow-md ${
-              showRules
-                ? 'bg-emerald-400 text-black shadow-emerald-400/30'
-                : 'bg-emerald-950/80 border border-emerald-500/50 text-emerald-300 hover:bg-emerald-900/80'
-            }`}
-          >
-            <BookOpen size={14} />
-            <span>Памятка Детектива</span>
-          </GameButton>
-
-          <div className="px-3 py-1.5 bg-emerald-950/80 border border-emerald-500/50 rounded-xl text-emerald-300 font-bold text-xs">
-            Дело {currentIdx + 1} из {cases.length}
-          </div>
-
-          <GameButton size="compact"
-            onClick={handleReset}
-            className="p-2 bg-slate-800 hover:bg-slate-700 rounded-xl text-slate-400 hover:text-white transition-colors"
-            title="Начать заново"
-          >
-            <RotateCcw size={16} />
-          </GameButton>
-        </div>
-      </div>
+      <WorkshopHeader icon={<ShieldQuestion size={26}/>} title="Кибер-Детектив: Правда или Опасный Фейк?" description={verification ? 'Изучи сообщение: оно подтверждено или его ещё нужно проверить?' : 'Изучи карточку и реши: это безопасно или это ловушка?'} onReset={handleReset}
+        badges={<WorkshopBadge label="Дело">{currentIdx + 1} из {cases.length}</WorkshopBadge>}>
+        <GameButton size="compact"
+          onClick={() => setShowRules(!showRules)} aria-expanded={showRules}
+          className="workshop-guide-toggle"
+        >
+          <BookOpen size={14} />
+          <span>Памятка Детектива</span>
+        </GameButton>
+      </WorkshopHeader>
 
       {/* Rules Guide Panel (Collapsible) */}
       {showRules && (
@@ -206,28 +178,29 @@ export const FakeDetectorGame: React.FC<{ task: Task; onComplete: () => void }> 
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 text-xs">
             <div className="p-2.5 bg-slate-900/80 border border-emerald-500/30 rounded-xl">
               <strong className="text-yellow-400 block mb-0.5">🔑 Пароль — личная тайна</strong>
-              <p className="text-slate-300 text-[11px]">Никому не говори свой пароль, даже лучшим друзьям или тем, кто представляется администратором игры.</p>
+              <p className="text-slate-300 text-xs">Никому не говори свой пароль, даже лучшим друзьям или тем, кто представляется администратором игры.</p>
             </div>
             <div className="p-2.5 bg-slate-900/80 border border-emerald-500/30 rounded-xl">
               <strong className="text-rose-400 block mb-0.5">🎁 Бесплатный сыр в мышеловке</strong>
-              <p className="text-slate-300 text-[11px]">«Ты выиграл миллион», «Скачай читы» — так мошенники заманивают на опасные вирусы.</p>
+              <p className="text-slate-300 text-xs">«Ты выиграл миллион», «Скачай читы» — так мошенники заманивают на опасные вирусы.</p>
             </div>
             <div className="p-2.5 bg-slate-900/80 border border-emerald-500/30 rounded-xl">
               <strong className="text-cyan-400 block mb-0.5">📍 Личные данные под замком</strong>
-              <p className="text-slate-300 text-[11px]">Адрес твоего дома, номер школы, телефон родителей — никогда не пиши незнакомцам.</p>
+              <p className="text-slate-300 text-xs">Адрес твоего дома, номер школы, телефон родителей — никогда не пиши незнакомцам.</p>
             </div>
             <div className="p-2.5 bg-slate-900/80 border border-emerald-500/30 rounded-xl">
               <strong className="text-purple-400 block mb-0.5">👨‍👩‍👦 Правило 5 секунд: Зови взрослых</strong>
-              <p className="text-slate-300 text-[11px]">Если окно пугает, угрожает блокировкой или просит денег — не нажимай ничего, позови родителей!</p>
+              <p className="text-slate-300 text-xs">Если окно пугает, угрожает блокировкой или просит денег — не нажимай ничего, позови родителей!</p>
             </div>
           </div>
         </div>
       )}
 
       {/* Main Detective Case Area */}
-      <div className="flex-1 flex flex-col items-center justify-center max-w-xl mx-auto w-full">
+      <div className="flex-1 flex flex-col items-center justify-center mx-auto w-full">
         {/* The Card */}
-        <div className="w-full bg-slate-900 border-2 border-slate-700 rounded-3xl p-5 md:p-6 shadow-2xl relative overflow-hidden mb-6">
+        <div className="case-file w-full bg-slate-900 border-2 border-slate-700 rounded-3xl p-5 md:p-6 shadow-2xl relative overflow-hidden mb-6">
+          <div className="case-file-tab" aria-hidden="true">Дело №{currentIdx + 1}</div>
           <div className="fake-clue-heading flex items-center justify-between mb-4">
             <div className="flex items-center gap-3">
               <span className="text-4xl p-2.5 bg-slate-800 rounded-2xl">{currentCase.icon}</span>
@@ -253,22 +226,21 @@ export const FakeDetectorGame: React.FC<{ task: Task; onComplete: () => void }> 
 
           {/* Teacher Clue Banner */}
           {showHint && !feedback && currentCase.teacherHint && (
-            <div className="p-3 mb-4 bg-cyan-950/60 border border-cyan-400/40 rounded-xl text-xs text-cyan-200 animate-fadeIn">
+            <div className="workshop-feedback workshop-feedback--hint mb-4 animate-fadeIn">
               Проверь источник, дату, доказательства и просьбы в сообщении. Выбери ответ по этим признакам.
             </div>
           )}
 
-          <div className="bg-slate-950/90 border border-slate-800 rounded-2xl p-5 mb-6 text-sm md:text-base leading-relaxed text-slate-200">
+          <div className="case-file-text bg-slate-950/90 border border-slate-800 rounded-2xl p-5 mb-6 text-sm md:text-base leading-relaxed text-slate-200">
             {currentCase.text}
           </div>
 
           {/* Feedback section if answered */}
           {feedback ? (
-            <div className={`p-4 rounded-2xl border mb-4 ${
-              feedback.isCorrect
-                ? 'bg-emerald-950/80 border-emerald-500 text-emerald-200'
-                : 'bg-rose-950/80 border-rose-500 text-rose-200'
+            <div role="status" className={`workshop-feedback mb-4 ${
+              feedback.isCorrect ? 'workshop-feedback--success' : 'workshop-feedback--error'
             }`}>
+              <div className="w-full">
               <div className="font-bold text-sm mb-1">
                 {feedback.isCorrect ? '✅ ПРАВИЛЬНЫЙ ВЕРДИКТ!' : '❌ ОШИБКА ДЕТЕКТИВА!'}
               </div>
@@ -280,13 +252,14 @@ export const FakeDetectorGame: React.FC<{ task: Task; onComplete: () => void }> 
               >
                 {!feedback.isCorrect ? 'Попробовать ещё раз' : currentIdx + 1 < cases.length ? 'СЛЕДУЮЩЕЕ ДЕЛО ➡️' : 'ЗАВЕРШИТЬ РАССЛЕДОВАНИЕ 🏆'}
               </GameButton>
+              </div>
             </div>
           ) : (
             /* Action Buttons */
-            <div className="grid grid-cols-2 gap-4">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               <GameButton size="compact"
                 onClick={() => handleAnswer(true)}
-                className="py-3.5 px-4 bg-rose-600 hover:bg-rose-500 text-white rounded-2xl font-bold uppercase text-xs md:text-sm flex flex-col items-center justify-center gap-2 shadow-lg shadow-rose-600/30 active:scale-95 transition-all"
+                className="verdict-button verdict-danger py-3.5 px-4 bg-rose-600 hover:bg-rose-500 text-white rounded-2xl font-bold uppercase text-xs md:text-sm flex flex-col items-center justify-center gap-2 shadow-lg shadow-rose-600/30 active:scale-95 transition-all"
               >
                 <ShieldAlert size={28} />
                 <span>{verification ? 'Нужна проверка' : '🚨 ФЕЙК / ОПАСНО!'}</span>
@@ -294,7 +267,7 @@ export const FakeDetectorGame: React.FC<{ task: Task; onComplete: () => void }> 
 
               <GameButton size="compact"
                 onClick={() => handleAnswer(false)}
-                className="py-3.5 px-4 bg-emerald-600 hover:bg-emerald-500 text-white rounded-2xl font-bold uppercase text-xs md:text-sm flex flex-col items-center justify-center gap-2 shadow-lg shadow-emerald-600/30 active:scale-95 transition-all"
+                className="verdict-button verdict-safe py-3.5 px-4 bg-emerald-600 hover:bg-emerald-500 text-white rounded-2xl font-bold uppercase text-xs md:text-sm flex flex-col items-center justify-center gap-2 shadow-lg shadow-emerald-600/30 active:scale-95 transition-all"
               >
                 <ShieldCheck size={28} />
                 <span>{verification ? 'Есть подтверждение' : '🛡️ ПРАВДА / БЕЗОПАСНО'}</span>

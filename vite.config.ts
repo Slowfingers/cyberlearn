@@ -1,6 +1,7 @@
 import path from 'path';
 import { defineConfig } from 'vite';
 import react from '@vitejs/plugin-react';
+import {arduinoCompilerApi} from './server/arduinoCompiler';
 import { localApi } from './server/localBackend';
 
 export default defineConfig(() => {
@@ -10,7 +11,8 @@ export default defineConfig(() => {
         port: 3000,
         host: '0.0.0.0',
       },
-      plugins: [react(), {name:'local-school-server',configureServer(server){server.middlewares.use(localApi);},configurePreviewServer(server){server.middlewares.use(localApi);}}],
+      plugins: [react(), {name:'local-school-server',configureServer(server){server.middlewares.use(arduinoCompilerApi);server.middlewares.use(localApi);},configurePreviewServer(server){server.middlewares.use(arduinoCompilerApi);server.middlewares.use(localApi);}}],
+      optimizeDeps: {include:['avr8js','three/addons/lights/RectAreaLightUniformsLib.js']},
       build: {
         rollupOptions: {
           output: {

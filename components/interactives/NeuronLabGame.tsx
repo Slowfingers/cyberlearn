@@ -1,8 +1,8 @@
-import {GameButton} from '../GameUI';
+import {GameButton, WorkshopHeader, WorkshopBadge} from '../GameUI';
 import React, { useState, useEffect, useRef } from 'react';
 import { Task } from '../../types';
 import { playSound } from '../../utils/sound';
-import { Brain, CheckCircle, Sliders, Cpu, Sparkles, RotateCcw } from 'lucide-react';
+import { Brain, CheckCircle, Sliders, Cpu, Sparkles } from 'lucide-react';
 
 interface NeuronLabGameProps {
   task: Task;
@@ -35,6 +35,7 @@ export const NeuronLabGame: React.FC<NeuronLabGameProps> = ({ task, onComplete }
   const finished=useRef(false);
   const [error,setError]=useState('');
   const [completed, setCompleted] = useState<boolean>(false);
+  const [selId, setSelId] = useState<number>(samples[0]?.id ?? 0);
 
   useEffect(() => {
     resetGame();
@@ -46,6 +47,7 @@ export const NeuronLabGame: React.FC<NeuronLabGameProps> = ({ task, onComplete }
     setW2(0);
     setBias(-1);
     setCompleted(false);
+    setSelId(samples[0]?.id ?? 0);
   };
 
   // Evaluate dataset
@@ -56,6 +58,7 @@ export const NeuronLabGame: React.FC<NeuronLabGameProps> = ({ task, onComplete }
     return { ...sample, sum, prediction, isCorrect };
   });
 
+  const selectedResult = results.find(r => r.id === selId) ?? results[0];
   const correctCount = results.filter(r => r.isCorrect).length;
   const accuracy = Math.round((correctCount / samples.length) * 100);
 
@@ -66,35 +69,10 @@ export const NeuronLabGame: React.FC<NeuronLabGameProps> = ({ task, onComplete }
   };
 
   return (
-    <div className="ui-trainer-family workshop-legacy flex flex-col h-full bg-gray-950 p-4 md:p-6 overflow-y-auto">
+    <div className="ui-trainer-family workshop-legacy neuron-workshop flex flex-col h-full bg-gray-950 p-4 md:p-6 overflow-y-auto">
       {/* Header */}
-      <div className="workshop-banner flex flex-wrap items-center justify-between gap-4 p-4 bg-black/70 border border-cyber-neonBlue/30 rounded-xl mb-4">
-        <div className="flex items-center gap-3">
-          <div className="p-2 rounded bg-purple-950/60 text-purple-400 border border-purple-500/40">
-            <Brain size={22} />
-          </div>
-          <div>
-            <div className="text-[10px] font-mono text-gray-400 uppercase tracking-widest">НЕЙРОСЕТИ И ИСКУССТВЕННЫЙ ИНТЕЛЛЕКТ</div>
-            <h2 className="text-base md:text-lg font-bold text-white">Обучение Перцептрона: Веса и Смещение (Bias)</h2>
-          </div>
-        </div>
-
-        <div className="flex items-center gap-4">
-          <div className="bg-gray-900 border border-purple-500/30 px-3 py-1.5 rounded-lg text-center font-mono">
-            <div className="text-[9px] text-gray-400">ТОЧНОСТЬ МОДЕЛИ</div>
-            <div className={`text-lg font-bold ${accuracy === 100 ? 'text-cyber-neonGreen' : 'text-cyber-neonYellow'}`}>
-              {accuracy}% ({correctCount}/{samples.length})
-            </div>
-          </div>
-          <GameButton size="compact"
-            onClick={resetGame}
-            className="p-2.5 bg-gray-900 hover:bg-gray-800 text-gray-300 border border-gray-800 rounded-lg transition-colors"
-            title="Сброс"
-          >
-            <RotateCcw size={16} />
-          </GameButton>
-        </div>
-      </div>
+      <WorkshopHeader icon={<Brain size={26}/>} eyebrow="Нейросети и искусственный интеллект" title="Обучение перцептрона" description={task.lesson?.goal || `Подбери веса для признаков «${features.x1}» и «${features.x2}» на ${samples.length} примерах.`} onReset={resetGame}
+        badges={<WorkshopBadge label="Точность модели">{accuracy}% ({correctCount}/{samples.length})</WorkshopBadge>}/>
 
       {/* Concept Explainer */}
       <div className="bg-gray-900/80 border border-cyber-neonBlue/30 rounded-xl p-3.5 mb-4 text-xs font-mono text-gray-200">
@@ -110,6 +88,30 @@ export const NeuronLabGame: React.FC<NeuronLabGameProps> = ({ task, onComplete }
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 mb-4">
         {/* Sliders Box */}
         <div className="bg-black border border-gray-800 rounded-xl p-5 space-y-4">
+          {selectedResult && (
+            <figure className="neuron-figure">
+              <figcaption className="neuron-figure-caption">Как нейрон считает пример «{selectedResult.label}»</figcaption>
+              <svg className="neuron-diagram" viewBox="0 0 560 110" role="img" aria-label={`Схема нейрона для примера ${selectedResult.label}: сумма ${selectedResult.sum}, класс ${selectedResult.prediction}`}>
+                <text x="8" y="16" textAnchor="start" fontSize="18" fill="#9fb4cc">X₁ {features.x1}</text>
+                <text x="8" y="105" textAnchor="start" fontSize="18" fill="#9fb4cc">X₂ {features.x2}</text>
+                <line x1="91" y1="32" x2="390" y2="50" stroke={w1 < 0 ? '#ff8fa3' : '#58dfff'} strokeWidth={2 + Math.abs(w1) * 0.8} strokeDasharray={w1 < 0 ? '8 5' : undefined} />
+                <line x1="91" y1="80" x2="390" y2="62" stroke={w2 < 0 ? '#ff8fa3' : '#e58bff'} strokeWidth={2 + Math.abs(w2) * 0.8} strokeDasharray={w2 < 0 ? '8 5' : undefined} />
+                <text x="220" y="36" fontSize="18" fill="#8ce9e4">W₁ {w1 > 0 ? `+${w1}` : w1}</text>
+                <text x="220" y="92" fontSize="18" fill="#d6a6ff">W₂ {w2 > 0 ? `+${w2}` : w2}</text>
+                <circle cx="75" cy="32" r="15" fill="#14273f" stroke="#58dfff" strokeWidth="2" />
+                <text x="75" y="38" textAnchor="middle" fontSize="19" fill="#eaf4ff">{selectedResult.x1}</text>
+                <circle cx="75" cy="80" r="15" fill="#14273f" stroke="#e58bff" strokeWidth="2" />
+                <text x="75" y="86" textAnchor="middle" fontSize="19" fill="#eaf4ff">{selectedResult.x2}</text>
+                <circle cx="415" cy="55" r="20" fill="#1a2c49" stroke="#f9d274" strokeWidth="2" />
+                <text x="415" y="61" textAnchor="middle" fontSize="18" fill="#ffe9a8">Σ {selectedResult.sum}</text>
+                <text x="415" y="100" textAnchor="middle" fontSize="18" fill="#9fb4cc">смещение {bias > 0 ? `+${bias}` : bias}</text>
+                <line x1="435" y1="55" x2="500" y2="55" stroke="#58dfff" strokeWidth="2" />
+                <circle cx="522" cy="55" r="15" fill={selectedResult.prediction === 1 ? '#1f5a3a' : '#22344f'} stroke={selectedResult.prediction === 1 ? '#6fe3b1' : '#6687aa'} strokeWidth="2" />
+                <text x="522" y="61" textAnchor="middle" fontSize="19" fill="#eaf4ff">{selectedResult.prediction}</text>
+                <text x="522" y="95" textAnchor="middle" fontSize="18" fill="#9fb4cc">Класс {selectedResult.prediction}</text>
+              </svg>
+            </figure>
+          )}
           <h3 className="text-xs font-mono font-bold text-gray-300 uppercase flex items-center gap-2 border-b border-gray-800 pb-2">
             <Cpu size={14} className="text-purple-400" /> НАСТРОЙКА ВЕСОВ СИНАПСОВ
           </h3>
@@ -189,17 +191,17 @@ export const NeuronLabGame: React.FC<NeuronLabGameProps> = ({ task, onComplete }
 
           <div className="divide-y divide-gray-900 my-2">
             {results.map(res => (
-              <div key={res.id} className="py-2.5 flex items-center justify-between text-xs font-mono">
+              <button type="button" key={res.id} aria-pressed={res.id === selectedResult?.id} onClick={() => setSelId(res.id)} className={`neuron-sample w-full text-left py-2.5 flex items-center justify-between text-xs font-mono ${res.id === selectedResult?.id ? 'is-selected' : ''}`}>
                 <div>
                   <div className="text-white font-bold">{res.label}</div>
-                  <div className="text-[10px] text-gray-500">
+                  <div className="text-xs text-gray-500">
                     {features.x1}: {res.x1} | {features.x2}: {res.x2}
                   </div>
                 </div>
 
                 <div className="flex items-center gap-3">
                   <div className="text-right">
-                    <div className="text-[10px] text-gray-400">Σ = {res.sum}</div>
+                    <div className="text-xs text-gray-400">Σ = {res.sum}</div>
                     <div className={`font-bold ${res.prediction === 1 ? 'text-cyber-neonGreen' : 'text-blue-400'}`}>
                       {`Класс ${res.prediction} · ожидается ${res.target}`}
                     </div>
@@ -211,11 +213,11 @@ export const NeuronLabGame: React.FC<NeuronLabGameProps> = ({ task, onComplete }
                     {res.isCorrect ? '✓' : '✗'}
                   </div>
                 </div>
-              </div>
+              </button>
             ))}
           </div>
 
-          <div className="text-[10px] font-mono text-gray-500 text-center">
+          <div className="text-xs font-mono text-gray-500 text-center">
             {accuracy === 100
               ? 'Все показанные примеры распознаны. Это ещё не гарантирует верный ответ на новых данных.'
               : 'Меняй один вес за раз. Проверь, какие примеры стали распознаваться лучше, а какие — хуже.'}
@@ -223,11 +225,11 @@ export const NeuronLabGame: React.FC<NeuronLabGameProps> = ({ task, onComplete }
         </div>
       </div>
 
-<p role="alert" className="text-rose-300">{error}</p>
+{error && <p role="alert" className="workshop-feedback workshop-feedback--error">{error}</p>}
       {!completed && <GameButton variant="primary" size="compact" className="workshop-primary" onClick={checkModel}>Проверить модель</GameButton>}
       {/* Victory Banner */}
       {completed && (
-        <div className="p-4 bg-cyber-neonGreen/15 border border-cyber-neonGreen rounded-xl flex items-center justify-between text-white animate-fade-in">
+        <div className="workshop-feedback workshop-feedback--success animate-fade-in">
           <div className="flex items-center gap-3">
             <CheckCircle className="text-cyber-neonGreen" size={26} />
             <div>

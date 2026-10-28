@@ -3,7 +3,7 @@ import { runGridProgram } from '../services/localEvaluation';
 import { Task, TaskType } from '../types';
 
 const VALID_TYPES: TaskType[] = [
-    'grid', 'quiz', 'theory', 'html', 'terminal', 'hanoi', 'blocks',
+    'pc_builder', 'smart_city', 'arduino', 'grid', 'quiz', 'theory', 'html', 'terminal', 'hanoi', 'blocks',
     'typing', 'process_manager', 'spreadsheet', 'sorting', 'tree_search',
     'phishing_detect', 'ai_neuron', 'network_route', 'file_organizer',
     'binary_switches', 'binary_bulbs', 'wireframe_builder', 'circuit_builder',
@@ -12,6 +12,9 @@ const VALID_TYPES: TaskType[] = [
 ];
 
 const CONFIG_BY_TYPE: Partial<Record<TaskType, keyof Task>> = {
+    pc_builder:'pcBuilderConfig',
+    smart_city:'smartCityConfig',
+    arduino:'arduinoConfig',
     process_manager: 'processConfig',
     spreadsheet: 'spreadsheetConfig',
     sorting: 'sortingConfig',

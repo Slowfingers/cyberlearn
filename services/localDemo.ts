@@ -1,3 +1,8 @@
+import { adjustStudentCoins } from '../functions/studentCoins.mjs';
+import { updateAvatarRoom } from '../functions/avatarRoom.mjs';
+import { submitPilotAttempt } from '../functions/lessonModes.mjs';
+import { lessonCheckpoint, practiceDraft } from '../functions/lessonCheckpoint.mjs';
+import { changeCharacterLook } from '../functions/characterLooks.mjs';
 import type { Classroom, Task, TaskAttempt, User } from '../types';
 import { ACHIEVEMENTS, COSMETICS, LEVEL_THRESHOLDS, MOCK_TASKS } from '../constants';
 import { buyCosmetic, completeTask, validateMap } from '../functions/domain.mjs';
@@ -112,6 +117,11 @@ export async function localCall<T>(operation: string, data: Record<string, unkno
       const safe: Task = {...task,id:`custom_${crypto.randomUUID()}`,courseId:'course_grade3',module:'Кастомные миссии',xpReward:500,currencyReward:100,status:'open',initialCode:'',allowedCommands:['moveRight();','moveDown();','moveLeft();','moveUp();']};
       (state.tasks[cls.id] ??= []).push(safe); changed = true; break;
     }
+    case 'submitPilotAttempt': {const value=submitPilotAttempt(user,data,MOCK_TASKS.find(t=>t.id===data.taskId));state.users[user.id]=value.user as User;changed=true;result=value.result;break;}
+    case 'getPracticeDraft': case 'savePracticeDraft': {const value=practiceDraft(user,operation,data,MOCK_TASKS.find(t=>t.id===data.taskId));if(operation==='savePracticeDraft'){state.users[user.id]=value.user as User;changed=true;result=value.draft;}else result=value;break;}
+    case 'getLessonCheckpoint': case 'saveLessonCheckpoint': { const value=lessonCheckpoint(user,operation,data,MOCK_TASKS.find(t=>t.id===data.taskId)); if(operation==='saveLessonCheckpoint'){state.users[user.id]=value.user as User;changed=true;result=value.checkpoint;}else result=value; break; }
+    case 'saveCharacterLook': case 'equipCharacterLook': case 'deleteCharacterLook': result = state.users[user.id] = changeCharacterLook(user,operation,data) as User; changed = true; break;
+    case 'cleanRoomSpot': case 'buyRoomItem': case 'saveRoomLayout': {const updated=updateAvatarRoom(user,operation,data);state.users[user.id]=updated;result=updated;changed=true;break;}
     case 'buyItem': case 'equipItem': result = state.users[user.id] = buyCosmetic(user,COSMETICS.find(item => item.id === data.itemId),operation === 'equipItem') as User; changed = true; break;
     case 'completeTask': {
       if (user.role !== 'student') throw new Error('Задания проходят в аккаунте ученика.');
@@ -130,6 +140,12 @@ export async function localCall<T>(operation: string, data: Record<string, unkno
     case 'incrementSwitches': {
       const count = Number(data.count); if (!Number.isInteger(count) || count < 1 || count > 1000) throw new Error('Неверный счётчик.');
       user.suspiciousActivity = {highErrorTasks:user.suspiciousActivity?.highErrorTasks ?? [],totalTabSwitches:(user.suspiciousActivity?.totalTabSwitches ?? 0) + count}; changed = true; break;
+    }
+    case 'adjustStudentCoins': {
+      const student=state.users[String(data.studentId)];
+      if(student?.role!=='student'||!student.classId)throw new Error('Ученик не найден.');
+      const cls=owned(student.classId);
+      result=state.users[student.id]=adjustStudentCoins(student,user,cls,data) as User;changed=true;break;
     }
     case 'resetStudentPassword': {
       const student = state.users[String(data.studentId)];

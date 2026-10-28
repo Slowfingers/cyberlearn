@@ -1,6 +1,7 @@
 
 import { User, Classroom, StudentProgress, Task } from "../types";
-import { LEVEL_THRESHOLDS, MOCK_TASKS, COURSES } from "../constants";
+import { LEVEL_THRESHOLDS } from '../curriculum/playerCatalog';
+import { COURSES } from '../curriculum/courseCatalog';
 import { fbGetClassrooms, fbCreateClassroom, fbUpdateClassroom, fbDeleteClassroom, fbGetUsers, fbGetUser, fbGetTasks, fbCreateTask, fbLogin, callServer } from './firebase';
 import {uniqueTaskCatalog, applyCompletedTasks} from './taskProgress';
 import { readStoredJSON, writeStoredJSON } from '../utils/storage';
@@ -102,7 +103,7 @@ export const saveTaskAttempts = (userId: string, attempts: Record<string, number
 // --- DATA FETCHING ---
 
 export const getAllTasks = async (userId?: string): Promise<Task[]> => {
-    const custom = await fbGetTasks();
+    const [{ MOCK_TASKS }, custom] = await Promise.all([import('../constants'), fbGetTasks()]);
     const allTasks = uniqueTaskCatalog(MOCK_TASKS, custom);
     if (!userId) return allTasks;
     const user = await fbGetUser();
@@ -147,6 +148,8 @@ export const getClassStudents = async (classId: string): Promise<StudentProgress
         u.role === 'student' && (u.classId === targetClass.id || studentIdSet.has(u.id))
     );
 
+    // Load the full lesson catalog only when calculating student progress.
+    const { MOCK_TASKS } = await import('../constants');
     // Get all tasks for course progress calculation
     const allCourseTasks: Record<string, { courseId: string; title: string; color: string; taskIds: string[] }> = {};
     COURSES.forEach(course => {
@@ -203,6 +206,7 @@ export const getClassStudents = async (classId: string): Promise<StudentProgress
 
         return {
             studentId: s.id,
+            currency: s.currency || 0,
             name: s.name,
             tasksCompleted,
             totalTasks,
@@ -315,3 +319,7 @@ export const updateFantasyProgress = (userId: string, data: any) => {
     writeStoredJSON(`${FANTASY_PROGRESS_PREFIX}${userId}`, updated);
     return updated;
 };
+
+export const updateCharacterLook = (operation: "saveCharacterLook" | "equipCharacterLook" | "deleteCharacterLook", data: Record<string,unknown>) => callServer<User>(operation,data);
+
+export const changeAvatarRoom = (operation:"cleanRoomSpot"|"buyRoomItem"|"saveRoomLayout",data:Record<string,unknown>) => callServer<User>(operation,data);

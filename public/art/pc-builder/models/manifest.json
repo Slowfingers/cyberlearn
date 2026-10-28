@@ -1,0 +1,49 @@
+{
+  "retrieved": "2026-10-25",
+  "license": "CC-BY-4.0",
+  "delivery": "Local optimized GLB copies from Jacob-Baker-Git/CustomPc, separately attributed to original Sketchfab authors.",
+  "files": [
+    {
+      "file": "cpu.glb",
+      "bytes": 239048,
+      "sha256": "98f5a17c4c8a7130f68fef110088312fd4edc77f84c0fdbfdb14f2eed81a4818",
+      "gitBlob": "aa203cf51b5e11d178f20f9bfd1f0b6fd6b5dee2",
+      "mirror": "https://raw.githubusercontent.com/Jacob-Baker-Git/CustomPc/main/public/models/cpu.glb"
+    },
+    {
+      "file": "fan.glb",
+      "bytes": 160000,
+      "sha256": "6f176d1d32ecc955a4df8869b483d9125b41bb9562997e5b975e2e4a48f5e39b",
+      "gitBlob": "57efa20c84c67d34df1cc9be4b6fcad399f9be20",
+      "mirror": "https://raw.githubusercontent.com/Jacob-Baker-Git/CustomPc/main/public/models/fan.glb"
+    },
+    {
+      "file": "gpu.glb",
+      "bytes": 1412620,
+      "sha256": "027b9135933e71839572007c5cd5208a137da598ab8d122f64bacaaf3682522b",
+      "gitBlob": "40923c526bf802c3b17139778e9fa0e37a7f818b",
+      "mirror": "https://raw.githubusercontent.com/Jacob-Baker-Git/CustomPc/main/public/models/gpu.glb"
+    },
+    {
+      "file": "psu.glb",
+      "bytes": 139236,
+      "sha256": "60aa4b6c959cdc0cde5b99c7979066ac1dcfe24e8cdbe951f061cbec8db65f04",
+      "gitBlob": "a1448de29a0a80b19d1968541f98602a870e8e83",
+      "mirror": "https://raw.githubusercontent.com/Jacob-Baker-Git/CustomPc/main/public/models/psu.glb"
+    },
+    {
+      "file": "ram.glb",
+      "bytes": 532292,
+      "sha256": "6a8533f4272f540d7213b82e7dd541c07e0c0856ba81d0a70ba6755fe68c63e4",
+      "gitBlob": "84f0b228331c7db5b058094b15eff617ea52901f",
+      "mirror": "https://raw.githubusercontent.com/Jacob-Baker-Git/CustomPc/main/public/models/ram.glb"
+    },
+    {
+      "file": "storage.glb",
+      "bytes": 429224,
+      "sha256": "6f0657646486fc7eb5cdc4cfc7b7ec2ea8bd767a04123d770340f55e85eaa22a",
+      "gitBlob": "c8f05c2cb20b841f19b4317a884e2ccf3f1eb0f2",
+      "mirror": "https://raw.githubusercontent.com/Jacob-Baker-Git/CustomPc/main/public/models/storage.glb"
+    }
+  ]
+}

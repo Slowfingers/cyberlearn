@@ -1,3 +1,8 @@
+import { adjustStudentCoins } from './studentCoins.mjs';
+import { updateAvatarRoom } from './avatarRoom.mjs';
+import { submitPilotAttempt } from './lessonModes.mjs';
+import { lessonCheckpoint, practiceDraft } from './lessonCheckpoint.mjs';
+import { changeCharacterLook } from './characterLooks.mjs';
 import { initializeApp } from 'firebase-admin/app';
 import { getDatabase } from 'firebase-admin/database';
 import { getAuth } from 'firebase-admin/auth';
@@ -103,6 +108,13 @@ export const api = onCall({ region:'europe-west1', maxInstances:10 }, async requ
   if (d.operation === 'login') return login(request);
   const { ref:userRef, value:user } = await ownUser(request);
   switch (d.operation) {
+    case 'adjustStudentCoins': {
+      if(user.role!=='teacher')fail('Нет доступа','permission-denied');
+      const student=await findById('users',text(d.studentId));
+      if(student.value.role!=='student'||!student.value.classId)fail('Ученик не найден','not-found');
+      const cls=await ownedClass(user,student.value.classId);
+      return mutateUser(student.ref,current=>adjustStudentCoins(current,user,cls.value,d));
+    }
     case 'getUser': return publicUser(user);
     case 'listUsers': {
       if (!d.classId) return [publicUser(user)];
@@ -148,6 +160,14 @@ export const api = onCall({ region:'europe-west1', maxInstances:10 }, async requ
       const safe = { id:`custom_${randomUUID()}`, courseId:'course_grade3', module:'Кастомные миссии', title:text(task.title), description:text(task.description,2000), type:'grid', xpReward:500, currencyReward:100, status:'open', initialCode:'', mapConfig:task.mapConfig, allowedCommands:['moveRight();','moveDown();','moveLeft();','moveUp();'] };
       await db.ref(`classTasks/${d.classId}/${safe.id}`).set(safe); return null;
     }
+    case 'submitPilotAttempt': {const updated=await mutateUser(userRef,current=>submitPilotAttempt(current,d,catalog.tasks.find(t=>t.id===d.taskId)).user);return updated.lessonModeAttempts.find(a=>a.requestId===d.requestId);}
+    case 'getPracticeDraft': return practiceDraft(user,d.operation,d,catalog.tasks.find(t=>t.id===d.taskId));
+    case 'savePracticeDraft': return mutateUser(userRef,current=>practiceDraft(current,d.operation,d,catalog.tasks.find(t=>t.id===d.taskId)).user);
+    case 'getLessonCheckpoint': return lessonCheckpoint(user,d.operation,d,catalog.tasks.find(t=>t.id===d.taskId));
+    case 'saveLessonCheckpoint': return mutateUser(userRef,current=>lessonCheckpoint(current,d.operation,d,catalog.tasks.find(t=>t.id===d.taskId)).user);
+    case 'saveCharacterLook': case 'equipCharacterLook': case 'deleteCharacterLook':
+      return mutateUser(userRef, current => changeCharacterLook(current,d.operation,d));
+    case 'cleanRoomSpot': case 'buyRoomItem': case 'saveRoomLayout': return mutateUser(userRef,current=>updateAvatarRoom(current,d.operation,d));
     case 'buyItem': case 'equipItem':
       return mutateUser(userRef, current => buyCosmetic(current, catalog.cosmetics.find(i => i.id === d.itemId), d.operation === 'equipItem'));
     case 'completeTask': {

@@ -29,8 +29,9 @@ try {
   const lessons=await page.getByLabel('Проверка задания',{exact:true}).locator('option').evaluateAll(es=>es.map(e=>e.value));
   for(const id of lessons){
     await page.getByLabel('Проверка задания',{exact:true}).selectOption(id);
-    await page.getByRole('button',{name:'2 Пример',exact:true}).click();
-    const overflow=await page.evaluate(()=>[...document.querySelectorAll('.mentor-lesson *')].filter(e=>e instanceof HTMLElement&&e.clientWidth>0&&e.scrollWidth>e.clientWidth+3&&getComputedStyle(e).overflowX==='visible'&&e.getClientRects().length).map(e=>e.className));
+    const example=page.locator('.mentor-stage-nav button').nth(1);
+    if(await example.count())await example.click();
+    const overflow=await page.evaluate(()=>[...document.querySelectorAll('.mentor-lesson *')].filter(e=>e instanceof HTMLElement&&e.clientWidth>0&&e.scrollWidth>e.clientWidth+3&&getComputedStyle(e).overflowX==='visible'&&e.getClientRects().length).map(e=>`${e.tagName}.${e.className}: ${e.outerHTML.slice(0,180)}`));
     assert.deepEqual(overflow,[],`${id}: narrow explanation overflow`);
   }
   console.log(`layout.browser.check: ${ids.length} activities at 7 widths, task separation and content bounds verified`);

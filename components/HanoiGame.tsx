@@ -1,9 +1,9 @@
-import {GameButton} from './GameUI';
+import {WorkshopHeader, WorkshopBadge} from './GameUI';
 
 import React, { useState, useEffect, useRef } from 'react';
 import { Task } from '../types';
 import { playSound } from '../utils/sound';
-import { RefreshCw, Trophy } from 'lucide-react';
+import { Layers, Trophy, AlertTriangle } from 'lucide-react';
 
 interface HanoiGameProps {
     task: Task;
@@ -111,43 +111,31 @@ const HanoiGame: React.FC<HanoiGameProps> = ({ task, onComplete }) => {
                  style={{backgroundImage: 'linear-gradient(rgba(0, 243, 255, 0.1) 1px, transparent 1px), linear-gradient(90deg, rgba(0, 243, 255, 0.1) 1px, transparent 1px)', backgroundSize: '20px 20px'}}>
             </div>
 
-            {/* Header / Stats */}
-            <div className="absolute top-4 left-4 z-10 font-mono text-xs md:text-sm">
-                <div className="text-cyber-neonBlue">MOVES: <span className="text-white">{moves}</span></div>
-                <div className="text-gray-500">OPTIMAL: {Math.pow(2, numDisks) - 1}</div>
+            <div className="relative z-10 w-full">
+                <WorkshopHeader icon={<Layers size={26}/>} title="Станция переноса модулей" description="Перенеси все диски с башни 1 на башню 3. За ход бери только верхний диск. Большой диск нельзя класть на маленький. Нажми на башню с диском, затем на башню назначения." onReset={resetGame}
+                    badges={<><WorkshopBadge label="Ходов">{moves}</WorkshopBadge><WorkshopBadge label="Минимум">{Math.pow(2, numDisks) - 1}</WorkshopBadge></>}/>
             </div>
-
-            <div className="absolute top-4 right-4 z-10">
-                <GameButton size="compact"
-                    onClick={resetGame}
-                    className="p-2 text-gray-500 hover:text-white transition-colors"
-                    title="Сброс системы"
-                >
-                    <RefreshCw size={20} />
-                </GameButton>
-            </div>
-
-            <p className="relative z-10 mt-16 text-sm text-gray-200 max-w-xl text-center">Перенеси все диски с башни 1 на башню 3. За ход бери только верхний диск. Большой диск нельзя класть на маленький. Нажми на башню с диском, затем на башню назначения.</p>
 
             {/* ERROR MESSAGE */}
             {errorMsg && (
-                <div className="relative w-full mt-12 bg-red-900/80 text-white px-4 py-2 rounded font-mono text-xs border border-red-500 animate-pulse z-20">
-                    {errorMsg}
+                <div role="alert" className="workshop-feedback workshop-feedback--error relative w-full z-20 font-mono">
+                    <AlertTriangle size={18}/>{errorMsg}
                 </div>
             )}
 
             {/* Game Area */}
-            <div className="flex items-end justify-center gap-2 md:gap-12 w-full max-w-2xl h-64 md:h-80 relative z-10 mt-8 shrink-0">
+            <div className="hanoi-deck flex items-end justify-center gap-2 md:gap-12 w-full max-w-2xl h-64 md:h-80 relative z-10 mt-4 shrink-0">
                 {pegs.map((peg, pegIndex) => (
                     <div
                         key={pegIndex}
                         role="button"
-                        tabIndex={0}
+                        tabIndex={isSolved ? -1 : 0}
                         aria-label={`Башня ${pegIndex + 1}`}
+                        aria-pressed={selectedPeg === pegIndex} aria-disabled={isSolved} data-peg={pegIndex}
                         onKeyDown={event => { if(event.key === 'Enter' || event.key === ' ') { event.preventDefault(); handlePegClick(pegIndex); } }}
                         onClick={() => handlePegClick(pegIndex)}
                         className={`
-                            relative flex flex-col-reverse items-center justify-start flex-1 min-w-0 h-full cursor-pointer group transition-all duration-300
+                            hanoi-peg relative flex flex-col-reverse items-center justify-start flex-1 min-w-0 h-full cursor-pointer group transition-all duration-300
                             ${selectedPeg === pegIndex ? 'bg-cyber-neonBlue/10 shadow-[0_0_20px_rgba(0,243,255,0.2)]' : 'hover:bg-white/5'}
                             rounded-lg border-b-4 ${selectedPeg === pegIndex ? 'border-cyber-neonBlue' : 'border-gray-700'}
                         `}
@@ -166,24 +154,25 @@ const HanoiGame: React.FC<HanoiGameProps> = ({ task, onComplete }) => {
                             return (
                                 <div
                                     key={i}
+                                    data-disk={diskSize} data-selected={isSelected}
                                     className={`
-                                        h-6 md:h-8 rounded-sm mb-1 z-10 shadow-[0_0_10px] transition-all duration-300
+                                        hanoi-disk h-6 md:h-8 rounded-sm mb-1 z-10 shadow-[0_0_10px] transition-all duration-300
                                         ${isSelected ? 'translate-y-[-20px] shadow-[0_0_20px_white]' : ''}
                                     `}
                                     style={{
                                         width: `${widthPercent}%`,
-                                        backgroundColor: color,
-                                        boxShadow: `0 0 ${isSelected ? '20px' : '5px'} ${color}`
+                                        borderBottom: `3px solid ${color}`,
+                                        boxShadow: isSelected ? '0 0 12px #b9f2ef' : '0 3px 4px #0008'
                                     }}
                                 >
-                                    <div className="w-full h-full bg-gradient-to-r from-transparent via-white/30 to-transparent"></div>
+                                    <div className="hanoi-rank">{diskSize}</div>
                                 </div>
                             );
                         })}
 
                         {/* Click Hint */}
-                        <div className="absolute -bottom-8 text-[10px] text-gray-600 font-mono uppercase tracking-widest group-hover:text-cyber-neonBlue transition-colors">
-                            STACK_0{pegIndex + 1}
+                        <div className="absolute -bottom-8 text-xs text-gray-600 font-mono uppercase tracking-widest group-hover:text-cyber-neonBlue transition-colors">
+                            Башня {pegIndex + 1}{pegIndex === 2 ? ' · цель' : ''}
                         </div>
                     </div>
                 ))}
@@ -193,8 +182,8 @@ const HanoiGame: React.FC<HanoiGameProps> = ({ task, onComplete }) => {
             {isSolved && (
                 <div className="absolute inset-0 bg-black/80 backdrop-blur-sm flex flex-col items-center justify-center z-50 animate-in fade-in zoom-in duration-500">
                     <Trophy size={64} className="text-cyber-neonYellow mb-4 animate-bounce" />
-                    <h2 className="text-3xl font-bold text-white uppercase tracking-widest mb-2">ДЕФРАГМЕНТАЦИЯ ЗАВЕРШЕНА</h2>
-                    <div className="text-cyber-neonBlue font-mono">STEPS: {moves}</div>
+                    <h2 className="text-3xl font-bold text-white uppercase tracking-widest mb-2">Башня собрана</h2>
+                    <div className="text-cyber-neonBlue font-mono">Ходов: {moves}</div>
                 </div>
             )}
         </div>

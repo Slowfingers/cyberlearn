@@ -1,0 +1,36 @@
+# Художественное обновление v2
+
+Пользовательские референсы — исходные скриншоты города и лабиринта из этой беседы. Метод: встроенный image_gen, пять отдельных запросов с изображениями-референсами. Это новые игровые ассеты, не скриншоты интерфейса. UI, номера миссий, маршруты, препятствия и герой управляются приложением.
+
+## Ассеты
+
+- `public/art/neo-academy/city-v2.webp` — город кампании и фон входа.
+- `public/art/neo-academy/room-v2.webp` — отдельное промышленное окружение лабиринта.
+- `public/art/neo-academy/tile-v2.png` — прозрачная напольная плитка 512×320, верхняя грань 2:1.
+- `public/art/neo-academy/block-v2.png` — прозрачный блок 512×448.
+- `public/art/neo-academy/portal-v2.png` — прозрачный портал 512×768.
+- Оригиналы генерации сохранены в `public/art/neo-academy/sources/`.
+
+`prepareNeoArt.mjs` только удаляет прозрачные поля, нормализует размеры игровых спрайтов и сохраняет WebP города. Для повторной обработки нужен sharp; `SHARP_MODULE` позволяет указать уже установленный модуль. `npm run art:city` продолжает восстанавливать прежний процедурный набор и не перезаписывает новые ассеты.
+
+## Промпты генерации
+
+### Room (opaque, reference: maze screenshot)
+
+Generate a NEW richly illustrated isometric cyberpunk academy puzzle-room ENVIRONMENT BACKDROP, using the attached screenshot only as visual style reference, NOT an edit target. Output only environment art, absolutely no HUD, text, characters, robot, portal, arrows, mission markers or obstacle cubes. Landscape 1536x1024. Orthographic isometric 2:1 ground axes at +/-26.565 degrees, polished painterly 3D game art like the reference. A large industrial courtyard interior with the top and right perimeter occupied by sophisticated dark slate titanium walls, inset glowing cyan conduits, violet vertical lights, layered beams, vents, doorway recesses, some small planters with rich green foliage. Materials have handsome bevels, subtle stone wear, believable shadows and reflected neon. Keep the CENTRAL 65% and lower half calm and unobstructed: very dark slate floor with subtle seams, space for a separate playable modular board to be composited on top. Perimeter architecture frames the playable area, does not occupy the center. The illustration fills the full canvas edge-to-edge; no empty solid background, no floating-city islands or exterior skyline. Match the reference's atmospheric depth, warm blue-violet stone, cyan highlights and premium game art quality, never flat vector primitives. No game tiles with highlighted outlines baked in, no solution path.
+
+### City (opaque, reference: campaign screenshot)
+
+Create a NEW high-end game environment illustration using the attached screenshot ONLY as art direction reference, not as an edit target. Output ONLY the illustrated city environment, absolutely NO UI, text, icons, labels, paths, mission circles, people or characters. Landscape 1536x1024 or wider. Match the richly painted / polished 3D isometric cyber-academy city in the reference: substantial layered slate stone and titanium architecture, many terraces, inset cyan light strips, violet reactor cylinders, amber window glow, tiny lush trees in planters, stairs, elevated walkways, believable contact shadows, bevelled edges, sophisticated indigo night lighting. Four impressive distinct academy complexes surround a CENTRAL OPEN LOWER PLAZA: algorithm portal academy on left, computer academy with large holographic laptop at upper center, data reactor complex at upper right, programming spire at lower right. Buildings occupy perimeter and upper 35%; keep middle and lower central diagonal plazas open for live mission route overlays, not empty black void. Continuous city fills entire frame, no floating island silhouette, no horizon, orthographic isometric camera, left-right ground axes exactly +/-26.565 degrees (2:1 diamond tiles). Dense tactile hand-painted architectural detail as in reference, restrained beautiful neon, variation in stone panels, small green foliage, blue reflected lights on pavement. High production value game concept art, NOT simple vector primitives, NOT wireframe, NOT flat SVG-looking towers. No baked HUD, no text anywhere.
+
+### Tile (transparent, reference: maze screenshot)
+
+Create a NEW isolated production game sprite using attached screenshot ONLY as visual style reference. Subject: ONE single square stone floor tile viewed orthographic isometric, top surface a perfect 2:1 diamond, four top vertices horizontally left/right and vertically top/bottom. No surrounding floor or buildings. Slate blue-violet stone, crisp bevels, subtle panel seams, rich stone surface texture and restrained cyan light in two tiny side insets. The top is flat, mostly quiet and WALKABLE. Thickness only 12% of diamond width. Upper diamond fills full sprite width; left and right diamond vertices same height; top and bottom symmetric. Front vertical skirt below the bottom half. Polished illustrated 3D fantasy cyberpunk game art matching reference, not flat vector or wireframe. Straight clean edges; solid silhouette; no ground shadow, no soft glow outside silhouette. Centered single object, generous transparent margins, absolutely transparent background. No text, no frame, no other objects.
+
+### Block (transparent, reference: maze screenshot)
+
+Create a NEW isolated production game sprite using attached screenshot ONLY as visual style reference. Subject ONE square obstacle block, a substantial squat cuboid made of slate blue-violet beveled stone panels with two inset vertical cyan and purple light strips. Orthographic 2:1 isometric camera: top face a 2:1 diamond, axes +/-26.565 degrees. Identical square footprint to a floor tile. Height about 70% of block width. Realistic panel joints, attractive hand-painted 3D materials, strong ambient occlusion and attractive blue/purple lighting exactly like the wall blocks in reference. No towers, no windows, no roof equipment, no surrounding environment. Solid crisp silhouette, no cast ground shadow or glow outside silhouette. Centered single game object with all edges visible, generous transparent margins. Truly transparent background. No text or UI. NOT a flat vector drawing.
+
+### Portal (transparent, reference: maze screenshot)
+
+Create a NEW isolated production game sprite using attached screenshot ONLY as visual style reference. Subject ONE beautiful rectangular upright cyan holographic doorway mounted on a square slate-stone 2:1 isometric base tile, like the doorway at the goal of the reference maze. Orthographic isometric camera with ground axes +/-26.565 degrees. Thick dark titanium and violet-blue bevelled arch frame, intense cyan inset lines, a luminous cyan oval zero-shaped portal field in the center, subtle contained particles, two little steps on the front of base. Door front lies on the plane oriented along the upward-right ground axis so we see front and right side. No surroundings, no characters, no other tiles. Height roughly 1.6 times base width. Rich high-end illustrated 3D game art, tactile materials, polished blue reflected light. Centered all visible, transparent margins, truly transparent background. No text, logos, HUD, or extraneous symbols. No detached outer glow beyond generous 5% sprite margin.

@@ -1,3 +1,8 @@
+import { adjustStudentCoins } from '../functions/studentCoins.mjs';
+import { updateAvatarRoom } from '../functions/avatarRoom.mjs';
+import { submitPilotAttempt } from '../functions/lessonModes.mjs';
+import { lessonCheckpoint, practiceDraft } from '../functions/lessonCheckpoint.mjs';
+import { changeCharacterLook } from '../functions/characterLooks.mjs';
 import {TEACHER_REACTIONS} from '../shared/teacherReactions';
 import { readFileSync, writeFileSync, mkdirSync, renameSync } from 'node:fs';
 import { AsyncLocalStorage } from 'node:async_hooks';
@@ -211,6 +216,11 @@ export async function localCall<T>(operation: string, data: Record<string, unkno
       const points=Number(data.points);if(!Number.isFinite(points)||points<0||points>question.points) throw new Error('Баллы вне допустимого диапазона.');
       submission.grades[question.id]={points,comment:String(data.comment ?? '').slice(0,2000)};result=submission;changed=true;break;
     }
+    case 'submitPilotAttempt': {const value=submitPilotAttempt(user,data,MOCK_TASKS.find(t=>t.id===data.taskId));state.users[user.id]=value.user as User;changed=true;result=value.result;break;}
+    case 'getPracticeDraft': case 'savePracticeDraft': {const value=practiceDraft(user,operation,data,MOCK_TASKS.find(t=>t.id===data.taskId));if(operation==='savePracticeDraft'){state.users[user.id]=value.user as User;changed=true;result=value.draft;}else result=value;break;}
+    case 'getLessonCheckpoint': case 'saveLessonCheckpoint': { const value=lessonCheckpoint(user,operation,data,MOCK_TASKS.find(t=>t.id===data.taskId)); if(operation==='saveLessonCheckpoint'){state.users[user.id]=value.user as User;changed=true;result=value.checkpoint;}else result=value; break; }
+    case 'saveCharacterLook': case 'equipCharacterLook': case 'deleteCharacterLook': result = state.users[user.id] = changeCharacterLook(user,operation,data) as User; changed = true; break;
+    case 'cleanRoomSpot': case 'buyRoomItem': case 'saveRoomLayout': result = state.users[user.id] = updateAvatarRoom(user,operation,data) as User; changed = true; break;
     case 'buyItem': case 'equipItem': result = state.users[user.id] = buyCosmetic(user,COSMETICS.find(item => item.id === data.itemId),operation === 'equipItem') as User; changed = true; break;
     case 'completeTask': {
       if (user.role !== 'student') throw new Error('Задания проходят в аккаунте ученика.');
@@ -230,6 +240,12 @@ export async function localCall<T>(operation: string, data: Record<string, unkno
     case 'incrementSwitches': {
       const count = Number(data.count); if (!Number.isInteger(count) || count < 1 || count > 1000) throw new Error('Неверный счётчик.');
       user.suspiciousActivity = {highErrorTasks:user.suspiciousActivity?.highErrorTasks ?? [],totalTabSwitches:(user.suspiciousActivity?.totalTabSwitches ?? 0) + count}; changed = true; break;
+    }
+    case 'adjustStudentCoins': {
+      const student=state.users[String(data.studentId)];
+      if(student?.role!=='student'||!student.classId)throw new Error('Ученик не найден.');
+      const cls=owned(student.classId);
+      result=state.users[student.id]=adjustStudentCoins(student,user,cls,data) as User;changed=true;break;
     }
     case 'resetStudentPassword': throw new Error('Ученики входят по коду класса без пароля.');
     default: throw new Error(`Операция недоступна в локальном режиме: ${operation}`);

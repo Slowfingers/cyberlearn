@@ -1,0 +1,18 @@
+import assert from 'node:assert/strict';
+import {submitPilotAttempt} from '../functions/lessonModes.mjs';
+import {lessonVersion,practiceDraft} from '../functions/lessonCheckpoint.mjs';
+const task={id:'g3_m1_l3',type:'quiz',quizData:{options:['А','Б','В'],correctIndex:1}};
+const user={role:'student',xp:10,currency:5};
+const data={requestId:'attempt_123',mode:'check',version:lessonVersion(task),answer:'Б'};
+const first=submitPilotAttempt(user,data,task);assert.equal(first.result.correct,true);assert.equal(first.user.xp,10);assert.equal(first.user.completedTaskIds,undefined);
+assert.equal(submitPilotAttempt(first.user,data,task).user.lessonModeAttempts.length,1);
+const wrong=submitPilotAttempt(first.user,{...data,requestId:'attempt_456',mode:'train',answer:'А'},task);
+assert.equal(wrong.result.correct,false);assert.equal(wrong.user.lessonModeAttempts[1].mode,'train');
+assert.throws(()=>submitPilotAttempt(user,{...data,mode:'fake'},task));
+assert.throws(()=>submitPilotAttempt({...user,role:'teacher'},data,task));
+const state={active:true,typed:'',option:1};
+const learn=practiceDraft(user,'savePracticeDraft',{version:lessonVersion(task),state,mode:'learn'},task);
+const check=practiceDraft(learn.user,'savePracticeDraft',{version:lessonVersion(task),state:{...state,option:2},mode:'check'},task);
+assert.equal(practiceDraft(check.user,'getPracticeDraft',{mode:'learn'},task).draft.state.option,1);
+assert.equal(practiceDraft(check.user,'getPracticeDraft',{mode:'check'},task).draft.state.option,2);
+console.log('lessonModes: server grading, mode isolation, idempotent attempts, permissions and no rewards OK');

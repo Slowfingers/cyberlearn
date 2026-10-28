@@ -1,0 +1,170 @@
+/* Grid mission: isometric board, compass and command builder. */
+.mission-grid{--m-bg:#0b1328;--m-panel:#131e36;--m-trim:#2fc8e0;--m-select:#8b5cf6;display:flex;flex-direction:column;width:100%;height:100%;min-height:0;background:var(--m-bg);color:#eaf2ff;}
+.mission-grid__bar{display:flex;flex-wrap:wrap;gap:8px 12px;align-items:center;justify-content:space-between;padding:8px 10px;background:var(--m-panel);border-bottom:1px solid rgba(47,200,224,.35);}
+.mission-grid__compass{display:flex;align-items:center;gap:10px;min-width:0;}
+.mission-grid__compass-title{font-size:12px;letter-spacing:.06em;text-transform:uppercase;color:#a9bbd6;max-width:64px;line-height:1.2;}
+.mission-grid__compass-rose{position:relative;width:132px;height:64px;flex:none;}
+.mission-grid__dir{position:absolute;display:inline-flex;align-items:center;gap:3px;padding:1px 6px;font-size:12px;line-height:18px;background:#0b1328;border:1px solid rgba(47,200,224,.45);color:#eaf2ff;white-space:nowrap;}
+.mission-grid__dir b{font-size:14px;color:#2fc8e0;}
+.mission-grid__dir.is-heading{border-color:#fcee0a;}
+.mission-grid__compass-rose--top .mission-grid__dir--N{left:50%;top:0;transform:translateX(-50%);}
+.mission-grid__compass-rose--top .mission-grid__dir--S{left:50%;bottom:0;transform:translateX(-50%);}
+.mission-grid__compass-rose--top .mission-grid__dir--W{left:0;top:50%;transform:translateY(-50%);}
+.mission-grid__compass-rose--top .mission-grid__dir--E{right:0;top:50%;transform:translateY(-50%);}
+.mission-grid__compass-rose--iso .mission-grid__dir--N{right:0;top:0;}
+.mission-grid__compass-rose--iso .mission-grid__dir--E{right:0;bottom:0;}
+.mission-grid__compass-rose--iso .mission-grid__dir--S{left:0;bottom:0;}
+.mission-grid__compass-rose--iso .mission-grid__dir--W{left:0;top:0;}
+.mission-grid__views{display:flex;gap:6px;}
+.mission-grid__views button{min-height:44px;padding:6px 12px;background:#0b1328;border:1px solid rgba(47,200,224,.45);color:#eaf2ff;font-size:13px;font-weight:700;cursor:pointer;}
+.mission-grid__views button.is-active{border-color:var(--m-select);background:#241d4a;box-shadow:inset 0 0 0 1px var(--m-select);}
+.mission-grid__views button:focus-visible{outline:3px solid #fff;outline-offset:2px;}
+.mission-grid__stage{position:relative;flex:1 1 0;min-height:0;}
+.mission-grid__stage canvas{position:absolute;inset:0;width:100%;height:100%;display:block;}
+.mission-grid__stage .mission-grid__front{pointer-events:none;}
+.mission-grid__hero{position:absolute;left:0;top:0;width:56px;height:112px;pointer-events:none;will-change:transform;}
+.mission-grid__hero>svg{width:100%;height:100%;display:block;}
+.mission-grid__status{display:flex;flex-wrap:wrap;gap:4px 14px;margin:0;padding:6px 10px;font-size:12px;color:#a9bbd6;background:var(--m-panel);border-top:1px solid rgba(47,200,224,.35);}
+
+.mission-commands{flex:1 1 auto;min-height:0;display:grid;align-content:start;gap:10px;padding:10px;background:#0b1328;border-bottom:1px solid rgba(47,200,224,.35);overflow-y:auto;max-height:100%;}
+.mission-commands__palette{display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:8px;}
+.mission-command{display:flex;align-items:center;gap:10px;min-height:48px;padding:6px 10px;background:#131e36;border:1px solid rgba(47,200,224,.45);color:#eaf2ff;text-align:left;cursor:pointer;}
+.mission-command__glyph,.mission-line__glyph{display:grid;place-items:center;width:32px;height:32px;flex:none;font-size:20px;color:#2fc8e0;background:#0b1328;border:1px solid rgba(47,200,224,.35);}
+.mission-command__text,.mission-line__text{display:grid;min-width:0;overflow-wrap:anywhere;}
+.mission-command__text small,.mission-line__text small{color:#a9bbd6;font-size:12px;font-family:ui-monospace,monospace;}
+.mission-commands__list{list-style:none;margin:0;padding:0;display:grid;gap:6px;}
+.mission-commands__empty{color:#a9bbd6;font-size:14px;padding:8px;}
+.mission-line{display:grid;grid-template-columns:24px 32px minmax(0,1fr) 44px 44px 44px;align-items:center;gap:6px;padding:4px 6px;background:#131e36;border:1px solid rgba(47,200,224,.3);}
+.mission-line__n{color:#a9bbd6;font-weight:700;text-align:center;}
+.mission-line button{width:44px;height:44px;display:grid;place-items:center;background:#0b1328;border:1px solid rgba(47,200,224,.35);color:#eaf2ff;cursor:pointer;}
+.mission-line button:disabled,.mission-command:disabled,.mission-commands__actions button:disabled{opacity:.45;cursor:not-allowed;}
+.mission-commands__actions{display:flex;flex-wrap:wrap;gap:8px;}
+.mission-commands__actions button{display:inline-flex;align-items:center;gap:6px;min-height:44px;padding:6px 12px;background:#131e36;border:1px solid rgba(47,200,224,.45);color:#eaf2ff;cursor:pointer;font-size:13px;}
+.mission-command:focus-visible,.mission-line button:focus-visible,.mission-commands__actions button:focus-visible{outline:3px solid #fff;outline-offset:2px;}
+
+.mission-brief{background:#131e36;border:1px solid rgba(47,200,224,.35);margin:0;}
+.mission-brief>summary{cursor:pointer;min-height:44px;display:flex;align-items:center;}
+.mission-grid-workspace .mission-code textarea{min-height:120px;}
+.mission-render{flex:3 1 0;min-height:240px;}
+
+@media (min-width:1024px){
+ .mission-grid-workspace .mission-visual{order:1;flex:1 1 0;width:auto;min-width:0;}
+ .mission-grid-workspace .mission-code{order:2;flex:0 0 26rem;max-width:36vw;}
+ .mission-grid-workspace .mission-render{max-height:none;}
+}
+@media (max-width:1023.98px){
+ .mission-grid-workspace .mission-content{overflow-y:auto;}
+ .mission-grid-workspace:not([data-tab="info"]) .mission-visual,.mission-grid-workspace:not([data-tab="info"]) .mission-code{display:flex!important;}
+ .mission-grid-workspace .mission-visual{order:1;width:100%;border-left:0;flex:none;}
+ .mission-grid-workspace .mission-code{order:2;flex:none;}
+ .mission-grid-workspace .mission-render{flex:none;height:min(96vw,56vh);min-height:260px;}
+ .mission-grid-workspace[data-tab="info"] .mission-visual,.mission-grid-workspace[data-tab="info"] .mission-code{display:none!important;}
+}
+@media (max-width:420px){
+ .mission-line{grid-template-columns:20px 28px minmax(0,1fr) 44px 44px 44px;gap:4px;padding:4px;}
+ .mission-grid__compass-title{display:none;}
+}
+
+/* The player walks on the board; the portrait below carries live mission feedback. */
+.mission-grid__guide{display:flex;align-items:center;gap:10px;padding:10px 14px;border-top:1px solid #4c65a2;background:linear-gradient(110deg,#151f3b,#0b1428);font-size:13px;line-height:1.45;min-height:62px;}
+.mission-grid__guide>svg{flex:none;}
+.mission-grid__guide>span{display:grid;gap:2px;}
+.mission-grid__guide strong{color:#75e8ff;font-size:12px;}
+.mission-grid__hero>svg{filter:drop-shadow(0 2px 4px #07102299);transform-origin:50% 90%;}
+.mission-grid__hero[data-moving=true]>svg{animation:grid-hero-step .22s ease-in-out infinite;}
+.mission-grid__hero[data-heading=W]>svg,.mission-grid__hero[data-heading=N]>svg{scale:-1 1;}
+.mission-grid__hero[data-outcome=retry]>svg{animation:grid-hero-retry .5s ease-in-out;}
+.mission-grid__hero[data-outcome=success]>svg{animation:grid-hero-arrive .65s ease-in-out 2;filter:drop-shadow(0 0 8px #65e6ff);}
+.mission-grid__hero-spark{position:absolute;right:0;top:0;color:#fff49e;font-size:24px;text-shadow:0 0 12px #b580ff;}
+.mission-grid[data-outcome=retry] .mission-grid__guide{border-color:#f5b773;}
+.mission-grid[data-outcome=success] .mission-grid__guide{border-color:#53efc0;background:linear-gradient(110deg,#133d3d,#0b1428);}
+@keyframes grid-hero-step{50%{transform:rotate(3deg);}}
+@keyframes grid-hero-retry{25%{transform:rotate(-5deg);}75%{transform:rotate(5deg);}}
+@keyframes grid-hero-arrive{50%{transform:translateY(-7px);}}
+@media(prefers-reduced-motion:reduce){.mission-grid__hero[data-moving]>svg,.mission-grid__hero[data-outcome]>svg{animation:none;}}
+/* Reserve actual space for the board when surrounding controls grow. */
+.mission-grid:not(.mission-grid--preview){min-height:460px;}
+.mission-grid:not(.mission-grid--preview) .mission-grid__stage{min-height:260px;}
+.mission-grid__bar,.mission-grid__guide,.mission-grid__status{flex-shrink:0;}
+.mission-grid-workspace .mission-render{min-height:460px;}
+@media(max-width:1023.98px){.mission-grid-workspace .mission-render{height:480px;min-height:480px;}}
+.mission-grid-workspace .mission-visual{overflow-y:auto;}
+@media(max-width:1023.98px){
+ .mission-grid-workspace .mission-render{height:auto;}
+ .mission-grid:not(.mission-grid--preview){height:auto;}
+ .mission-grid:not(.mission-grid--preview) .mission-grid__stage{flex:none;height:320px;}
+}
+
+@media(min-width:1024px){.mission-grid-workspace .mission-render{min-height:560px;}}
+/* Painted maze: large scene, quiet controls and light rather than wireframe outlines. */
+.mission-grid{background:#091426;}
+.mission-grid__bar{background:linear-gradient(90deg,#10223d,#0c1831);border-color:#5474aa80;}
+.mission-grid__views button{border-radius:7px;background:#0c1b32;border-color:#4d6d9d80;}
+.mission-grid__views button.is-active{background:#3c226b;border-color:#bf96ff;box-shadow:0 0 14px #a362ff30;}
+.mission-grid__guide{background:linear-gradient(110deg,#132a46,#0c1730);border-color:#5576a0;min-height:76px;}
+.mission-grid__guide>svg{width:52px;height:52px;}
+.mission-grid__guide>span{font-size:14px;}
+.mission-grid__hero>svg{filter:drop-shadow(0 5px 3px #020818bb) drop-shadow(0 0 7px #9c5dff44);}
+.mission-grid__status{color:#92a9c7;background:#0b172d;font-size:11px;}
+.mission-commands{background:linear-gradient(160deg,#132441,#0b162c);gap:14px;padding:14px;}
+.mission-command{border-radius:10px;background:linear-gradient(145deg,#173455,#0a1730);border-color:#4573ab;box-shadow:inset 0 1px 0 #9fdfff14;}
+.mission-command__glyph{border:0;background:none;color:#35d9fc;font-size:29px;width:38px;height:38px;}
+.mission-line{border-radius:9px;background:#122440;border-color:#3d5c8a;padding:7px;}
+.mission-line__glyph{border-radius:7px;color:#4ce6ff;border-color:#246a9e;background:#0a1a32;}
+.mission-line button{border-radius:50%;}
+.mission-commands__actions button{border-radius:8px;}
+.mission-run-feedback{flex:none!important;padding:10px 14px!important;}
+.mission-run-feedback>div:first-child{display:none;}
+.mission-run-feedback>div:nth-child(2){max-height:90px;min-height:40px;font-family:inherit;font-size:12px;border-style:solid;border-color:#3b557c;background:#101e35;}
+@media(min-width:1024px){.mission-grid-workspace .mission-render{min-height:660px;}}
+@media(max-width:1023.98px){.mission-grid:not(.mission-grid--preview) .mission-grid__stage{height:370px;}}
+/* Compass positions follow the new camera: x goes up-right, y goes down-right. */
+.mission-grid__compass-rose--iso .mission-grid__dir--N{left:0;right:auto;top:0;bottom:auto;}
+.mission-grid__compass-rose--iso .mission-grid__dir--E{left:auto;right:0;top:0;bottom:auto;}
+.mission-grid__compass-rose--iso .mission-grid__dir--S{left:auto;right:0;top:auto;bottom:0;}
+.mission-grid__compass-rose--iso .mission-grid__dir--W{left:0;right:auto;top:auto;bottom:0;}
+/* Wide lessons follow the reference: explanation / live scene / command program. */
+.mission-lesson-brief{display:none;}
+.mission-commands__heading{display:flex;align-items:center;gap:9px;color:#58dfff;}
+.mission-commands__heading h2{margin:0;flex:1;font:700 24px/1.2 Rajdhani,Arial,sans-serif;color:#f0f5ff;}
+.mission-commands__heading>span{font-size:12px;border:1px solid #4f648d;border-radius:6px;padding:3px 7px;color:#bcd1ec;}
+@media(min-width:1280px){
+ .mission-grid-workspace>.mission-brief{display:none;}
+ .mission-grid-workspace .mission-content{display:grid!important;grid-template-columns:minmax(210px,240px) minmax(0,1fr) minmax(300px,350px);grid-template-rows:minmax(0,1fr);padding:12px;gap:12px;min-height:0;}
+ .mission-grid-workspace .mission-lesson-brief{display:flex;grid-column:1;grid-row:1;flex-direction:column;gap:16px;min-height:0;overflow:hidden;padding:18px 15px;background:linear-gradient(160deg,#142643,#0a172c);border:1px solid #426395;border-radius:14px;color:#d8e6fa;}
+ .mission-lesson-brief header{display:flex;gap:9px;align-items:center;color:#bc9cff;}
+ .mission-lesson-brief h2{margin:0;font:700 23px/1.1 Rajdhani,Arial,sans-serif;color:#f3f5ff;}
+ .mission-lesson-brief p{font-size:14px;line-height:1.65;margin:0;}
+ .mission-lesson-brief h3{margin:0 0 10px;font:700 22px/1.2 Rajdhani,Arial,sans-serif;color:#f3f5ff;}
+ .mission-lesson-brief section{padding:15px;border:1px solid #4b6590;border-radius:10px;background:#142440;}
+ .mission-lesson-order{display:flex;align-items:center;flex-wrap:wrap;justify-content:center;gap:7px;padding:14px 6px;border:1px solid #3c567c;border-radius:10px;color:#62ddf6;}
+ .mission-lesson-order>span{display:grid;place-items:center;width:34px;height:38px;background:#0a1d36;border:1px solid #4a99c9;border-radius:6px;font-weight:700;}
+ .mission-lesson-order>small{flex-basis:100%;text-align:center;color:#a8bce0;font-size:11px;margin-top:7px;}
+ .mission-lesson-brief ol{padding-left:19px;margin:0;font-size:12px;line-height:1.6;color:#aabfdf;}
+ .mission-lesson-brief li+li{margin-top:8px;}
+ .mission-lesson-brief>.ui-button{width:100%;min-height:48px;flex-shrink:0;}
+ .mission-grid-workspace .mission-visual{grid-column:2;grid-row:1;order:initial;flex:none;width:auto!important;max-width:none;min-height:0;border:1px solid #426395;border-radius:14px;overflow-y:auto;}
+ .mission-grid-workspace .mission-code{grid-column:3;grid-row:1;order:initial;flex:none;width:auto!important;max-width:none!important;min-height:0;border:1px solid #426395;border-radius:14px;}
+ .mission-grid-workspace .mission-render{min-height:0!important;flex:1 1 0;height:auto;}
+ .mission-grid-workspace .mission-grid:not(.mission-grid--preview){min-height:0;}
+ .mission-grid-workspace .mission-grid__stage{min-height:240px;}
+ .mission-grid-workspace .mission-grid__compass-title{display:none;}
+ .mission-grid-workspace .mission-grid__views button{font-size:11px;padding:6px 8px;}
+ .mission-grid-workspace .mission-run-feedback:not([data-outcome=retry]){padding:0!important;flex:0 0 0!important;}
+ .mission-grid-workspace .mission-run-feedback:not([data-outcome=retry])>div:nth-child(2){display:none;}
+ .mission-grid-workspace .mission-run-feedback>.ui-button{display:none;}
+ .mission-grid-workspace .mission-commands{max-height:none;padding:13px;}
+ .mission-grid-workspace .mission-commands[data-absolute=true] .mission-commands__palette{grid-template-columns:repeat(4,minmax(0,1fr));}
+ .mission-grid-workspace .mission-commands[data-absolute=true] .mission-command{display:flex;flex-direction:column;justify-content:center;text-align:center;padding:8px 2px;gap:4px;min-height:86px;}
+ .mission-grid-workspace .mission-commands[data-absolute=true] .mission-command__text strong{font-size:11px;}
+ .mission-grid-workspace .mission-commands[data-absolute=true] .mission-command__text small{display:none;}
+ .mission-grid-workspace .mission-line{grid-template-columns:17px 28px minmax(0,1fr) 44px 44px 44px;gap:3px;padding:6px 3px;}
+ .mission-grid-workspace .mission-line button{width:44px;min-width:44px;height:44px;border:0;background:none;}
+ .mission-grid-workspace .mission-line__text strong{font-size:12px;}
+ .mission-grid-workspace .mission-line__text small{font-size:10px;}
+}
+@media(min-width:1600px){.mission-grid-workspace .mission-content{grid-template-columns:280px minmax(0,1fr) 370px;}}
+
+@media(min-width:1280px){.mission-lesson-copy{display:flex;flex:1;min-height:0;flex-direction:column;gap:16px;overflow-y:auto;padding-right:3px}.mission-lesson-brief>header{flex-shrink:0}}
+
+.mission-grid__compass-rose--iso{width:236px;}

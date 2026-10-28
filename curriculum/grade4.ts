@@ -1,4 +1,4 @@
-import { Course, Task } from '../types';
+import { Task } from '../types';
 import { MODULE1_TASKS } from './grade4/module1';
 import { MODULE2_TASKS } from './grade4/module2';
 import { MODULE3_TASKS } from './grade4/module3';
@@ -14,16 +14,8 @@ import { MODULE12_TASKS } from './grade4/module12';
 import { MODULE13_TASKS } from './grade4/module13';
 import { MODULE14_TASKS } from './grade4/module14';
 
-export const GRADE4_COURSE: Course = {
-  id: 'course_grade4',
-  title: '4 класс · Думаем и проверяем',
-  description: 'От простых команд переходим к повторениям, логике и данным. Собираем страницы и проверяем решения на примерах.',
-  icon: 'Terminal',
-  difficulty: 'Beginner',
-  status: 'active',
-  totalModules: 14,
-  color: '#00f0ff' // neonCyan
-};
+import { GRADE4_COURSE } from './courseCatalog';
+export { GRADE4_COURSE } from './courseCatalog';
 
 export const GRADE4_TASKS: Task[] = [
   ...MODULE1_TASKS,

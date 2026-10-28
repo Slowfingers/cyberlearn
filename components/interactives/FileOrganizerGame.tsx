@@ -2,7 +2,7 @@ import {GameButton} from '../GameUI';
 import React, { useState, useRef, useEffect } from 'react';
 import { Task } from '../../types';
 import { playSound } from '../../utils/sound';
-import { RotateCcw } from 'lucide-react';
+import { FolderTree } from 'lucide-react';
 import { WorkshopArt, WorkshopHeader, WorkshopProgress } from './WorkshopArt';
 interface FileItem {
   id: string;
@@ -139,7 +139,7 @@ export const FileOrganizerGame: React.FC<{ task: Task; onComplete: () => void }>
   };
   const folderAt = (x: number, y: number) => document.elementFromPoint(x, y)?.closest<HTMLElement>('[data-folder-type]')?.dataset.folderType;
   return <div className="workshop-game delivery-workshop">
-    <WorkshopHeader title="Бюро цифровых посылок" description="Разложи файлы по папкам. Перетаскивай или нажимай: файл → папка."><GameButton variant="secondary" size="icon" className="workshop-icon-button" onClick={reset} aria-label="Начать заново"><RotateCcw size={19} /></GameButton></WorkshopHeader>
+    <WorkshopHeader icon={<FolderTree size={26}/>} title="Бюро цифровых посылок" description="Разложи файлы по папкам. Перетаскивай или нажимай: файл → папка." onReset={reset}/>
     <WorkshopProgress value={placed.length} total={files.length} />
     <p className="workshop-feedback" role="status">{feedback}</p>
     {selected && <div className="delivery-selection"><span>Выбран файл <strong>{files.find(file => file.id === selected)?.name}</strong></span><GameButton variant="primary" size="compact" className="academy-primary" onClick={() => foldersRef.current?.scrollIntoView({block:'center'})}>Выбрать папку ↓</GameButton></div>}

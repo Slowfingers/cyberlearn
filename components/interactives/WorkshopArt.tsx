@@ -18,9 +18,7 @@ export function WorkshopArt({ kind = 'bot', className = '' }: { kind?: string; c
     </>}
   </svg>;
 }
-export function WorkshopHeader({ title, description, children }: { title: string; description: string; children?: React.ReactNode }) {
-  return <header className="workshop-header"><WorkshopArt /><div><span className="workshop-eyebrow">Твоя игровая мастерская</span><h2>{title}</h2><p>{description}</p></div><div className="workshop-tools">{children}</div></header>;
-}
+export { WorkshopHeader } from '../GameUI';
 export function WorkshopProgress({ value, total }: { value: number; total: number }) {
   return <div className="workshop-progress"><span>Готово {value} из {total}</span><div role="progressbar" aria-label="Прогресс задания" aria-valuenow={value} aria-valuemin={0} aria-valuemax={total}><i style={{ width: `${total ? value / total * 100 : 0}%` }} /></div></div>;
 }

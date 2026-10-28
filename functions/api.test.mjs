@@ -45,3 +45,44 @@ test('API authorization, legacy migration and atomic actions', async () => {
  assert.equal((await call('listClassrooms',{},'s_1')).length,0);
  await assert.rejects(call('listTasks',{},'s_1'),{code:'not-found'});
 });
+
+test('Room purchases and layout updates remain atomic and owned by the current student',async()=>{
+ seed();
+ const {ROOM_CLUTTER}=await import('./avatarRoom.mjs');
+ await assert.rejects(call('cleanRoomSpot',{spotId:'boxes'}),{code:'unauthenticated'});
+ await assert.rejects(call('buyRoomItem',{itemId:'room_desk'},'s_1'));
+ for(const spot of ROOM_CLUTTER)await call('cleanRoomSpot',{spotId:spot.id},'s_1');
+ await Promise.all([call('cleanRoomSpot',{spotId:'boxes'},'s_1'),call('cleanRoomSpot',{spotId:'boxes'},'s_1')]);
+ assert.equal((await call('getUser',{},'s_1')).avatarRoom.cleared.length,6);
+ await assert.rejects(call('buyRoomItem',{itemId:'room_desk'}),{code:'unauthenticated'});
+ await assert.rejects(call('buyRoomItem',{itemId:'room_desk'},'t_1'));
+ await Promise.all([call('buyRoomItem',{itemId:'room_desk',cost:0,userId:'s_2'},'s_1'),call('buyRoomItem',{itemId:'room_desk'},'s_1')]);
+ const current=await call('getUser',{},'s_1');assert.equal(current.currency,860);assert.equal(current.avatarRoom.owned.filter(id=>id==='room_desk').length,1);assert.equal((await call('getUser',{},'s_2')).currency,1000);
+ await assert.rejects(call('saveRoomLayout',{revision:0,placements:[{itemId:'room_plant',x:0,y:0,rotation:0}]},'s_1'));
+ const results=await Promise.allSettled([call('saveRoomLayout',{revision:0,placements:[],palette:'rose'},'s_1'),call('saveRoomLayout',{revision:0,placements:[],palette:'amber'},'s_1')]);
+ assert.equal(results.filter(r=>r.status==='fulfilled').length,1);const saved=await call('getUser',{},'s_1');assert.equal(saved.avatarRoom.revision,1);assert.equal(saved.currency,860);assert.ok(saved.avatarRoom.owned.includes('room_desk'));
+});
+
+test('Teacher coin adjustments enforce ownership, amounts, no overdraft and atomic retries',async()=>{
+ seed();const award={studentId:'s_1',action:'award',amount:75,reason:'Помощь классу',requestId:'award_request_001'};
+ await assert.rejects(call('adjustStudentCoins',award),{code:'unauthenticated'});
+ await assert.rejects(call('adjustStudentCoins',award,'s_1'),{code:'permission-denied'});
+ await assert.rejects(call('adjustStudentCoins',{...award,studentId:'s_2'},'t_1'),{code:'permission-denied'});
+ for(const amount of [0,-1,1.5,100001,'50',null])await assert.rejects(call('adjustStudentCoins',{...award,amount},'t_1'));
+ await Promise.all([call('adjustStudentCoins',award,'t_1'),call('adjustStudentCoins',award,'t_1')]);
+ assert.equal((await call('getUser',{},'s_1')).currency,1075);
+ await assert.rejects(call('adjustStudentCoins',{...award,amount:100},'t_1'));
+ await assert.rejects(call('adjustStudentCoins',{...award,action:'fine',amount:1076,requestId:'fine_request_over'},'t_1'));
+ await Promise.all([call('adjustStudentCoins',{...award,action:'fine',amount:25,requestId:'fine_request_001'},'t_1'),call('adjustStudentCoins',{...award,amount:50,requestId:'award_request_002'},'t_1')]);
+ const saved=await call('getUser',{},'s_1');assert.equal(saved.currency,1100);assert.equal(saved.coinAdjustments.length,3);assert.equal(saved.xp,0);assert.deepEqual(saved.inventory,student.inventory);
+ assert.equal((await call('getUser',{},'s_2')).currency,1000);
+ await call('adjustStudentCoins',{...award,action:'fine',amount:1100,requestId:'fine_request_zero'},'t_1');assert.equal((await call('getUser',{},'s_1')).currency,0);
+});
+
+test('Room wall placement is validated and retained by the server',async()=>{
+ seed();const {ROOM_CLUTTER}=await import('./avatarRoom.mjs');for(const spot of ROOM_CLUTTER)await call('cleanRoomSpot',{spotId:spot.id},'s_1');
+ await call('buyRoomItem',{itemId:'room_poster_cosmos',cost:0},'s_1');
+ await assert.rejects(call('saveRoomLayout',{revision:0,placements:[{itemId:'room_poster_cosmos',x:2,y:0,rotation:0}]},'s_1'));
+ await assert.rejects(call('saveRoomLayout',{revision:0,placements:[{itemId:'room_poster_cosmos',wall:'right',x:7,y:0,rotation:0}]},'s_1'));
+ const saved=await call('saveRoomLayout',{revision:0,placements:[{itemId:'room_poster_cosmos',wall:'right',x:2,y:0,rotation:0}]},'s_1');assert.equal(saved.avatarRoom.placements[0].wall,'right');assert.equal(saved.currency,980);
+});

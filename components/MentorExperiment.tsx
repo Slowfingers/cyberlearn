@@ -1,8 +1,11 @@
+import { PlayerAvatar } from './PlayerAvatar';
+import { LessonPlayerContext } from './LessonCharacter';
 import {GameButton} from './GameUI';
-import React, { useState } from 'react';
+import React, { useContext, useState } from 'react';
 import { Folder, FileImage, Music, Lightbulb, ArrowRight, RotateCcw } from 'lucide-react';
 
 export function MentorExperiment({ topic }: { topic?: string }) {
+  const player = useContext(LessonPlayerContext);
   const [bits, setBits] = useState([false, false, false, false]);
   const [file, setFile] = useState(0);
   const [destination, setDestination] = useState<string>();
@@ -35,11 +38,11 @@ export function MentorExperiment({ topic }: { topic?: string }) {
   if (topic === 'loop' || topic === 'pyloop') {
     return <section className="mentor-experiment" aria-label="Опыт с повторением команд">
       <p className="mentor-experiment-title">Одна команда — шаг вправо. Сколько шагов даст повторение?</p>
-      <div className="mentor-track" aria-label={`Робот сделал ${position} шагов`}>{Array.from({ length: 5 }, (_, i) => <span key={i}>{position === i ? '🤖' : i === 0 ? '•' : i}</span>)}</div>
+      <div className="mentor-track" aria-label={`Герой сделал ${position} шагов`}>{Array.from({ length: 5 }, (_, i) => <span key={i}>{position === i ? <PlayerAvatar user={player} stage fullBody scale={0.45}/> : i === 0 ? '•' : i}</span>)}</div>
       {topic === 'pyloop' && <pre className="mentor-code">{`for i in range(${repeats}):\n    forward()`}</pre>}
       <label className="mentor-repeat-control">Повторить <select value={repeats} onChange={e => { setRepeats(Number(e.target.value)); setPosition(0); }}>{[2, 3, 4].map(n => <option key={n}>{n}</option>)}</select> раза</label>
       <div className="mentor-choice-row"><GameButton size="compact" onClick={() => setPosition(repeats)}><ArrowRight size={18}/> Выполнить повторение</GameButton><GameButton size="compact" aria-label="Сбросить пример" onClick={() => setPosition(0)}><RotateCcw size={18}/></GameButton></div>
-      <p className="mentor-live-result" aria-live="polite">{position ? `${repeats} повторения × 1 шаг = ${position} шага. Команда одна, выполняем её несколько раз.` : 'Сначала предскажи, где окажется робот, потом запусти.'}</p>
+      <p className="mentor-live-result" aria-live="polite">{position ? `${repeats} повторения × 1 шаг = ${position} шага. Команда одна, выполняем её несколько раз.` : 'Сначала предскажи, где окажется герой, потом запусти.'}</p>
     </section>;
   }
   if (topic === 'sorting') {
