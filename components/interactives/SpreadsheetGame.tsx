@@ -121,8 +121,8 @@ export const SpreadsheetGame: React.FC<Props> = ({ task, onComplete }) => {
         <ol className="formula-steps" aria-label="Шаги построения формулы">{steps.map((s, i) => <li key={i} data-done={s.done}><span className="step-check" aria-hidden="true">{s.done ? '✓' : i + 1}</span>{s.text}</li>)}</ol>
     {!isIf && !isMultiply && <p className="formula-steps-note">Можно и так: =D2+D3+D4</p>}
     <div className="formula-keypad" role="group" aria-label="Кнопки формулы">
-      {['=', '+', '−', '×', '÷', 'SUM(', ':', ')'].map(tok => <button key={tok} type="button" disabled={completed} onClick={() => insertToken(tok === '−' ? '-' : tok === '×' ? '*' : tok === '÷' ? '/' : tok)}>{tok}</button>)}
-      {isIf && expectedIf && <>{['IF(', '>=', '>', '<', ';'].map(tok => <button key={tok} type="button" disabled={completed} onClick={() => insertToken(tok)}>{tok}</button>)}<button type="button" disabled={completed} onClick={() => insertToken(`"${expectedIf.passText}"`)}>«{expectedIf.passText}»</button><button type="button" disabled={completed} onClick={() => insertToken(`"${expectedIf.failText}"`)}>«{expectedIf.failText}»</button></>}
+      {(isMultiply ? ['=', '×'] : isIf ? ['=', 'IF(', '>=', '>', '<', ';', ')'] : ['=', '+', 'SUM(', ':', ')']).map(tok => <button key={tok} type="button" disabled={completed} onClick={() => insertToken(tok === '×' ? '*' : tok)}>{tok}</button>)}
+      {isIf && expectedIf && <><button type="button" disabled={completed} onClick={() => insertToken(`"${expectedIf.passText}"`)}>«{expectedIf.passText}»</button><button type="button" disabled={completed} onClick={() => insertToken(`"${expectedIf.failText}"`)}>«{expectedIf.failText}»</button></>}
       <button type="button" disabled={completed || !formula} onClick={backspace} aria-label="Стереть последнее">⌫</button>
       <button type="button" disabled={completed || !formula} onClick={() => { setFormula(''); setError(''); }}>Очистить</button>
     </div>

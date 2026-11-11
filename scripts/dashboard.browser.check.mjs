@@ -45,6 +45,7 @@ async function openPage(width, height, completedIds, hiddenCourses = []) {
     let data = null;
     switch (body.operation) {
       case 'getUser': data = user(); break;
+      case 'studentDashboard': data = {user:user(), tasks:[], hiddenCourses}; break;
       case 'listTasks': case 'listUsers': case 'listFolders': data = []; break;
       case 'listClassrooms': data = [{ id: 'fixture_class', teacherId: 'fixture_teacher', name: 'Класс', inviteCode: 'X', studentIds: [baseUser.id], hiddenCourses }]; break;
       case 'getLessonCheckpoint': data = { checkpoint: null, version: '' }; break;

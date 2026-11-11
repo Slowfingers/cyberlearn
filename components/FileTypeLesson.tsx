@@ -17,12 +17,12 @@ export function FileTypeLesson({skin,goal,onStart}: {skin?:string;goal:string;on
   const correct=choice===file.correct;
   const titles=['Что такое файл','Читаем имя файла','Определяем вид вместе','Твоё задание'];
   const speech=[
-    'Ты сделал рисунок и сохранил его. Теперь на компьютере есть файл — сохранённая работа. Файлами бывают рисунки, записи звука и документы. Значок помогает ориентироваться, но сегодня мы научимся читать имя файла.',
-    'Разберём «Поход.jpg». «Поход» — название: оно рассказывает о теме работы. Часть после точки называется расширением. Здесь это jpg — формат изображения. Название и расширение делают разную работу. Если просто переименовать файл, его содержимое не изменится.',
-    'Теперь посмотри на расширение и выбери вид файла. Это учебные примеры: после выбора объясню результат. Можно исправлять ответ.',
-    'В самостоятельном вопросе будет другой файл. Найди расширение после точки и определи его вид. Название до точки не всегда даёт верную подсказку.',
+    'Рисунок, песню или текст можно сохранить на компьютере. Такая сохранённая работа называется файлом.',
+    'У файла есть название и расширение — часть после точки. Например, .jpg подсказывает, что это изображение. Если переименовать файл, его содержимое не изменится.',
+    'Посмотри на расширение после точки и выбери вид файла. Если ошибёшься, можно попробовать ещё раз.',
+    'Теперь попробуй сам: найди расширение после точки и определи вид файла.',
   ];
-  return <article className="academy-theory mentor-lesson archive-lesson">
+  return <article className="academy-theory mentor-lesson archive-lesson file-lesson-pilot">
     <header className="mentor-lesson-header"><div><span>Миссия: читаем цифровые посылки</span><h1>Что подсказывает имя файла</h1></div><span className="archive-step">Шаг {phase+1} из 4</span></header>
     <div className="mentor-classroom"><aside className="mentor-teacher"><BigCharacter3D skin={skin} mood={phase===2&&correct?'celebrate':'idle'}/><strong>{characterName}</strong></aside>
       <div className="mentor-board"><h2 className="archive-stage-title">{titles[phase]}</h2><p className="mentor-bubble mentor-main-speech">{speech[phase]}</p>

@@ -16,10 +16,26 @@ try {
  const cookie='cyberlearn_session='+teacher.token;
  assert.ok((await call('login',{role:'teacher',name:'other',password:'only-for-cloud-check'})).error);
  const cls=(await call('createClassroom',{name:'8 А'},cookie)).result as any;
- conflicts=1;
+ conflicts=6;
  const student=await call('login',{role:'student',name:'Проверка',inviteCode:cls.inviteCode});
  assert.equal(student.error,undefined);
  const sc='cyberlearn_session='+student.token;
+ const dashboard=await call('studentDashboard',{},sc);
+ assert.equal((dashboard.result as any).user.id,(student.result as any).id);
+ assert.deepEqual((dashboard.result as any).tasks,[]);
+ assert.deepEqual((dashboard.result as any).hiddenCourses,[]);
+ assert.ok((await call('studentDashboard',{},cookie)).error,'Учитель не получает ученический экран');
+ saved!.state.classes[cls.id].hiddenCourses=['course_grade4'];
+ saved!.state.tasks[cls.id]=[
+  {id:'draft',assessment:{published:false,questions:[]}},
+  {id:'published',assessment:{published:true,questions:[{id:'q',type:'choice',prompt:'?',points:1,options:['a','b'],correctIndex:1}]}},
+ ] as any;
+ const guarded=await call('studentDashboard',{},sc);
+ assert.deepEqual((guarded.result as any).hiddenCourses,['course_grade4']);
+ assert.deepEqual((guarded.result as any).tasks.map((t:any)=>t.id),['published']);
+ assert.equal((guarded.result as any).tasks[0].assessment.questions[0].correctIndex,undefined,'Ответы не передаются ученику');
+ saved!.state.tasks[cls.id]=[];
+ saved!.state.classes[cls.id].hiddenCourses=[];
  assert.ok((await call('listUsers',{},sc)).error);
  await call('raiseHand',{raised:true},sc);
  assert.ok(((await call('listUsers',{},cookie)).result as any[])[0].helpRequestedAt);

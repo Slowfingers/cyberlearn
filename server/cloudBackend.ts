@@ -3,7 +3,7 @@ import {dispatchSchool,provisionTeacher,withSchoolSnapshot} from './localBackend
 import {firebaseStore,type CloudStore,type CloudSnapshot} from './firebaseStore';
 export async function cloudOperation(store:CloudStore,operation:string,data:Record<string,unknown>,cookie:string,ip:string) {
  const token=operation==='login'?randomBytes(32).toString('hex'):(cookie.match(/(?:^|;\s*)cyberlearn_session=([a-f0-9]{64})/)?.[1] ?? randomBytes(32).toString('hex'));
- for(let attempt=0;attempt<5;attempt++) {
+ for(let attempt=0;attempt<10;attempt++) {
   const {snapshot:stored,etag}=await store.load();
   const original=stored ? JSON.stringify(stored) : undefined;
   const snapshot:CloudSnapshot=stored ?? {state:{version:1,users:{},classes:{},tasks:{},credentials:{}},sessions:{},loginLimits:{}};
@@ -26,6 +26,9 @@ export async function cloudOperation(store:CloudStore,operation:string,data:Reco
   });
   // Conditional writes prevent concurrent requests from losing another pupil's progress.
   if((stored && JSON.stringify(snapshot)===original) || await store.save(snapshot,etag)) return {result,error,token};
+  // Several pupils can save at once. Spread retries out so that requests do
+  // not repeatedly collide on the shared, versioned Firebase snapshot.
+  if(attempt<9) await new Promise(resolve=>setTimeout(resolve,Math.min(400,25*2**attempt)*(0.5+Math.random())));
  }
  throw Error('Класс сейчас активно сохраняет данные. Попробуй ещё раз.');
 }

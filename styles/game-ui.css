@@ -368,3 +368,41 @@ html body .academy-app,html body .academy-home-shell,html body .academy-app .gam
 .academy-app .academy-teacher .text-cyber-neonPink{color:var(--ui-accent);}
 .academy-app .academy-teacher .text-cyber-neonYellow{color:var(--ui-action);}
 .academy-app .typing-workshop span.keycap{cursor:default;pointer-events:none;}
+
+/* Табличная мастерская: заголовок занимает всю ширину и не перекрывается рамкой. */
+.academy-app .game-workspace .spreadsheet-lab > .workshop-header {
+  grid-column: 1 / -1;
+  min-width: 0;
+  padding: 14px 16px !important;
+  margin: 0;
+  align-items: flex-start;
+  gap: 12px;
+}
+.academy-app .game-workspace .spreadsheet-lab .workshop-header-text { min-width: 0; }
+.academy-app .game-workspace .spreadsheet-lab .workshop-header h2 { margin: 0 0 4px; }
+.academy-app .game-workspace .spreadsheet-lab .workshop-header p { max-width: 75ch; line-height: 1.5; }
+.academy-app .game-workspace .spreadsheet-lab > .spreadsheet-address-note { margin: 0; line-height: 1.5; }
+.academy-app .game-workspace .spreadsheet-desktop-table,
+.academy-app .game-workspace .spreadsheet-console { min-width: 0; }
+.academy-app .game-workspace .spreadsheet-lab .cell-insert:not(:disabled) { color: #d8f6ff; }
+.academy-app .game-workspace .spreadsheet-lab .cell-insert:hover:not(:disabled),
+.academy-app .game-workspace .spreadsheet-lab .cell-insert:focus-visible { background: #234761; color: #fff; }
+.academy-app .game-workspace .spreadsheet-console { padding: 16px; }
+.academy-app .game-workspace .spreadsheet-console .formula-keypad { gap: 8px; }
+.academy-app .game-workspace .spreadsheet-console .formula-keypad button { border-radius: 4px; }
+@media (min-width: 1100px) {
+  .academy-app .game-workspace .spreadsheet-lab {
+    display: grid;
+    grid-template-columns: minmax(0, 1.2fr) minmax(340px, 0.8fr);
+    gap: 12px 16px;
+    align-content: start;
+    align-items: start;
+  }
+  .academy-app .game-workspace .spreadsheet-lab > * { margin-top: 0 !important; }
+  .academy-app .game-workspace .spreadsheet-lab > .spreadsheet-address-note { grid-column: 1 / -1; }
+}
+@media (max-width: 760px) {
+  .academy-app .game-workspace .spreadsheet-lab > .workshop-header { padding: 12px !important; }
+  .academy-app .game-workspace .spreadsheet-lab .workshop-header-text { flex: 1 1 160px; }
+  .academy-app .game-workspace .spreadsheet-lab .workshop-tools { margin-left: auto; }
+}

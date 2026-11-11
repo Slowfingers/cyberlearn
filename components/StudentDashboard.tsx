@@ -15,7 +15,7 @@ import { Task, ExecutionResult, User, Course, GridEvent, LessonMode } from '../t
 import { terminalLanguage } from '../services/terminal';
 import {applyCompletedTasks, nextUnfinishedTask} from '../services/taskProgress';
 import { evaluateCodeLocally, shuffledQuiz } from '../services/localEvaluation';
-import { getNextLevelThreshold, getAllTasks, getCoursesWithProgress, buyItem, equipItem, saveTaskProgress, getTaskAttempts, saveTaskAttempts, getHiddenCoursesForStudent, getStreak, recordActivity, StreakData } from '../services/mockBackend';
+import { getNextLevelThreshold, getStudentDashboard, getCoursesWithProgress, buyItem, equipItem, saveTaskProgress, getTaskAttempts, saveTaskAttempts, getStreak, recordActivity, StreakData } from '../services/mockBackend';
 import { fbCompleteTask, callServer } from '../services/firebase';
 import { rewardMultiplier } from '../services/scoring';
 import { stripStandardsPrefix } from '../utils/theoryText';
@@ -268,10 +268,7 @@ const StudentDashboard: React.FC<StudentDashboardProps> = ({ currentUser: propUs
           if (pending) return;
           pending = true;
           try {
-              const [allTasks, hidden] = await Promise.all([
-                  getAllTasks(propUser.id),
-                  getHiddenCoursesForStudent(propUser.id),
-              ]);
+              const {tasks:allTasks, hidden} = await getStudentDashboard(propUser.id);
               if (cancelled) return;
               for(const task of allTasks) if(task.status==='completed') acknowledgedProgress.current.ids.add(task.id);
               const refreshed=applyCompletedTasks(allTasks,acknowledgedProgress.current.ids);
@@ -281,8 +278,10 @@ const StudentDashboard: React.FC<StudentDashboardProps> = ({ currentUser: propUs
           finally { pending = false; }
       };
       void refresh();
-      const timer=setInterval(refresh,10000);
-      return () => { cancelled = true; clearInterval(timer); };
+      const timer=setInterval(() => { if (document.visibilityState === 'visible') void refresh(); },10000);
+      const onVisible = () => { if (document.visibilityState === 'visible') void refresh(); };
+      document.addEventListener('visibilitychange', onVisible);
+      return () => { cancelled = true; clearInterval(timer); document.removeEventListener('visibilitychange', onVisible); };
   }, [propUser.id]);
 
   const filteredTasks = tasks.filter(t => t.courseId === activeCourseId);

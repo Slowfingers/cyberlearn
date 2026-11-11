@@ -125,6 +125,15 @@ export async function localCall<T>(operation: string, data: Record<string, unkno
   let result: unknown = null;
   let changed = false;
   switch(operation) {
+    case 'studentDashboard': {
+      if (user.role !== 'student') throw new Error('Доступно только ученику.');
+      const cls = user.classId ? state.classes[user.classId] : undefined;
+      const tasks = (state.tasks[user.classId ?? ''] ?? [])
+        .filter(t=>!t.assessment || t.assessment.published || state.submissions?.some(s=>s.taskId===t.id && s.studentId===user.id))
+        .map(publicTask);
+      result = {user, tasks, hiddenCourses: cls?.hiddenCourses ?? []};
+      break;
+    }
     case 'listFolders': { if(user.role!=='teacher') throw new Error('Нет доступа.'); result=state.folders ?? []; break; }
     case 'createFolder': { if(user.role!=='teacher') throw new Error('Нет доступа.'); const name=String(data.name ?? '').trim().slice(0,100); if(!name) throw new Error('Укажи название папки.'); state.folders=[...new Set([...(state.folders ?? []),name])]; changed=true; result=state.folders; break; }
     case 'sendReaction': { const student=state.users[String(data.studentId)]; if(student?.role!=='student'||!student.classId) throw new Error('Ученик не найден.'); owned(student.classId); const emoji=String(data.emoji); if(!TEACHER_REACTIONS.some(([value])=>value===emoji)) throw new Error('Неизвестная реакция.'); student.teacherFeedback=[...(student.teacherFeedback??[]).slice(-19),{id:randomBytes(12).toString('hex'),kind:'reaction',emoji,at:Date.now()}];changed=true;break; }

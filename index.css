@@ -1498,3 +1498,53 @@ body { margin:0; background:#0b111d; font-family:system-ui,-apple-system,'Segoe 
 }
 
 .teacher-coins{margin:0 0 24px;padding:16px;border:1px solid #40617d;border-radius:12px;background:#13263c}.teacher-coins h4{display:flex;justify-content:space-between;align-items:center;gap:12px;margin:0 0 12px;font-weight:700}.teacher-coins h4 strong{color:#ffdc78;font:700 22px monospace}.teacher-coins label{display:block;margin:10px 0;font-size:12px;color:#b5cde0}.teacher-coins input{display:block;width:100%;min-width:0;min-height:40px;margin-top:6px;padding:8px 10px;border:1px solid #49677f;border-radius:6px;background:#0d1a2c;color:#edf7ff;font:14px Arial,sans-serif}.teacher-coins>div{display:flex;gap:8px;flex-wrap:wrap;margin-top:14px}.teacher-coins>div button{flex:1;min-width:130px}.teacher-coins p{margin:12px 0 0;font-size:11px;color:#9fbcd1}
+
+/* Пилот: светлый учебный экран первого урока 3 класса. */
+.academy-app .game-workspace .file-lesson-pilot {
+  --pilot-ink: #152844;
+  --pilot-muted: #49627c;
+  background: #f5faff !important;
+  border: 1px solid #d4e6f2 !important;
+  border-radius: 22px !important;
+  box-shadow: 0 12px 32px #06152922 !important;
+  color: var(--pilot-ink);
+  padding: clamp(18px, 3vw, 34px) !important;
+}
+.academy-app .game-workspace .file-lesson-pilot::after,
+.academy-app .game-workspace .file-lesson-pilot .mentor-bubble::after { display: none; }
+.academy-app .game-workspace .file-lesson-pilot .mentor-lesson-header { align-items: center; margin-bottom: 22px; }
+.academy-app .game-workspace .file-lesson-pilot .mentor-lesson-header>div>span { color: #168caa; font-size: 12px; font-weight: 800; letter-spacing: .08em; }
+.academy-app .game-workspace .file-lesson-pilot .mentor-lesson-header h1 { color: #142746 !important; font: 800 clamp(23px, 2.4vw, 32px)/1.2 system-ui, sans-serif; margin-top: 6px; }
+.academy-app .game-workspace .file-lesson-pilot .archive-step { flex: none; color: #167c98; background: #ddf5f7; border-radius: 999px; padding: 8px 14px; font-size: 13px; font-weight: 700; letter-spacing: 0; text-transform: none; }
+.academy-app .game-workspace .file-lesson-pilot .mentor-classroom { grid-template-columns: 120px minmax(0, 1fr); gap: 22px; }
+.academy-app .game-workspace .file-lesson-pilot .mentor-teacher strong { color: #284761; }
+.academy-app .game-workspace .file-lesson-pilot .mentor-board { background: transparent; border: 0; }
+.academy-app .game-workspace .file-lesson-pilot .archive-stage-title { color: #152844 !important; font: 750 clamp(19px, 2vw, 24px)/1.3 system-ui, sans-serif; margin: 0 0 10px; }
+.academy-app .game-workspace .file-lesson-pilot .mentor-bubble { background: #e7f5fc !important; border: 0; border-radius: 16px; color: #294c66; padding: 14px 18px; font-size: 16px; line-height: 1.6; }
+.academy-app .game-workspace .file-lesson-pilot .archive-scene { margin: 16px 0; padding: clamp(18px, 3vw, 28px); border: 0; border-radius: 18px; background: radial-gradient(circle at 50% 10%, #245d7e, transparent 55%), #142d51; }
+.academy-app .game-workspace .file-lesson-pilot .archive-parcel { gap: 12px; margin-bottom: 18px; color: #fff; }
+.academy-app .game-workspace .file-lesson-pilot .archive-parcel>svg { width: 50px; height: 50px; color: #73e7f5; }
+.academy-app .game-workspace .file-lesson-pilot .archive-parcel strong { font-size: clamp(24px, 3vw, 32px); }
+.academy-app .game-workspace .file-lesson-pilot .archive-parcel mark { padding: 3px 7px; border-radius: 7px; background: #ffe186; }
+.academy-app .game-workspace .file-lesson-pilot .archive-parcel small { color: #d3eaff; }
+.academy-app .game-workspace .file-lesson-pilot .lesson-worked-items>div { background: #ffffff14; border: 1px solid #ffffff20; border-radius: 12px; padding: 14px; }
+.academy-app .game-workspace .file-lesson-pilot .file-type-choices .ui-button { min-height: 72px; border: 1px solid #86e0ec; border-radius: 12px; background: #edfaff; color: #17435b; font-family: inherit; font-weight: 700; }
+.academy-app .game-workspace .file-lesson-pilot .file-type-choices .ui-button::before { display: none; }
+.academy-app .game-workspace .file-lesson-pilot .file-type-choices .ui-button:hover:not(:disabled),
+.academy-app .game-workspace .file-lesson-pilot .file-type-choices .ui-button[aria-pressed=true] { background: #c3f3ef; border-color: #30b9af; }
+.academy-app .game-workspace .file-lesson-pilot .archive-sample-count { color: #526b82; }
+.academy-app .game-workspace .file-lesson-pilot :is(.mentor-feedback,.mentor-practice-brief) { background: #e9f6f4 !important; color: #254e50; border: 1px solid #b6e2d8; border-radius: 14px; }
+.academy-app .game-workspace .file-lesson-pilot .mentor-practice-brief h2 { color: #187c79 !important; }
+.academy-app .game-workspace .file-lesson-pilot .mentor-dialog-actions { gap: 10px; margin-top: 18px; }
+.academy-app .game-workspace .file-lesson-pilot .mentor-dialog-actions .ui-button { border: 1px solid #b9d8e4; border-radius: 12px; background: #fff; color: #244860; }
+.academy-app .game-workspace .file-lesson-pilot .mentor-dialog-actions .ui-button--primary { background: #18a9bd; border-color: #18a9bd; color: #fff; }
+.academy-app .game-workspace .file-lesson-pilot .mentor-dialog-actions .ui-button::before { display: none; }
+.academy-app .game-workspace .file-lesson-pilot .mentor-lesson-footer { border-color: #d4e5ee; }
+@media (max-width: 760px) {
+  .academy-app .game-workspace .file-lesson-pilot { border-radius: 16px !important; }
+  .academy-app .game-workspace .file-lesson-pilot .mentor-lesson-header { gap: 10px; flex-wrap: wrap; }
+  .academy-app .game-workspace .file-lesson-pilot .mentor-classroom { grid-template-columns: minmax(0, 1fr); gap: 10px; }
+  .academy-app .game-workspace .file-lesson-pilot .mentor-teacher { flex-direction: row; gap: 10px; padding: 0; }
+  .academy-app .game-workspace .file-lesson-pilot .mentor-teacher .mentor-character { width: 38px; height: 76px; }
+  .academy-app .game-workspace .file-lesson-pilot .mentor-teacher strong { margin: 0; }
+}

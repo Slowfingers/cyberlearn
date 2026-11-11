@@ -2,7 +2,7 @@
 import { User, Classroom, StudentProgress, Task } from "../types";
 import { LEVEL_THRESHOLDS } from '../curriculum/playerCatalog';
 import { COURSES } from '../curriculum/courseCatalog';
-import { fbGetClassrooms, fbCreateClassroom, fbUpdateClassroom, fbDeleteClassroom, fbGetUsers, fbGetUser, fbGetTasks, fbCreateTask, fbLogin, callServer } from './firebase';
+import { fbGetClassrooms, fbCreateClassroom, fbUpdateClassroom, fbDeleteClassroom, fbGetUsers, fbGetUser, fbGetTasks, fbCreateTask, fbLogin, callServer, LOCAL_SERVER } from './firebase';
 import {uniqueTaskCatalog, applyCompletedTasks} from './taskProgress';
 import { readStoredJSON, writeStoredJSON } from '../utils/storage';
 
@@ -101,6 +101,22 @@ export const saveTaskAttempts = (userId: string, attempts: Record<string, number
 };
 
 // --- DATA FETCHING ---
+
+export const getStudentDashboard = async (userId: string): Promise<{tasks:Task[];hidden:string[]}> => {
+    if (!LOCAL_SERVER) {
+        const [tasks, hidden] = await Promise.all([getAllTasks(userId), getHiddenCoursesForStudent(userId)]);
+        return {tasks, hidden};
+    }
+    const [{MOCK_TASKS}, snapshot] = await Promise.all([
+        import('../constants'),
+        callServer<{user:User;tasks:Task[];hiddenCourses:string[]}>('studentDashboard'),
+    ]);
+    if (!snapshot.user || snapshot.user.id !== userId) throw new Error('Сеанс ученика изменился. Войди снова.');
+    return {
+        tasks: applyCompletedTasks(uniqueTaskCatalog(MOCK_TASKS, snapshot.tasks), snapshot.user.completedTaskIds || []),
+        hidden: snapshot.hiddenCourses,
+    };
+};
 
 export const getAllTasks = async (userId?: string): Promise<Task[]> => {
     const [{ MOCK_TASKS }, custom] = await Promise.all([import('../constants'), fbGetTasks()]);

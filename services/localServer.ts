@@ -20,7 +20,10 @@ export function observeServer(callback:(user:User|null,error?:unknown)=>void) {
   finally {pending=false;}
  };
  const onVisible=()=>{if(document.visibilityState==='visible')void refresh();};
- void refresh(); const timer=window.setInterval(refresh,3000);
+ // Do not poll an empty session or a background tab. Login, focus and returning
+ // to the page still trigger an immediate refresh through the events below.
+ const poll=()=>{if(document.visibilityState==='visible' && previous!=='null')void refresh();};
+ void refresh(); const timer=window.setInterval(poll,15000);
  window.addEventListener('cyberlearn-session',refresh);window.addEventListener('focus',refresh);document.addEventListener('visibilitychange',onVisible);
  return ()=>{cancelled=true;window.clearInterval(timer);window.removeEventListener('cyberlearn-session',refresh);window.removeEventListener('focus',refresh);document.removeEventListener('visibilitychange',onVisible);};
 }
