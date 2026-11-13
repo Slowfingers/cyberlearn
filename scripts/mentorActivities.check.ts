@@ -5,6 +5,7 @@ import { MOCK_TASKS } from '../constants';
 import { CLEAR_EXPLANATIONS } from '../curriculum/clearExplanations';
 import { MENTOR_QUESTIONS, getMentorQuestion } from '../curriculum/mentorActivities';
 import { BigMascotTheoryStory } from '../components/BigMascotTheoryStory';
+import { GRADE3_WORKED_EXAMPLES } from '../curriculum/grade3WorkedExamples';
 for (const [topic, activity] of Object.entries(MENTOR_QUESTIONS)) {
 
   assert.equal(activity.options.length, 3);
@@ -13,6 +14,14 @@ for (const [topic, activity] of Object.entries(MENTOR_QUESTIONS)) {
   assert.ok(activity.options.every(option => option.feedback.length > 20));
 }
 const theoryTasks = MOCK_TASKS.filter(task => /^course_grade[3-8]$/.test(task.courseId));
+const grade3ExampleIds = theoryTasks.filter(task => /^g3_m(?:[3-9]|10)_l[1-7]$/.test(task.id)).map(task => task.id);
+assert.equal(grade3ExampleIds.length, 56);
+assert.deepEqual(Object.keys(GRADE3_WORKED_EXAMPLES).sort(), grade3ExampleIds.sort());
+for (const [id, steps] of Object.entries(GRADE3_WORKED_EXAMPLES)) {
+  assert.equal(steps.length, 3, id);
+  assert.equal(new Set(steps.map(([label]) => label)).size, 3, id);
+  assert.ok(steps.every(([label, detail]) => label.trim() && detail.trim()), id);
+}
 for (const task of theoryTasks) {
   const activity = getMentorQuestion(task);
   assert.equal(activity.options.length, 3, task.id);

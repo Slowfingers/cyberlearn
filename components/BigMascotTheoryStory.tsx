@@ -7,6 +7,8 @@ import React, { useEffect, useRef, useState } from 'react';
 import { ArrowRight, ChevronLeft, Check, Lightbulb, MessageCircle, RotateCcw, Volume2, VolumeX } from 'lucide-react';
 import { LessonCharacter as BigCharacter3D, useLessonCharacterName, LessonPlayerContext } from './LessonCharacter';
 import { LessonWorkedExample } from './LessonWorkedExample';
+import { Grade3WorkedExample } from './Grade3WorkedExample';
+import { GRADE3_WORKED_EXAMPLES } from '../curriculum/grade3WorkedExamples';
 import { MentorExperiment } from './MentorExperiment';
 import { LessonDemo } from './LessonDemo';
 import { getMentorQuestion } from '../curriculum/mentorActivities';
@@ -47,6 +49,7 @@ const PlayerTheoryStory: React.FC<Props> = ({ task, onStartPractice, practiceGoa
   const chunks = paragraphs.length > 1 ? paragraphs : ['course_grade3','course_grade4','course_grade5'].includes(task.courseId) ? sentences.reduce<string[]>((blocks,sentence,i)=>{if(i%2===0)blocks.push(sentence);else blocks[blocks.length-1]+=' '+sentence;return blocks;},[]) : sentences;
   const [stage, setStage] = useState(0);
   const [chunk, setChunk] = useState(0);
+  const [exampleStep, setExampleStep] = useState(0);
   const [speaking, setSpeaking] = useState(false);
   const [showSteps, setShowSteps] = useState(false);
   const [reactionKey, setReactionKey] = useState(0);
@@ -54,13 +57,14 @@ const PlayerTheoryStory: React.FC<Props> = ({ task, onStartPractice, practiceGoa
   const panelRef = useRef<HTMLDivElement>(null);
   const speechRef = useRef<SpeechSynthesisUtterance | null>(null);
   const question = getMentorQuestion(task);
+  const grade3Example = GRADE3_WORKED_EXAMPLES[task.id];
   // Stable permutation prevents the correct choice always occupying the same position.
   const shift = [...task.id].reduce((sum, letter) => sum + letter.charCodeAt(0), 0) % 3;
   const order = question ? question.options.map((_, i) => (i + shift) % question.options.length) : [];
   const correct = question && answer === question.correct;
   const goal = practiceGoal ?? lesson?.goal ?? story.intro;
   const mentorSpeech = stage === 0 ? chunks[chunk] || story.intro
-    : stage === 1 ? `Давай разберём пример. ${lesson?.example ?? story.intro}`
+    : stage === 1 ? grade3Example?.[exampleStep].join('. ') ?? lesson?.example ?? story.intro
     : stage === 2 ? (answer !== undefined && question ? question.options[answer].feedback : question?.prompt ?? lesson?.reflection ?? `Как ты объяснишь тему «${story.title}» своими словами?`)
     : `Теперь твоя очередь. ${goal} ${lesson?.success ?? ''}`;
   const cancelSpeech = () => {
@@ -70,10 +74,10 @@ const PlayerTheoryStory: React.FC<Props> = ({ task, onStartPractice, practiceGoa
     setSpeaking(false);
   };
   useEffect(() => {
-    setStage(0); setChunk(0); setShowSteps(false); setAnswer(undefined);
+    setStage(0); setChunk(0); setExampleStep(0); setShowSteps(false); setAnswer(undefined);
     return () => { if (speechRef.current) { speechRef.current.onend = null; speechRef.current.onerror = null; } window.speechSynthesis?.cancel(); };
   }, [task.id]);
-  useEffect(() => { cancelSpeech(); }, [stage, chunk, answer, task.id]);
+  useEffect(() => { cancelSpeech(); }, [stage, chunk, exampleStep, answer, task.id]);
   const move = (next: number) => {
     setStage(next);
     requestAnimationFrame(() => panelRef.current?.focus({ preventScroll: true }));
@@ -99,14 +103,18 @@ const PlayerTheoryStory: React.FC<Props> = ({ task, onStartPractice, practiceGoa
     <div className="mentor-classroom">
       <aside className="mentor-teacher"><div className="mentor-teacher-halo"/><BigCharacter3D skin={mascotSkinItemId} isSpeaking={speaking} reactionKey={reactionKey} mood={stage === 2 && answer !== undefined ? correct ? 'celebrate' : 'thinking' : 'idle'}/><strong>{mentorName}</strong><span>{speaking ? 'Объясняю…' : correct && stage === 2 ? 'Отлично разобрались!' : 'Давай разберём вместе'}</span></aside>
       <div className="mentor-board" ref={panelRef} tabIndex={-1} aria-label={STAGES[stage]}>
-        <div className="mentor-bubble"><div className="mentor-bubble-label"><MessageCircle size={15}/>{mentorName}</div>
+        {!(stage === 1 && grade3Example) && <div className="mentor-bubble"><div className="mentor-bubble-label"><MessageCircle size={15}/>{mentorName}</div>
           {stage === 0 && <p key={chunk} className="mentor-main-speech" aria-live="polite">{chunks[chunk] || story.intro}</p>}
           {stage === 1 && <p className="mentor-example-text">{lesson?.example ?? story.intro}</p>}
           {stage === 2 && <><p className="mentor-opening">Теперь рассуждаем вместе. Здесь можно пробовать и исправляться.</p><h2 className="mentor-main-speech">{question?.prompt ?? lesson?.reflection ?? `Как ты объяснишь тему «${story.title}» своими словами?`}</h2></>}
           {stage === 3 && <><p className="mentor-main-speech">Теперь ты готов попробовать сам!</p><p>{goal}</p></>}
-        </div>
+        </div>}
         {stage === 0 && <div className="mentor-explanation-progress" aria-label={`Идея ${chunk + 1} из ${Math.max(chunks.length, 1)}`}>{chunks.map((_, i) => <GameButton size="compact" key={i} aria-label={`Показать часть ${i + 1}`} aria-current={chunk === i ? 'step' : undefined} onClick={() => setChunk(i)}>{i+1}</GameButton>)}</div>}
-        {stage === 1 && (lesson?.demo ? <LessonDemo key={task.id} task={task}/> : /^g3_m1_l[1-7]$/.test(task.id) ? <LessonWorkedExample taskId={task.id}/> : <MentorExperiment key={task.id} topic={lesson?.topic}/>)}
+        {stage === 1 && (grade3Example
+          ? <Grade3WorkedExample taskId={task.id} step={exampleStep} onStep={setExampleStep}/>
+          : lesson?.demo ? <LessonDemo key={task.id} task={task}/>
+          : /^g3_m1_l[1-7]$/.test(task.id) ? <LessonWorkedExample taskId={task.id}/>
+          : <MentorExperiment key={task.id} topic={lesson?.topic}/>)}
         {stage === 2 && <>
           <div className="mentor-answer-list">{order.map(index => <GameButton size="compact" key={index} disabled={!!correct} onClick={() => {setAnswer(index);setReactionKey(key=>key+1);}} className={answer === index ? correct ? 'is-correct' : 'is-retry' : ''} aria-pressed={answer === index}>{question.options[index].text}{answer === index && correct && <Check size={20}/>}</GameButton>)}</div>
           {answer !== undefined && <div className={`mentor-feedback ${correct ? 'is-correct' : ''}`} role="status"><strong>{correct ? 'Да, ты понял!' : 'Давай проверим мысль.'}</strong><p>{question.options[answer].feedback}</p>{!correct && <small>Можно выбрать другой вариант.</small>}</div>}
@@ -123,6 +131,6 @@ const PlayerTheoryStory: React.FC<Props> = ({ task, onStartPractice, practiceGoa
         </div>
       </div>
     </div>
-    <footer className="mentor-lesson-footer"><GameButton size="compact" onClick={() => { setChunk(0); setAnswer(undefined); move(0); }}><RotateCcw size={15}/> Повторить объяснение</GameButton>{stage < 3 && <GameButton size="compact" onClick={() => move(3)}>Пропустить объяснение<ArrowRight size={15}/></GameButton>}</footer>
+    <footer className="mentor-lesson-footer"><GameButton size="compact" onClick={() => { setChunk(0); setExampleStep(0); setAnswer(undefined); move(0); }}><RotateCcw size={15}/> Повторить объяснение</GameButton>{stage < 3 && <GameButton size="compact" onClick={() => move(3)}>Пропустить объяснение<ArrowRight size={15}/></GameButton>}</footer>
   </article>;
 };

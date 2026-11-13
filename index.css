@@ -1548,3 +1548,112 @@ body { margin:0; background:#0b111d; font-family:system-ui,-apple-system,'Segoe 
   .academy-app .game-workspace .file-lesson-pilot .mentor-teacher .mentor-character { width: 38px; height: 76px; }
   .academy-app .game-workspace .file-lesson-pilot .mentor-teacher strong { margin: 0; }
 }
+
+.grade3-worked-example {
+  display: grid;
+  gap: 16px;
+  margin: 0 0 16px;
+  padding: clamp(12px, 3vw, 24px);
+  color: #16344c;
+  background: #edf8fc;
+  border: 1px solid #bedce8;
+  border-radius: 16px;
+}
+.grade3-example-step {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr);
+  align-items: start;
+  gap: 12px;
+}
+.grade3-example-step > svg { color: #147785; }
+.grade3-example-step h2 { margin: 0 0 6px; font-size: clamp(18px, 2vw, 23px); }
+.grade3-example-step p { margin: 0; line-height: 1.55; overflow-wrap: anywhere; }
+.grade3-example-controls {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: space-between;
+  align-items: center;
+  gap: 8px;
+}
+.grade3-example-controls > span { font-variant-numeric: tabular-nums; color: #365770; }
+.grade3-mini-grid, .grade3-pixels {
+  display: grid;
+  justify-content: center;
+  grid-template-columns: repeat(2, minmax(0, 42px));
+  gap: 4px;
+}
+.grade3-pixels { grid-template-columns: repeat(3, minmax(0, 36px)); }
+.grade3-mini-grid span, .grade3-pixels span, .grade3-number-row span {
+  display: grid;
+  place-items: center;
+  min-height: 36px;
+  border: 1px solid #a9cbd8;
+  border-radius: 6px;
+  background: #fff;
+  font-weight: 700;
+}
+.grade3-mini-grid span[data-active=true], .grade3-number-row span[data-active=true] {
+  background: #a7e9e0;
+  border-color: #3a9d97;
+}
+.grade3-mini-grid span { font-size: 22px; }
+.grade3-pixels span[data-color="1"] { background: #b72f50; color: #fff; }
+.grade3-pixels span[data-color="2"] { background: #207247; color: #fff; }
+.grade3-number-row, .grade3-bars {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  align-items: center;
+  gap: 8px;
+}
+.grade3-number-row span { min-width: 32px; padding: 0 6px; }
+.grade3-bars { align-items: end; }
+.grade3-bars > div { display: grid; gap: 4px; text-align: center; }
+.grade3-bars span {
+  display: grid;
+  place-items: center;
+  width: 50px;
+  background: #146b82;
+  border-radius: 6px 6px 0 0;
+  color: #fff;
+  font-weight: 700;
+}
+.grade3-example-code, .grade3-flow {
+  margin: 0;
+  padding: 12px;
+  border-radius: 10px;
+  background: #fff;
+}
+.grade3-example-code { overflow-x: auto; }
+.grade3-example-code mark { background: transparent; color: inherit; }
+.grade3-example-code mark[data-active=true] { background: #bceee7; }
+.grade3-flow {
+  display: grid;
+  gap: 6px;
+  list-style: none;
+}
+.grade3-flow > * { margin: 0; padding: 6px; border-radius: 4px; overflow-wrap: anywhere; }
+.grade3-flow > [data-active=true] { background: #d4f4ed; }
+.grade3-wireframe { max-width: 340px; width: 100%; margin-inline: auto; }
+.grade3-wireframe > li { border: 1px solid #bedce8; }
+.grade3-html-preview, .grade3-sheet {
+  padding: 12px;
+  border-radius: 10px;
+  background: #fff;
+  text-align: center;
+}
+.grade3-html-preview:empty { display: none; }
+.grade3-html-preview strong { font-size: 21px; }
+.grade3-html-preview p, .grade3-sheet p { margin: 8px 0 0; }
+.grade3-sample-button {
+  display: inline-block;
+  padding: 6px 12px;
+  border: 1px solid #8db3c7;
+  border-radius: 6px;
+  background: #edf6fb;
+}
+.grade3-sheet dl { display: flex; justify-content: center; flex-wrap: wrap; gap: 6px; margin: 0; }
+.grade3-sheet dl > div { min-width: 48px; border: 1px solid #b6d2de; border-radius: 6px; }
+.grade3-sheet dt { background: #e1eef5; font-size: 13px; }
+.grade3-sheet dd { margin: 0; padding: 4px; font-weight: 700; }
+.grade3-sheet [data-active=true] dd { background: #d4f4ed; }
